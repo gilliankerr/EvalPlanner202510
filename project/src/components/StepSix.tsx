@@ -675,45 +675,21 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         
-        /* Enhanced Table Styles */
-        .timeline-table {
-            background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
-            border-left: 4px solid #f59e0b;
-        }
-        
-        .timeline-table th {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: #92400e;
-        }
-        
-        .stakeholder-table {
-            background: linear-gradient(135deg, #ecfdf5 0%, #dcfce7 100%);
-            border-left: 4px solid #10b981;
-        }
-        
-        .stakeholder-table th {
-            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
-            color: #064e3b;
-        }
-        
-        .evaluation-table {
-            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
-            border-left: 4px solid #8b5cf6;
-        }
-        
-        .evaluation-table th {
-            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
-            color: #4c1d95;
-        }
-        
+        /* Enhanced Table Styles - Using Theme Colors */
+        .timeline-table,
+        .stakeholder-table,
+        .evaluation-table,
         .metrics-table {
-            background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
-            border-left: 4px solid #ec4899;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid #2563eb;
         }
         
+        .timeline-table th,
+        .stakeholder-table th,
+        .evaluation-table th,
         .metrics-table th {
-            background: linear-gradient(135deg, #f9a8d4 0%, #ec4899 100%);
-            color: #831843;
+            background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+            color: #1e3a8a;
         }
         
         .standard-table {
@@ -897,19 +873,13 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
     <nav class="bg-slate-900 text-white px-6 py-4 no-print sticky top-0 z-50">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="p-2 bg-blue-600 rounded">
-                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
-                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 001 1h6a1 1 0 001-1V3a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm8 8v2a1 1 0 11-2 0v-2a1 1 0 112 0zm-6 0v2a1 1 0 11-2 0v-2a1 1 0 112 0z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>
                 <div>
                     <h1 class="text-lg font-semibold">Evaluation Plan Report</h1>
                     <p class="text-sm text-slate-300">${DOMPurify.sanitize(programData.organizationName)}</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium transition-colors">
+                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium transition-colors">
                     Print / Save PDF
                 </button>
             </div>

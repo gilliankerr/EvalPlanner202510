@@ -48,6 +48,8 @@ The project is configured for the Replit environment:
 - Set up frontend workflow with proper port configuration
 - Verified application runs correctly in Replit environment
 - **Fixed deployment directory issue**: Added root-level package.json proxy to handle Replit's auto npm detection and directory mismatch
+- **Completely overhauled HTML report generation**: Replaced custom markdown parser with professional marked library, added logic model SVG diagrams, enhanced table styling, improved responsive design, and added security sanitization
+- **Updated HTML report styling**: Removed navigation graphic, enabled functional print-to-PDF button, and standardized all table formatting to consistent blue theme colors
 
 ## File Structure
 ```
