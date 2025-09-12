@@ -912,6 +912,88 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
                 margin: 0.75rem 0;
             }
         }
+        
+        /* Left Column Layout CSS - Replace Tailwind classes */
+        .flex {
+            display: flex;
+        }
+        
+        .max-w-6xl {
+            max-width: 72rem;
+        }
+        
+        .mx-auto {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .w-64 {
+            width: 16rem;
+        }
+        
+        .bg-slate-50 {
+            background-color: #f8fafc;
+        }
+        
+        .min-h-screen {
+            min-height: 100vh;
+        }
+        
+        .p-6 {
+            padding: 1.5rem;
+        }
+        
+        .flex-1 {
+            flex: 1 1 0%;
+        }
+        
+        .no-print {
+            /* Hide when printing */
+        }
+        
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+        
+        /* TOC Specific Styling */
+        aside h3 {
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 1rem;
+        }
+        
+        aside nav {
+            font-size: 0.875rem;
+        }
+        
+        aside nav a {
+            display: block;
+            padding: 0.25rem 0;
+            color: #64748b;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        aside nav a:hover {
+            color: #1e293b;
+        }
+        
+        /* Responsive: Stack on smaller screens */
+        @media (max-width: 768px) {
+            .flex {
+                display: block;
+            }
+            
+            .w-64 {
+                width: 100%;
+                min-height: auto;
+                margin-bottom: 1rem;
+                padding: 1rem;
+                border-radius: 0.5rem;
+            }
+        }
     </style>
 </head>
 <body class="bg-white">
