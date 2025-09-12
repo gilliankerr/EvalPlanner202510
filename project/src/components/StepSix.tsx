@@ -81,7 +81,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
           </filter>
           <marker id="arrowhead-${uid}" markerWidth="10" markerHeight="7" 
                   refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#0085ca" />
+            <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
           </marker>
         </defs>
     `;
@@ -132,7 +132,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         
         svg += `
           <line x1="${arrowStartX}" y1="${arrowY}" x2="${arrowEndX}" y2="${arrowY}" 
-                stroke="#0085ca" stroke-width="2" marker-end="url(#arrowhead-${uid})"/>
+                stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowhead-${uid})"/>
         `;
       }
     });
@@ -414,7 +414,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             color: #0f172a;
             margin: 2rem 0 1rem 0;
             padding-bottom: 1rem;
-            border-bottom: 3px solid #0085ca;
+            border-bottom: 3px solid #2563eb;
             text-align: center;
         }
         
@@ -445,7 +445,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             left: 0;
             width: 60px;
             height: 2px;
-            background: #0085ca;
+            background: #2563eb;
         }
         
         /* Subsection Headings */
@@ -455,7 +455,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             color: #374151;
             margin: 2.5rem 0 1rem 0;
             padding-left: 1rem;
-            border-left: 4px solid #0085ca;
+            border-left: 4px solid #3b82f6;
         }
         
         h4 {
@@ -612,7 +612,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         }
         
         .toc-item a:hover {
-            color: #0085ca;
+            color: #2563eb;
         }
         
         .highlight-box {
@@ -647,7 +647,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         .hljs-keyword { color: #7c3aed; font-weight: 600; }
         .hljs-string { color: #059669; }
         .hljs-number { color: #dc2626; }
-        .hljs-function { color: #0085ca; }
+        .hljs-function { color: #2563eb; }
         .hljs-variable { color: #b45309; }
         
         /* Logic Model Diagram Styles */
@@ -688,7 +688,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         .stakeholder-table th,
         .evaluation-table th,
         .metrics-table th {
-            background: linear-gradient(135deg, #38bdf8 0%, #0085ca 100%);
+            background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
             color: #1e3a8a;
         }
         
@@ -718,7 +718,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             position: absolute;
             top: 1rem;
             left: -0.75rem;
-            background: #0085ca;
+            background: #2563eb;
             color: white;
             width: 1.5rem;
             height: 1.5rem;
@@ -870,7 +870,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
 </head>
 <body class="bg-white">
     <!-- Navigation Header -->
-    <nav class="bg-[#ed8b00] text-white px-6 py-4 no-print sticky top-0 z-50">
+    <nav class="bg-slate-900 text-white px-6 py-4 no-print sticky top-0 z-50">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <div>
@@ -879,7 +879,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <button onclick="window.print()" class="bg-[#0085ca] hover:bg-[#006ba6] px-4 py-2 rounded text-sm font-medium transition-colors">
+                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium transition-colors">
                     Print / Save PDF
                 </button>
             </div>
@@ -904,7 +904,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
     </div>
 
     <!-- Footer -->
-    <footer class="bg-[#ed8b00] text-white mt-16">
+    <footer class="bg-slate-900 text-white mt-16">
         <div class="max-w-6xl mx-auto px-6 py-8">
             <div class="text-center">
                 <p class="text-slate-400 mb-2">
@@ -967,12 +967,12 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       <div className="space-y-6">
         {/* Status Card */}
         <div className={`p-6 rounded-lg border ${
-          renderStatus === 'rendering' ? 'bg-primary-50 border-primary-200' :
+          renderStatus === 'rendering' ? 'bg-blue-50 border-blue-200' :
           renderStatus === 'complete' ? 'bg-green-50 border-green-200' :
           'bg-slate-50 border-slate-200'
         }`}>
           <div className="flex items-center space-x-3">
-            {renderStatus === 'rendering' && <Loader2 className="h-6 w-6 animate-spin text-primary-600" />}
+            {renderStatus === 'rendering' && <Loader2 className="h-6 w-6 animate-spin text-blue-600" />}
             {renderStatus === 'complete' && <CheckCircle className="h-6 w-6 text-green-600" />}
             
             <div>
@@ -993,7 +993,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         {/* Success Actions */}
         {renderStatus === 'complete' && (
           <>
-            <div className="bg-gradient-to-r from-green-50 to-primary-50 rounded-lg p-6 border border-green-200">
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 border border-green-200">
               <div className="text-center">
                 <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-slate-900 mb-2">
@@ -1072,7 +1072,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             </div>
 
             {/* Next Steps */}
-            <div className="bg-primary-50 rounded-lg p-6 border border-primary-200">
+            <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
               <h4 className="text-lg font-semibold text-slate-900 mb-3">Next Steps</h4>
               <div className="space-y-2 text-sm text-slate-700">
                 <div>1. <strong>Review the evaluation plan</strong> with your team and stakeholders</div>

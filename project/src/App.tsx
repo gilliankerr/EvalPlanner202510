@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { FileText, Globe, Brain, Clipboard, FileOutput, Download, Loader2, ChevronRight, Check } from 'lucide-react';
 import StepOne from './components/StepOne';
 import StepTwo from './components/StepTwo';
@@ -141,7 +141,7 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-primary-600 rounded-lg">
+              <div className="p-2 bg-blue-600 rounded-lg">
                 <FileText className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -150,7 +150,7 @@ function App() {
               </div>
             </div>
             {isProcessing && (
-              <div className="flex items-center space-x-2 text-primary-600">
+              <div className="flex items-center space-x-2 text-blue-600">
                 <Loader2 className="h-5 w-5 animate-spin" />
                 <span className="text-sm font-medium">Processing...</span>
               </div>
@@ -170,7 +170,7 @@ function App() {
                     completedSteps.includes(step.id) 
                       ? 'bg-green-600 border-green-600 text-white' 
                       : currentStep === step.id 
-                        ? 'bg-primary-600 border-primary-600 text-white' 
+                        ? 'bg-blue-600 border-blue-600 text-white' 
                         : 'bg-white border-slate-300 text-slate-400'
                   }`}>
                     {completedSteps.includes(step.id) ? (
@@ -181,7 +181,7 @@ function App() {
                   </div>
                   <div className="text-center">
                     <p className={`text-sm font-medium ${
-                      currentStep === step.id ? 'text-primary-600' : 
+                      currentStep === step.id ? 'text-blue-600' : 
                       completedSteps.includes(step.id) ? 'text-green-600' : 'text-slate-500'
                     }`}>
                       {step.title}
@@ -208,7 +208,7 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-footer text-white mt-16">
+      <footer className="bg-slate-900 text-white mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <p className="text-slate-400">

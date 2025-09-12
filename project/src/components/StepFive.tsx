@@ -443,7 +443,7 @@ Now customize this entire template for the specific program described in the pro
           'bg-slate-50 border-slate-200'
         }`}>
           <div className="flex items-center space-x-3">
-            {planStatus === 'generating' && <Loader2 className="h-6 w-6 animate-spin text-primary-600" />}
+            {planStatus === 'generating' && <Loader2 className="h-6 w-6 animate-spin text-blue-600" />}
             {planStatus === 'complete' && <CheckCircle className="h-6 w-6 text-green-600" />}
             {planStatus === 'error' && <AlertCircle className="h-6 w-6 text-red-600" />}
             
@@ -518,7 +518,7 @@ Now customize this entire template for the specific program described in the pro
                   {planResult.substring(0, 2000)}...
                   
                   {planResult.length > 2000 && (
-                    <span className="text-primary-600 font-medium">
+                    <span className="text-blue-600 font-medium">
                       [Preview truncated - Full plan will be displayed in final HTML report]
                     </span>
                   )}

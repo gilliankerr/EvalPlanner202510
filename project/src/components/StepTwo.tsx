@@ -224,7 +224,7 @@ Please manually copy relevant content from ${url} and include it in your program
   const getStatusIcon = (status: 'pending' | 'success' | 'error') => {
     switch (status) {
       case 'pending':
-        return <Loader2 className="h-5 w-5 animate-spin text-primary-600" />;
+        return <Loader2 className="h-5 w-5 animate-spin text-blue-600" />;
       case 'success':
         return <CheckCircle className="h-5 w-5 text-green-600" />;
       case 'error':
@@ -320,7 +320,7 @@ Please manually copy relevant content from ${url} and include it in your program
                   <p className="text-sm text-slate-500">
                     {getStatusText(status)}
                     {urlsFromText.includes(url) && (
-                      <span className="ml-2 text-xs text-primary-600">(from description)</span>
+                      <span className="ml-2 text-xs text-blue-600">(from description)</span>
                     )}
                   </p>
                 </div>
@@ -337,7 +337,7 @@ Please manually copy relevant content from ${url} and include it in your program
           {Object.keys(scrapingProgress).length > 0 && (
             <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <div className="flex items-start space-x-3">
-                <Loader2 className="h-5 w-5 animate-spin text-primary-600 mt-0.5" />
+                <Loader2 className="h-5 w-5 animate-spin text-blue-600 mt-0.5" />
                 <div>
                   <h4 className="text-sm font-medium text-blue-900">Processing URLs</h4>
                   <p className="text-sm text-blue-700 mt-1">
