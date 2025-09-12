@@ -24,7 +24,7 @@ const steps = [
   { id: 3, title: 'Program Analysis', icon: Brain, description: 'AI-powered program model analysis' },
   { id: 4, title: 'Evaluation Framework', icon: Clipboard, description: 'Generate evaluation framework' },
   { id: 5, title: 'Plan Generation', icon: FileOutput, description: 'Create comprehensive plan' },
-  { id: 6, title: 'HTML Report', icon: Download, description: 'Render final report' }
+  { id: 6, title: 'Document Generation', icon: Download, description: 'Render final report' }
 ];
 
 function App() {

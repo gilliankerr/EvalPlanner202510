@@ -951,8 +951,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             <Download className="h-6 w-6 text-indigo-600" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">HTML Report Generation</h2>
-            <p className="text-slate-600">Creating beautifully formatted HTML report for your evaluation plan</p>
+            <h2 className="text-2xl font-bold text-slate-900">Document Generation</h2>
           </div>
         </div>
       </div>
@@ -1003,78 +1002,12 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
                     className="flex items-center justify-center space-x-2 px-8 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200"
                   >
                     <Download className="h-5 w-5" />
-                    <span>Download HTML</span>
+                    <span>Download Evaluation Plan</span>
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Report Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
-                <FileText className="h-8 w-8 text-slate-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-slate-900">{Math.ceil(htmlContent.length / 5000)}</div>
-                <div className="text-sm text-slate-600">Pages (est.)</div>
-              </div>
-              
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
-                <div className="text-2xl font-bold text-slate-900">{programData.evaluationPlan.split('#').length - 1}</div>
-                <div className="text-sm text-slate-600">Sections</div>
-              </div>
-              
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
-                <div className="text-2xl font-bold text-slate-900">{Math.ceil(programData.evaluationPlan.length / 100)}</div>
-                <div className="text-sm text-slate-600">Words (est.)</div>
-              </div>
-              
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
-                <div className="text-2xl font-bold text-slate-900">✓</div>
-                <div className="text-sm text-slate-600">Print Ready</div>
-              </div>
-            </div>
-
-            {/* Report Features */}
-            <div className="bg-slate-50 rounded-lg p-6 border border-slate-200">
-              <h4 className="text-lg font-semibold text-slate-900 mb-4">Report Features</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <span className="text-sm text-slate-700">Professional formatting and styling</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <span className="text-sm text-slate-700">Responsive design for all devices</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <span className="text-sm text-slate-700">Interactive table of contents</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <span className="text-sm text-slate-700">Print-optimized layout</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <span className="text-sm text-slate-700">Embedded navigation and branding</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <span className="text-sm text-slate-700">Self-contained HTML file</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Next Steps */}
-            <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
-              <h4 className="text-lg font-semibold text-slate-900 mb-3">Next Steps</h4>
-              <div className="space-y-2 text-sm text-slate-700">
-                <div>1. <strong>Review the evaluation plan</strong> with your team and stakeholders</div>
-                <div>2. <strong>Customize sections</strong> as needed for your specific context</div>
-                <div>3. <strong>Engage evaluation advisory committee</strong> to refine objectives and methods</div>
-                <div>4. <strong>Develop data collection tools</strong> based on the evaluation framework</div>
-                <div>5. <strong>Begin implementation</strong> following the phases outlined in the plan</div>
-              </div>
-            </div>
           </>
         )}
       </div>
