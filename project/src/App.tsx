@@ -20,7 +20,7 @@ export interface ProgramData {
 
 const steps = [
   { id: 1, title: 'Program Information', icon: FileText, description: 'Collect program details' },
-  { id: 2, title: 'Web Scraping', icon: Globe, description: 'Extract content from URLs' },
+  { id: 2, title: 'Extract Content', icon: Globe, description: '' },
   { id: 3, title: 'Program Analysis', icon: Brain, description: 'AI-powered program model analysis' },
   { id: 4, title: 'Evaluation Framework', icon: Clipboard, description: 'Generate evaluation framework' },
   { id: 5, title: 'Plan Generation', icon: FileOutput, description: 'Create comprehensive plan' },
