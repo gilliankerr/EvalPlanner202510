@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Download, Loader2, CheckCircle, FileText } from 'lucide-react';
+import { Download, Loader2, CheckCircle } from 'lucide-react';
 import { marked, Tokens } from 'marked';
 import hljs from 'highlight.js';
 import DOMPurify from 'dompurify';
@@ -686,8 +686,8 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         .stakeholder-table th,
         .evaluation-table th,
         .metrics-table th {
-            background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
-            color: #1e3a8a;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: #1e293b;
         }
         
         .standard-table {
