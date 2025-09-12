@@ -934,8 +934,8 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
 
     <!-- Table of Contents Layout -->
     <div class="flex max-w-6xl mx-auto">
-        <!-- TOC Sidebar: Hidden on mobile, visible on desktop -->
-        <aside class="hidden lg:block w-64 bg-slate-50 min-h-screen p-6 no-print">
+        <!-- TOC Sidebar: Always visible on left -->
+        <aside class="w-64 bg-slate-50 min-h-screen p-6 no-print">
             <h3 class="font-semibold text-slate-900 mb-4">Table of Contents</h3>
             <nav class="space-y-1 text-sm">
                 ${tocHtml}
@@ -944,13 +944,6 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
 
         <!-- Main Content -->
         <main class="flex-1 p-6">
-            <!-- Mobile TOC: Visible only on mobile -->
-            <div class="block lg:hidden mb-8 bg-slate-50 p-4 rounded-lg no-print">
-                <h3 class="font-semibold text-slate-900 mb-4">Table of Contents</h3>
-                <nav class="space-y-1 text-sm">
-                    ${tocHtml}
-                </nav>
-            </div>
             
             <div class="max-w-none">
                 ${contentHtml}
