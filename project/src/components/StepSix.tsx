@@ -927,8 +927,8 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             margin-right: auto;
         }
         
-        .w-64 {
-            width: 16rem;
+        .w-96 {
+            width: 24rem;
         }
         
         .bg-slate-50 {
@@ -980,13 +980,52 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             color: #1e293b;
         }
         
+        /* Print/Save PDF Button Styling */
+        .text-xs {
+            font-size: 0.75rem;
+        }
+        
+        .px-3 {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+        
+        .py-1 {
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+        }
+        
+        .rounded {
+            border-radius: 0.25rem;
+        }
+        
+        .bg-blue-600 {
+            background-color: #2563eb;
+        }
+        
+        .hover\:bg-blue-700:hover {
+            background-color: #1d4ed8;
+        }
+        
+        .transition-colors {
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+        
         /* Responsive: Stack on smaller screens */
         @media (max-width: 768px) {
             .flex {
                 display: block;
             }
             
-            .w-64 {
+            .w-96 {
                 width: 100%;
                 min-height: auto;
                 margin-bottom: 1rem;
@@ -999,15 +1038,15 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
 <body class="bg-white">
     <!-- Navigation Header -->
     <nav class="bg-slate-900 text-white px-6 py-4 no-print sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-3">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex items-center space-x-3 mb-2">
                 <div>
                     <h1 class="text-lg font-semibold">Evaluation Plan Report</h1>
                     <p class="text-sm text-slate-300">${DOMPurify.sanitize(programData.organizationName)}</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-4">
-                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium transition-colors">
+            <div class="text-right">
+                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs font-medium transition-colors">
                     Print / Save PDF
                 </button>
             </div>
@@ -1017,7 +1056,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
     <!-- Table of Contents Layout -->
     <div class="flex max-w-6xl mx-auto">
         <!-- TOC Sidebar: Always visible on left -->
-        <aside class="w-64 bg-slate-50 min-h-screen p-6 no-print">
+        <aside class="w-96 bg-slate-50 min-h-screen p-6 no-print">
             <h3 class="font-semibold text-slate-900 mb-4">Table of Contents</h3>
             <nav class="space-y-1 text-sm">
                 ${tocHtml}
