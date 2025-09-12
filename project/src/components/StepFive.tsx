@@ -122,7 +122,7 @@ This section synthesizes the information provided about the ${programData.progra
 
 (Describe the social, economic, and cultural environment in which the program operates based on available information. Analyze how the program is—or could be—tailored to the specific needs, assets, and challenges of this community.)
 
-### Evidence-based program processes
+### Essential program processes
 
 (Describe 5-7 evidence-based processes that are critical for the success of this program model. Always include the following processes customized for the program:
 
