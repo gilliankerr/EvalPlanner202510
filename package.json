@@ -1,0 +1,10 @@
+{
+  "name": "workspace-proxy",
+  "private": true,
+  "scripts": {
+    "postinstall": "cd project && npm ci",
+    "build": "cd project && npm run build",
+    "start": "cd project && npm start",
+    "dev": "cd project && npm run dev"
+  }
+}

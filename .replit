@@ -35,5 +35,5 @@ externalPort = 80
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["bash", "-c", "cd project && npm start"]
-build = ["bash", "-c", "cd project && npm run build"]
+run = ["npm", "start"]
+build = ["npm", "run", "build"]

@@ -36,9 +36,10 @@ The project is configured for the Replit environment:
 
 ## Deployment Configuration
 - **Type**: Autoscale (frontend-only deployment)
-- **Build**: `npm run build`
-- **Start**: `npm start` (serves built assets via Vite preview)
+- **Build**: `npm run build` (from repository root, proxies to project directory)
+- **Start**: `npm start` (from repository root, proxies to project directory)
 - **Port**: 5000 (strictly enforced)
+- **Fix Applied**: Added root-level package.json proxy to handle Replit's auto npm detection
 
 ## Recent Changes (September 12, 2025)
 - Configured Vite for Replit environment with proper host/port binding
@@ -46,6 +47,7 @@ The project is configured for the Replit environment:
 - Created production start script for deployment
 - Set up frontend workflow with proper port configuration
 - Verified application runs correctly in Replit environment
+- **Fixed deployment directory issue**: Added root-level package.json proxy to handle Replit's auto npm detection and directory mismatch
 
 ## File Structure
 ```
