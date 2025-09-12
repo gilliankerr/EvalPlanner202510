@@ -870,7 +870,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
 </head>
 <body class="bg-white">
     <!-- Navigation Header -->
-    <nav class="bg-[#ed8b00] text-black px-6 py-4 no-print sticky top-0 z-50">
+    <nav class="bg-[#ed8b00] text-white px-6 py-4 no-print sticky top-0 z-50">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <div>
@@ -904,7 +904,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
     </div>
 
     <!-- Footer -->
-    <footer class="bg-[#ed8b00] text-black mt-16">
+    <footer class="bg-[#ed8b00] text-white mt-16">
         <div class="max-w-6xl mx-auto px-6 py-8">
             <div class="text-center">
                 <p class="text-slate-400 mb-2">
