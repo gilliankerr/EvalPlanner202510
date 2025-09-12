@@ -424,12 +424,12 @@ Now customize this entire template for the specific program described in the pro
     <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center space-x-3 mb-4">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <FileOutput className="h-6 w-6 text-green-600" />
+          <div className="p-2 bg-lo-blue/10 rounded-lg">
+            <FileOutput className="h-6 w-6 text-lo-blue" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Evaluation Plan Generation</h2>
-            <p className="text-slate-600">Creating comprehensive evaluation plan using LogicalOutcomes template</p>
+            <h2 className="text-2xl font-bold text-lo-charcoal">Evaluation Plan Generation</h2>
+            <p className="text-lo-charcoal/70">Creating comprehensive evaluation plan using LogicalOutcomes template</p>
           </div>
         </div>
       </div>
@@ -437,24 +437,24 @@ Now customize this entire template for the specific program described in the pro
       <div className="space-y-6">
         {/* Status Card */}
         <div className={`p-6 rounded-lg border ${
-          planStatus === 'generating' ? 'bg-blue-50 border-blue-200' :
+          planStatus === 'generating' ? 'bg-lo-blue/5 border-lo-blue/20' :
           planStatus === 'complete' ? 'bg-green-50 border-green-200' :
           planStatus === 'error' ? 'bg-red-50 border-red-200' :
-          'bg-slate-50 border-slate-200'
+          'bg-lo-gray/30 border-lo-gray'
         }`}>
           <div className="flex items-center space-x-3">
-            {planStatus === 'generating' && <Loader2 className="h-6 w-6 animate-spin text-blue-600" />}
+            {planStatus === 'generating' && <Loader2 className="h-6 w-6 animate-spin text-lo-blue" />}
             {planStatus === 'complete' && <CheckCircle className="h-6 w-6 text-green-600" />}
             {planStatus === 'error' && <AlertCircle className="h-6 w-6 text-red-600" />}
             
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold text-lo-charcoal">
                 {planStatus === 'generating' && 'Generating Evaluation Plan...'}
                 {planStatus === 'complete' && 'Evaluation Plan Complete'}
                 {planStatus === 'error' && 'Plan Generation Failed'}
                 {planStatus === 'idle' && 'Preparing Plan Generation...'}
               </h3>
-              <p className="text-slate-600">
+              <p className="text-lo-charcoal/70">
                 {planStatus === 'generating' && 'Customizing LogicalOutcomes evaluation plan template with program-specific analysis'}
                 {planStatus === 'complete' && 'Complete evaluation plan generated following LogicalOutcomes methodology'}
                 {planStatus === 'error' && 'An error occurred during plan generation'}
@@ -469,23 +469,23 @@ Now customize this entire template for the specific program described in the pro
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
               <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
-              <span className="text-sm text-slate-600">Following LogicalOutcomes template structure</span>
+              <span className="text-sm text-lo-charcoal/70">Following LogicalOutcomes template structure</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-              <span className="text-sm text-slate-600">Customizing program summary and analysis section</span>
+              <span className="text-sm text-lo-charcoal/70">Customizing program summary and analysis section</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-              <span className="text-sm text-slate-600">Creating program-specific logic model and evaluation framework</span>
+              <span className="text-sm text-lo-charcoal/70">Creating program-specific logic model and evaluation framework</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
-              <span className="text-sm text-slate-600">Including standard implementation phases and roles</span>
+              <span className="text-sm text-lo-charcoal/70">Including standard implementation phases and roles</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
-              <span className="text-sm text-slate-600">Finalizing comprehensive evaluation plan</span>
+              <span className="text-sm text-lo-charcoal/70">Finalizing comprehensive evaluation plan</span>
             </div>
           </div>
         )}
@@ -494,16 +494,16 @@ Now customize this entire template for the specific program described in the pro
         {planResult && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
             <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-              <div className="text-2xl font-bold text-slate-900">{Math.ceil(planResult.length / 5000)}</div>
-              <div className="text-sm text-slate-600">Pages (est.)</div>
+              <div className="text-2xl font-bold text-lo-charcoal">{Math.ceil(planResult.length / 5000)}</div>
+              <div className="text-sm text-lo-charcoal/70">Pages (est.)</div>
             </div>
             <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-              <div className="text-2xl font-bold text-slate-900">{planResult.split('##').length - 1}</div>
-              <div className="text-sm text-slate-600">Sections</div>
+              <div className="text-2xl font-bold text-lo-charcoal">{planResult.split('##').length - 1}</div>
+              <div className="text-sm text-lo-charcoal/70">Sections</div>
             </div>
             <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-              <div className="text-2xl font-bold text-slate-900">{planResult.split('|').length > 10 ? 'Yes' : 'No'}</div>
-              <div className="text-sm text-slate-600">Tables Included</div>
+              <div className="text-2xl font-bold text-lo-charcoal">{planResult.split('|').length > 10 ? 'Yes' : 'No'}</div>
+              <div className="text-sm text-lo-charcoal/70">Tables Included</div>
             </div>
           </div>
         )}
@@ -511,14 +511,14 @@ Now customize this entire template for the specific program described in the pro
         {/* Results Preview */}
         {planResult && (
           <div className="mt-8">
-            <h4 className="text-lg font-semibold text-slate-900 mb-4">Evaluation Plan Preview</h4>
+            <h4 className="text-lg font-semibold text-lo-charcoal mb-4">Evaluation Plan Preview</h4>
             <div className="bg-slate-50 rounded-lg p-6 max-h-96 overflow-y-auto border border-slate-200">
               <div className="prose prose-sm max-w-none">
-                <pre className="whitespace-pre-wrap text-sm text-slate-700 font-sans">
+                <pre className="whitespace-pre-wrap text-sm text-lo-charcoal font-sans">
                   {planResult.substring(0, 2000)}...
                   
                   {planResult.length > 2000 && (
-                    <span className="text-blue-600 font-medium">
+                    <span className="text-lo-charcoal font-medium">
                       [Preview truncated - Full plan will be displayed in final HTML report]
                     </span>
                   )}
@@ -530,8 +530,8 @@ Now customize this entire template for the specific program described in the pro
 
         {/* Technical Details */}
         <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-          <h4 className="text-sm font-medium text-slate-700 mb-2">Plan Generation Details</h4>
-          <div className="text-xs text-slate-600 space-y-1">
+          <h4 className="text-sm font-medium text-lo-charcoal mb-2">Plan Generation Details</h4>
+          <div className="text-xs text-lo-charcoal/70 space-y-1">
             <div>• AI Model: Claude 4 Sonnet (via OpenRouter)</div>
             <div>• Method: LogicalOutcomes Evaluation Planning Template</div>
             <div>• Program: {programData.programName}</div>

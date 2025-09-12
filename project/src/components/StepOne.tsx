@@ -72,12 +72,12 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
     <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center space-x-3 mb-4">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <FileText className="h-6 w-6 text-blue-600" />
+          <div className="p-2 bg-lo-blue/10 rounded-lg">
+            <FileText className="h-6 w-6 text-lo-blue" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Program Information Collection</h2>
-            <p className="text-slate-600">Please provide information about the program you want to evaluate</p>
+            <h2 className="text-2xl font-bold text-lo-charcoal">Program Information Collection</h2>
+            <p className="text-lo-charcoal/70">Please provide information about the program you want to evaluate</p>
           </div>
         </div>
       </div>
@@ -85,15 +85,15 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
       <div className="space-y-6">
         {/* Organization Name */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+          <label className="block text-sm font-medium text-lo-charcoal mb-2">
             Organization Name *
           </label>
           <input
             type="text"
             value={programData.organizationName}
             onChange={(e) => updateProgramData({ organizationName: e.target.value })}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-              errors.organizationName ? 'border-red-300 bg-red-50' : 'border-slate-300'
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-lo-blue focus:border-lo-blue transition-colors ${
+              errors.organizationName ? 'border-red-300 bg-red-50' : 'border-lo-gray'
             }`}
             placeholder="Enter organization name"
           />
@@ -107,15 +107,15 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
 
         {/* Program Name */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+          <label className="block text-sm font-medium text-lo-charcoal mb-2">
             Program Name *
           </label>
           <input
             type="text"
             value={programData.programName}
             onChange={(e) => updateProgramData({ programName: e.target.value })}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-              errors.programName ? 'border-red-300 bg-red-50' : 'border-slate-300'
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-lo-blue focus:border-lo-blue transition-colors ${
+              errors.programName ? 'border-red-300 bg-red-50' : 'border-lo-gray'
             }`}
             placeholder="Enter program name"
           />
@@ -129,16 +129,16 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
 
         {/* About the Program */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+          <label className="block text-sm font-medium text-lo-charcoal mb-2">
             About the Program * 
-            <span className="text-sm font-normal text-slate-500">(Include URLs or paste program information)</span>
+            <span className="text-sm font-normal text-lo-charcoal/60">(Include URLs or paste program information)</span>
           </label>
           <textarea
             value={programData.aboutProgram}
             onChange={(e) => updateProgramData({ aboutProgram: e.target.value })}
             rows={8}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-              errors.aboutProgram ? 'border-red-300 bg-red-50' : 'border-slate-300'
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-lo-blue focus:border-lo-blue transition-colors ${
+              errors.aboutProgram ? 'border-red-300 bg-red-50' : 'border-lo-gray'
             }`}
             placeholder="Paste one or more URLs that describe the program, or write/paste information about the program from a funding proposal, report, or your own knowledge. URLs will be automatically detected and scraped for additional information."
           />
@@ -149,11 +149,11 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
             </p>
           )}
           {programData.aboutProgram && extractUrlsFromText(programData.aboutProgram).length > 0 && (
-            <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800 font-medium mb-1">
+            <div className="mt-2 p-3 bg-lo-blue/5 rounded-lg border border-lo-blue/20">
+              <p className="text-sm text-lo-charcoal font-medium mb-1">
                 URLs detected ({extractUrlsFromText(programData.aboutProgram).length}):
               </p>
-              <ul className="text-xs text-blue-700 space-y-1">
+              <ul className="text-xs text-lo-charcoal/80 space-y-1">
                 {extractUrlsFromText(programData.aboutProgram).map((url, index) => (
                   <li key={index} className="truncate">• {url}</li>
                 ))}
@@ -166,7 +166,7 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
         <div className="flex justify-end pt-6">
           <button
             onClick={handleSubmit}
-            className="px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
+            className="px-8 py-3 bg-lo-blue text-white font-medium rounded-lg hover:bg-lo-blue/90 focus:ring-2 focus:ring-lo-blue focus:ring-offset-2 transition-all duration-200 shadow-sm"
           >
             Submit
           </button>

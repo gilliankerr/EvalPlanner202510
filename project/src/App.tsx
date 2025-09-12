@@ -20,7 +20,7 @@ export interface ProgramData {
 
 const steps = [
   { id: 1, title: 'Program Information', icon: FileText, description: 'Collect program details' },
-  { id: 2, title: 'Web Scraping', icon: Globe, description: 'Extract content from URLs' },
+  { id: 2, title: 'Extract content', icon: Globe, description: '' },
   { id: 3, title: 'Program Analysis', icon: Brain, description: 'AI-powered program model analysis' },
   { id: 4, title: 'Evaluation Framework', icon: Clipboard, description: 'Generate evaluation framework' },
   { id: 5, title: 'Plan Generation', icon: FileOutput, description: 'Create comprehensive plan' },
@@ -135,22 +135,22 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-lo-gray to-white">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
+      <header className="bg-white shadow-sm border-b border-lo-gray sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-600 rounded-lg">
+              <div className="p-2 bg-lo-blue rounded-lg">
                 <FileText className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">Evaluation Planner</h1>
-                <p className="text-sm text-slate-600">AI-powered nonprofit program evaluation planning</p>
+                <h1 className="text-2xl font-bold text-lo-charcoal">Evaluation Planner</h1>
+                <p className="text-sm text-lo-charcoal/70">AI-powered nonprofit program evaluation planning</p>
               </div>
             </div>
             {isProcessing && (
-              <div className="flex items-center space-x-2 text-blue-600">
+              <div className="flex items-center space-x-2 text-lo-blue">
                 <Loader2 className="h-5 w-5 animate-spin" />
                 <span className="text-sm font-medium">Processing...</span>
               </div>
@@ -160,7 +160,7 @@ function App() {
       </header>
 
       {/* Progress Steps */}
-      <div className="bg-white border-b border-slate-200">
+      <div className="bg-white border-b border-lo-gray">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
@@ -170,8 +170,8 @@ function App() {
                     completedSteps.includes(step.id) 
                       ? 'bg-green-600 border-green-600 text-white' 
                       : currentStep === step.id 
-                        ? 'bg-blue-600 border-blue-600 text-white' 
-                        : 'bg-white border-slate-300 text-slate-400'
+                        ? 'bg-lo-blue border-lo-blue text-white' 
+                        : 'bg-white border-lo-gray text-lo-charcoal/50'
                   }`}>
                     {completedSteps.includes(step.id) ? (
                       <Check className="h-5 w-5" />
@@ -181,18 +181,20 @@ function App() {
                   </div>
                   <div className="text-center">
                     <p className={`text-sm font-medium ${
-                      currentStep === step.id ? 'text-blue-600' : 
-                      completedSteps.includes(step.id) ? 'text-green-600' : 'text-slate-500'
+                      currentStep === step.id ? 'text-lo-charcoal' : 
+                      completedSteps.includes(step.id) ? 'text-green-600' : 'text-lo-charcoal/60'
                     }`}>
                       {step.title}
                     </p>
-                    <p className="text-xs text-slate-400 max-w-20 leading-tight">
-                      {step.description}
-                    </p>
+                    {step.description && (
+                      <p className="text-xs text-lo-charcoal/50 max-w-20 leading-tight">
+                        {step.description}
+                      </p>
+                    )}
                   </div>
                 </div>
                 {index < steps.length - 1 && (
-                  <ChevronRight className="h-5 w-5 text-slate-300 mx-4 hidden sm:block" />
+                  <ChevronRight className="h-5 w-5 text-lo-charcoal/30 mx-4 hidden sm:block" />
                 )}
               </div>
             ))}
@@ -202,19 +204,19 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-lo-gray overflow-hidden">
           {renderStep()}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-white mt-16">
+      <footer className="bg-lo-charcoal text-white mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <p className="text-slate-400">
+            <p className="text-lo-gray">
               Powered by LogicalOutcomes Evaluation Planning Framework
             </p>
-            <p className="text-sm text-slate-500 mt-2">
+            <p className="text-sm text-lo-gray/70 mt-2">
               AI-enhanced evaluation planning for nonprofit organizations
             </p>
           </div>

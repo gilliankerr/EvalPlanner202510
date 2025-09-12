@@ -111,12 +111,12 @@ Deliver a comprehensive program model description including:
     <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center space-x-3 mb-4">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <Brain className="h-6 w-6 text-purple-600" />
+          <div className="p-2 bg-lo-blue/10 rounded-lg">
+            <Brain className="h-6 w-6 text-lo-blue" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">AI Program Model Analysis</h2>
-            <p className="text-slate-600">Analyzing program model using advanced AI and web search</p>
+            <h2 className="text-2xl font-bold text-lo-charcoal">AI Program Model Analysis</h2>
+            <p className="text-lo-charcoal/70">Analyzing program model using advanced AI and web search</p>
           </div>
         </div>
       </div>
@@ -130,18 +130,18 @@ Deliver a comprehensive program model description including:
           'bg-slate-50 border-slate-200'
         }`}>
           <div className="flex items-center space-x-3">
-            {analysisStatus === 'analyzing' && <Loader2 className="h-6 w-6 animate-spin text-blue-600" />}
+            {analysisStatus === 'analyzing' && <Loader2 className="h-6 w-6 animate-spin text-lo-blue" />}
             {analysisStatus === 'complete' && <CheckCircle className="h-6 w-6 text-green-600" />}
             {analysisStatus === 'error' && <AlertCircle className="h-6 w-6 text-red-600" />}
             
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold text-lo-charcoal">
                 {analysisStatus === 'analyzing' && 'Analyzing Program Model...'}
                 {analysisStatus === 'complete' && 'Analysis Complete'}
                 {analysisStatus === 'error' && 'Analysis Failed'}
                 {analysisStatus === 'idle' && 'Preparing Analysis...'}
               </h3>
-              <p className="text-slate-600">
+              <p className="text-lo-charcoal/70">
                 {analysisStatus === 'analyzing' && 'Using AI to define program terms, goals, activities, and intended outcomes'}
                 {analysisStatus === 'complete' && 'Program model analysis completed successfully'}
                 {analysisStatus === 'error' && 'An error occurred during analysis'}
@@ -156,19 +156,19 @@ Deliver a comprehensive program model description including:
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
               <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-              <span className="text-sm text-slate-600">Identifying target population and presenting issues</span>
+              <span className="text-sm text-lo-charcoal/70">Identifying target population and presenting issues</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-              <span className="text-sm text-slate-600">Analyzing core intervention strategies</span>
+              <span className="text-sm text-lo-charcoal/70">Analyzing core intervention strategies</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-              <span className="text-sm text-slate-600">Determining theoretical foundations</span>
+              <span className="text-sm text-lo-charcoal/70">Determining theoretical foundations</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
-              <span className="text-sm text-slate-600">Comparing with evidence-based models</span>
+              <span className="text-sm text-lo-charcoal/70">Comparing with evidence-based models</span>
             </div>
           </div>
         )}
@@ -176,7 +176,7 @@ Deliver a comprehensive program model description including:
         {/* Results Preview */}
         {analysisResult && (
           <div className="mt-8">
-            <h4 className="text-lg font-semibold text-slate-900 mb-4">Analysis Results</h4>
+            <h4 className="text-lg font-semibold text-lo-charcoal mb-4">Analysis Results</h4>
             <div className="bg-slate-50 rounded-lg p-6 max-h-96 overflow-y-auto border border-slate-200">
               <div className="prose prose-sm max-w-none">
                 <pre className="whitespace-pre-wrap text-sm text-slate-700 font-sans">
@@ -190,7 +190,7 @@ Deliver a comprehensive program model description including:
         {/* Technical Details */}
         <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
           <h4 className="text-sm font-medium text-slate-700 mb-2">Analysis Parameters</h4>
-          <div className="text-xs text-slate-600 space-y-1">
+          <div className="text-xs text-lo-charcoal/70 space-y-1">
             <div>• AI Model: GPT-5 (via OpenRouter)</div>
             <div>• Focus: {programData.programName}</div>
             <div>• Organization: {programData.organizationName}</div>

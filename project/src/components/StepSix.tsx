@@ -73,15 +73,15 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="logic-model-svg">
         <defs>
           <linearGradient id="boxGradient-${uid}" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#e6e7e8;stop-opacity:1" />
           </linearGradient>
           <filter id="shadow-${uid}" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.1)"/>
           </filter>
           <marker id="arrowhead-${uid}" markerWidth="10" markerHeight="7" 
                   refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
+            <polygon points="0 0, 10 3.5, 0 7" fill="#0085ca" />
           </marker>
         </defs>
     `;
@@ -102,10 +102,10 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       // Draw box
       svg += `
         <rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" 
-              rx="8" fill="url(#boxGradient-${uid})" stroke="#cbd5e1" stroke-width="2" 
+              rx="8" fill="url(#boxGradient-${uid})" stroke="#e6e7e8" stroke-width="2" 
               filter="url(#shadow-${uid})"/>
         <text x="${x + boxWidth/2}" y="${y + 25}" text-anchor="middle" 
-              font-weight="600" font-size="14" fill="#1e293b">${escapedHeader}</text>
+              font-weight="600" font-size="14" fill="#30302f">${escapedHeader}</text>
       `;
       
       // Add content if available
@@ -120,7 +120,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         
         svg += `
           <text x="${x + boxWidth/2}" y="${y + 45}" text-anchor="middle" 
-                font-size="11" fill="#64748b">${escapedContent}</text>
+                font-size="11" fill="#30302f">${escapedContent}</text>
         `;
       }
       
@@ -132,7 +132,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         
         svg += `
           <line x1="${arrowStartX}" y1="${arrowY}" x2="${arrowEndX}" y2="${arrowY}" 
-                stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowhead-${uid})"/>
+                stroke="#0085ca" stroke-width="2" marker-end="url(#arrowhead-${uid})"/>
         `;
       }
     });
@@ -404,7 +404,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
-            color: #1e293b;
+            color: #30302f;
         }
         
         /* Main Title */
@@ -414,7 +414,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             color: #0f172a;
             margin: 2rem 0 1rem 0;
             padding-bottom: 1rem;
-            border-bottom: 3px solid #2563eb;
+            border-bottom: 3px solid #0085ca;
             text-align: center;
         }
         
@@ -431,7 +431,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         h2 {
             font-size: 1.75rem;
             font-weight: 700;
-            color: #1e293b;
+            color: #30302f;
             margin: 3rem 0 1.5rem 0;
             padding-bottom: 0.75rem;
             border-bottom: 2px solid #e2e8f0;
@@ -445,7 +445,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             left: 0;
             width: 60px;
             height: 2px;
-            background: #2563eb;
+            background: #0085ca;
         }
         
         /* Subsection Headings */
@@ -455,7 +455,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             color: #374151;
             margin: 2.5rem 0 1rem 0;
             padding-left: 1rem;
-            border-left: 4px solid #3b82f6;
+            border-left: 4px solid #0085ca;
         }
         
         h4 {
@@ -487,7 +487,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         /* Strong text */
         strong {
             font-weight: 600;
-            color: #1e293b;
+            color: #30302f;
         }
         
         /* Tables */
@@ -507,7 +507,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             padding: 1rem 1.5rem;
             font-weight: 600;
             text-align: left;
-            color: #1e293b;
+            color: #30302f;
             border-bottom: 2px solid #e2e8f0;
             font-size: 0.9rem;
             text-transform: uppercase;
@@ -548,7 +548,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             caption-side: top;
             padding: 1rem 0;
             font-weight: 600;
-            color: #1e293b;
+            color: #30302f;
             font-size: 1.1rem;
         }
 
@@ -558,7 +558,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             padding: 2rem;
             border-radius: 12px;
             margin: 2rem 0;
-            border-left: 4px solid #0ea5e9;
+            border-left: 4px solid #0085ca;
         }
 
         /* Content sections */
@@ -612,12 +612,12 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         }
         
         .toc-item a:hover {
-            color: #2563eb;
+            color: #0085ca;
         }
         
         .highlight-box {
             background: #eff6ff;
-            border-left: 4px solid #2563eb;
+            border-left: 4px solid #0085ca;
             padding: 1.5rem;
             margin: 1.5rem 0;
             border-radius: 0 8px 8px 0;
@@ -634,7 +634,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         /* Syntax Highlighting Styles */
         .hljs {
             background: #f8fafc;
-            color: #1e293b;
+            color: #30302f;
             padding: 1.5rem;
             border-radius: 8px;
             border: 1px solid #e2e8f0;
@@ -643,11 +643,11 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             line-height: 1.5;
         }
         
-        .hljs-comment { color: #64748b; font-style: italic; }
+        .hljs-comment { color: #6b7280; font-style: italic; }
         .hljs-keyword { color: #7c3aed; font-weight: 600; }
         .hljs-string { color: #059669; }
         .hljs-number { color: #dc2626; }
-        .hljs-function { color: #2563eb; }
+        .hljs-function { color: #0085ca; }
         .hljs-variable { color: #b45309; }
         
         /* Logic Model Diagram Styles */
@@ -656,12 +656,12 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             padding: 2rem;
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
             border-radius: 12px;
-            border: 1px solid #0ea5e9;
+            border: 1px solid #0085ca;
             text-align: center;
         }
         
         .logic-model-diagram h4 {
-            color: #0c4a6e;
+            color: #30302f;
             margin-bottom: 1.5rem;
             font-size: 1.25rem;
             font-weight: 600;
@@ -681,15 +681,15 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         .evaluation-table,
         .metrics-table {
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border-left: 4px solid #2563eb;
+            border-left: 4px solid #0085ca;
         }
         
         .timeline-table th,
         .stakeholder-table th,
         .evaluation-table th,
         .metrics-table th {
-            background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
-            color: #1e3a8a;
+            background: linear-gradient(135deg, #0085ca 0%, #0085ca 100%);
+            color: #30302f;
         }
         
         .standard-table {
@@ -699,13 +699,13 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         
         .standard-table th {
             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            color: #1e293b;
+            color: #30302f;
         }
         
         /* Enhanced Callout Boxes */
         .highlight-box {
             background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border-left: 4px solid #2563eb;
+            border-left: 4px solid #0085ca;
             padding: 1.5rem;
             margin: 1.5rem 0;
             border-radius: 0 12px 12px 0;
@@ -718,7 +718,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             position: absolute;
             top: 1rem;
             left: -0.75rem;
-            background: #2563eb;
+            background: #0085ca;
             color: white;
             width: 1.5rem;
             height: 1.5rem;
@@ -760,7 +760,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             padding: 2rem;
             border-radius: 12px;
             margin: 2rem 0;
-            border-left: 4px solid #0ea5e9;
+            border-left: 4px solid #0085ca;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             position: relative;
         }
@@ -770,7 +770,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             position: absolute;
             top: 1.5rem;
             left: -0.75rem;
-            background: #0ea5e9;
+            background: #0085ca;
             color: white;
             width: 1.5rem;
             height: 1.5rem;
@@ -870,7 +870,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
 </head>
 <body class="bg-white">
     <!-- Navigation Header -->
-    <nav class="bg-slate-900 text-white px-6 py-4 no-print sticky top-0 z-50">
+    <nav class="bg-lo-charcoal text-white px-6 py-4 no-print sticky top-0 z-50">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <div>
@@ -888,8 +888,8 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
 
     <!-- Table of Contents Sidebar -->
     <div class="flex max-w-6xl mx-auto">
-        <aside class="w-64 bg-slate-50 min-h-screen p-6 no-print">
-            <h3 class="font-semibold text-slate-900 mb-4">Table of Contents</h3>
+        <aside class="w-64 bg-lo-gray/30 min-h-screen p-6 no-print">
+            <h3 class="font-semibold text-lo-charcoal mb-4">Table of Contents</h3>
             <nav class="space-y-1 text-sm">
                 ${tocHtml}
             </nav>
@@ -904,7 +904,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
     </div>
 
     <!-- Footer -->
-    <footer class="bg-slate-900 text-white mt-16">
+    <footer class="bg-lo-charcoal text-white mt-16">
         <div class="max-w-6xl mx-auto px-6 py-8">
             <div class="text-center">
                 <p class="text-slate-400 mb-2">
@@ -958,8 +958,8 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             <Download className="h-6 w-6 text-indigo-600" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">HTML Report Generation</h2>
-            <p className="text-slate-600">Creating beautifully formatted HTML report for your evaluation plan</p>
+            <h2 className="text-2xl font-bold text-lo-charcoal">HTML Report Generation</h2>
+            <p className="text-lo-charcoal/70">Creating beautifully formatted HTML report for your evaluation plan</p>
           </div>
         </div>
       </div>
@@ -967,21 +967,21 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       <div className="space-y-6">
         {/* Status Card */}
         <div className={`p-6 rounded-lg border ${
-          renderStatus === 'rendering' ? 'bg-blue-50 border-blue-200' :
+          renderStatus === 'rendering' ? 'bg-lo-blue/5 border-lo-blue/20' :
           renderStatus === 'complete' ? 'bg-green-50 border-green-200' :
-          'bg-slate-50 border-slate-200'
+          'bg-lo-gray/30 border-lo-gray'
         }`}>
           <div className="flex items-center space-x-3">
-            {renderStatus === 'rendering' && <Loader2 className="h-6 w-6 animate-spin text-blue-600" />}
+            {renderStatus === 'rendering' && <Loader2 className="h-6 w-6 animate-spin text-lo-blue" />}
             {renderStatus === 'complete' && <CheckCircle className="h-6 w-6 text-green-600" />}
             
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold text-lo-charcoal">
                 {renderStatus === 'rendering' && 'Rendering HTML Report...'}
                 {renderStatus === 'complete' && 'HTML Report Ready'}
                 {renderStatus === 'idle' && 'Preparing HTML Render...'}
               </h3>
-              <p className="text-slate-600">
+              <p className="text-lo-charcoal/70">
                 {renderStatus === 'rendering' && 'Converting evaluation plan to beautifully formatted HTML document'}
                 {renderStatus === 'complete' && 'Your evaluation plan has been formatted as a professional HTML report'}
                 {renderStatus === 'idle' && 'Setting up HTML rendering process'}
@@ -996,10 +996,10 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 border border-green-200">
               <div className="text-center">
                 <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                <h3 className="text-xl font-semibold text-lo-charcoal mb-2">
                   Evaluation Plan Complete!
                 </h3>
-                <p className="text-slate-600 mb-6">
+                <p className="text-lo-charcoal/70 mb-6">
                   Your comprehensive evaluation plan for {programData.programName} has been successfully generated 
                   and formatted as a professional HTML document.
                 </p>
@@ -1018,63 +1018,63 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
 
             {/* Report Statistics */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
-                <FileText className="h-8 w-8 text-slate-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-slate-900">{Math.ceil(htmlContent.length / 5000)}</div>
-                <div className="text-sm text-slate-600">Pages (est.)</div>
+              <div className="bg-lo-gray/30 rounded-lg p-4 border border-lo-gray text-center">
+                <FileText className="h-8 w-8 text-lo-charcoal/60 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-lo-charcoal">{Math.ceil(htmlContent.length / 5000)}</div>
+                <div className="text-sm text-lo-charcoal/60">Pages (est.)</div>
               </div>
               
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
-                <div className="text-2xl font-bold text-slate-900">{programData.evaluationPlan.split('#').length - 1}</div>
-                <div className="text-sm text-slate-600">Sections</div>
+              <div className="bg-lo-gray/30 rounded-lg p-4 border border-lo-gray text-center">
+                <div className="text-2xl font-bold text-lo-charcoal">{programData.evaluationPlan.split('#').length - 1}</div>
+                <div className="text-sm text-lo-charcoal/60">Sections</div>
               </div>
               
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
-                <div className="text-2xl font-bold text-slate-900">{Math.ceil(programData.evaluationPlan.length / 100)}</div>
-                <div className="text-sm text-slate-600">Words (est.)</div>
+              <div className="bg-lo-gray/30 rounded-lg p-4 border border-lo-gray text-center">
+                <div className="text-2xl font-bold text-lo-charcoal">{Math.ceil(programData.evaluationPlan.length / 100)}</div>
+                <div className="text-sm text-lo-charcoal/60">Words (est.)</div>
               </div>
               
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
-                <div className="text-2xl font-bold text-slate-900">✓</div>
-                <div className="text-sm text-slate-600">Print Ready</div>
+              <div className="bg-lo-gray/30 rounded-lg p-4 border border-lo-gray text-center">
+                <div className="text-2xl font-bold text-lo-charcoal">✓</div>
+                <div className="text-sm text-lo-charcoal/60">Print Ready</div>
               </div>
             </div>
 
             {/* Report Features */}
-            <div className="bg-slate-50 rounded-lg p-6 border border-slate-200">
-              <h4 className="text-lg font-semibold text-slate-900 mb-4">Report Features</h4>
+            <div className="bg-lo-gray/30 rounded-lg p-6 border border-lo-gray">
+              <h4 className="text-lg font-semibold text-lo-charcoal mb-4">Report Features</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <span className="text-sm text-slate-700">Professional formatting and styling</span>
+                  <span className="text-sm text-lo-charcoal">Professional formatting and styling</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <span className="text-sm text-slate-700">Responsive design for all devices</span>
+                  <span className="text-sm text-lo-charcoal">Responsive design for all devices</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <span className="text-sm text-slate-700">Interactive table of contents</span>
+                  <span className="text-sm text-lo-charcoal">Interactive table of contents</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <span className="text-sm text-slate-700">Print-optimized layout</span>
+                  <span className="text-sm text-lo-charcoal">Print-optimized layout</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <span className="text-sm text-slate-700">Embedded navigation and branding</span>
+                  <span className="text-sm text-lo-charcoal">Embedded navigation and branding</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <span className="text-sm text-slate-700">Self-contained HTML file</span>
+                  <span className="text-sm text-lo-charcoal">Self-contained HTML file</span>
                 </div>
               </div>
             </div>
 
             {/* Next Steps */}
-            <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
-              <h4 className="text-lg font-semibold text-slate-900 mb-3">Next Steps</h4>
-              <div className="space-y-2 text-sm text-slate-700">
+            <div className="bg-lo-blue/5 rounded-lg p-6 border border-lo-blue/20">
+              <h4 className="text-lg font-semibold text-lo-charcoal mb-3">Next Steps</h4>
+              <div className="space-y-2 text-sm text-lo-charcoal">
                 <div>1. <strong>Review the evaluation plan</strong> with your team and stakeholders</div>
                 <div>2. <strong>Customize sections</strong> as needed for your specific context</div>
                 <div>3. <strong>Engage evaluation advisory committee</strong> to refine objectives and methods</div>
