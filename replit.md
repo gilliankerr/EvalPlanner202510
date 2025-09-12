@@ -50,8 +50,6 @@ The project is configured for the Replit environment:
 - **Fixed deployment directory issue**: Added root-level package.json proxy to handle Replit's auto npm detection and directory mismatch
 - **Completely overhauled HTML report generation**: Replaced custom markdown parser with professional marked library, added logic model SVG diagrams, enhanced table styling, improved responsive design, and added security sanitization
 - **Updated HTML report styling**: Removed navigation graphic, enabled functional print-to-PDF button, and standardized all table formatting to consistent blue theme colors
-- **Applied LogicalOutcomes brand guidelines**: Implemented comprehensive brand color system throughout application including Process Blue (#0085ca), Orange (#ed8b00), and Charcoal (#30302f) with full accessibility compliance
-- **Renamed Step 2**: Changed "Web Content Extraction" to "Extract content" and removed subtitle as requested
 
 ## File Structure
 ```

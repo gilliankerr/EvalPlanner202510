@@ -224,7 +224,7 @@ Please manually copy relevant content from ${url} and include it in your program
   const getStatusIcon = (status: 'pending' | 'success' | 'error') => {
     switch (status) {
       case 'pending':
-        return <Loader2 className="h-5 w-5 animate-spin text-lo-blue" />;
+        return <Loader2 className="h-5 w-5 animate-spin text-blue-600" />;
       case 'success':
         return <CheckCircle className="h-5 w-5 text-green-600" />;
       case 'error':
@@ -247,20 +247,21 @@ Please manually copy relevant content from ${url} and include it in your program
     <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center space-x-3 mb-4">
-          <div className="p-2 bg-lo-blue/10 rounded-lg">
-            <Globe className="h-6 w-6 text-lo-blue" />
+          <div className="p-2 bg-teal-100 rounded-lg">
+            <Globe className="h-6 w-6 text-teal-600" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-lo-charcoal">Extract content</h2>
+            <h2 className="text-2xl font-bold text-slate-900">Web Content Extraction</h2>
+            <p className="text-slate-600">Extracting information from provided URLs</p>
           </div>
         </div>
       </div>
 
       {programData.urls.length === 0 ? (
         <div className="text-center py-12">
-          <Globe className="h-12 w-12 text-lo-charcoal/50 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-lo-charcoal mb-2">No URLs to Process</h3>
-          <p className="text-lo-charcoal/70">
+          <Globe className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-slate-900 mb-2">No URLs to Process</h3>
+          <p className="text-slate-600">
             No URLs were found in the URL fields or program description, proceeding with the text you entered.
           </p>
         </div>
@@ -276,16 +277,16 @@ Please manually copy relevant content from ${url} and include it in your program
             
             return (
               <>
-                <h3 className="text-lg font-semibold text-lo-charcoal mb-4">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">
                   Processing {allUrls.length} URL{allUrls.length > 1 ? 's' : ''}
                 </h3>
                 
                 {urlsFromText.length > 0 && (
-                  <div className="mb-4 p-3 bg-lo-blue/5 rounded-lg border border-lo-blue/20">
-                    <p className="text-sm text-lo-charcoal">
+                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-sm text-blue-800">
                       <strong>Found {urlsFromText.length} URL{urlsFromText.length > 1 ? 's' : ''} in program description:</strong>
                     </p>
-                    <ul className="text-xs text-lo-charcoal/80 mt-1 ml-4">
+                    <ul className="text-xs text-blue-700 mt-1 ml-4">
                       {urlsFromText.map((url, index) => (
                         <li key={index} className="truncate">{url}</li>
                       ))}
@@ -307,24 +308,24 @@ Please manually copy relevant content from ${url} and include it in your program
             return (
               <div
                 key={index}
-                className="flex items-center space-x-4 p-4 bg-lo-gray/30 rounded-lg border border-lo-gray"
+                className="flex items-center space-x-4 p-4 bg-slate-50 rounded-lg border border-slate-200"
               >
                 <div className="flex-shrink-0">
                   {getStatusIcon(status)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-lo-charcoal truncate">
+                  <p className="text-sm font-medium text-slate-900 truncate">
                     {url}
                   </p>
-                  <p className="text-sm text-lo-charcoal/60">
+                  <p className="text-sm text-slate-500">
                     {getStatusText(status)}
                     {urlsFromText.includes(url) && (
-                      <span className="ml-2 text-xs text-lo-charcoal">(from description)</span>
+                      <span className="ml-2 text-xs text-blue-600">(from description)</span>
                     )}
                   </p>
                 </div>
                 {status === 'success' && scrapedResults[url] && (
-                  <div className="text-xs text-lo-charcoal/50">
+                  <div className="text-xs text-slate-400">
                     {scrapedResults[url].length} characters extracted
                   </div>
                 )}
@@ -334,12 +335,12 @@ Please manually copy relevant content from ${url} and include it in your program
           })()}
 
           {Object.keys(scrapingProgress).length > 0 && (
-            <div className="mt-6 p-4 bg-lo-blue/5 rounded-lg border border-lo-blue/20">
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <div className="flex items-start space-x-3">
-                <Loader2 className="h-5 w-5 animate-spin text-lo-blue mt-0.5" />
+                <Loader2 className="h-5 w-5 animate-spin text-blue-600 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-medium text-lo-charcoal">Processing URLs</h4>
-                  <p className="text-sm text-lo-charcoal/70 mt-1">
+                  <h4 className="text-sm font-medium text-blue-900">Processing URLs</h4>
+                  <p className="text-sm text-blue-700 mt-1">
                     Extracting content from web pages for analysis. This may take a few moments.
                   </p>
                 </div>
@@ -352,9 +353,9 @@ Please manually copy relevant content from ${url} and include it in your program
       {/* Preview of scraped content (if available) */}
       {programData.scrapedContent && (
         <div className="mt-8">
-          <h4 className="text-sm font-medium text-lo-charcoal mb-3">Extracted Content Preview</h4>
-          <div className="bg-lo-gray/30 rounded-lg p-4 max-h-48 overflow-y-auto border border-lo-gray">
-            <pre className="text-xs text-lo-charcoal/70 whitespace-pre-wrap font-mono">
+          <h4 className="text-sm font-medium text-slate-700 mb-3">Extracted Content Preview</h4>
+          <div className="bg-slate-50 rounded-lg p-4 max-h-48 overflow-y-auto border border-slate-200">
+            <pre className="text-xs text-slate-600 whitespace-pre-wrap font-mono">
               {programData.scrapedContent.substring(0, 500)}
               {programData.scrapedContent.length > 500 && '...'}
             </pre>
