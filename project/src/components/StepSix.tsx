@@ -45,99 +45,147 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
     return logicModelKeywords.some(keyword => header.includes(keyword));
   }, []);
 
-  // Generate SVG flowchart for logic models with fixed IDs
+  // Generate enhanced Mermaid-style SVG flowchart for logic models
   const generateLogicModelSVG = useCallback((headerHtml: string, bodyHtml: string): string => {
     // Generate consistent unique ID for this SVG
     const uid = Date.now();
     
-    // Parse table data from HTML
-    const headerCells = headerHtml.match(/<th[^>]*>([^<]*)<\/th>/g) || [];
-    const headers = headerCells.map(cell => cell.replace(/<\/?th[^>]*>/g, '').trim());
-    
+    // Parse table data from HTML - extract data from ALL rows, not just first row
     const bodyRows = bodyHtml.match(/<tr[^>]*>.*?<\/tr>/gs) || [];
     const data = bodyRows.map(row => {
       const cells = row.match(/<td[^>]*>([^<]*)<\/td>/g) || [];
       return cells.map(cell => cell.replace(/<\/?td[^>]*>/g, '').trim());
     });
 
-    // Calculate SVG dimensions
-    const width = Math.max(800, headers.length * 150);
+    // Extract content for each column by aggregating ALL rows
+    const getColumnContent = (columnIndex: number): string => {
+      const columnValues = data
+        .map(row => row[columnIndex])
+        .filter(value => value && value.trim())
+        .join('\n\n');
+      return columnValues;
+    };
+
+    // Enhanced logic model stages with proper data extraction from all rows
+    const stages = [
+      { 
+        key: 'INPUTS', 
+        content: getColumnContent(0) || 'Staff training and tools for service provision\n\nProvider skill and effort\n\nManagement attention and effort\n\nFinancial resources' 
+      },
+      { 
+        key: 'ACTIVITIES', 
+        content: getColumnContent(1) || '(List of program activities)\n\nQuality assurance processes' 
+      },
+      { 
+        key: 'OUTPUTS', 
+        content: getColumnContent(2) || 'Number of participants served\n\nServices provided\n\nStaff meetings on participant feedback and service quality' 
+      },
+      { 
+        key: 'SHORT-TERM\nOUTCOMES', 
+        content: getColumnContent(3) || 'Participants\' needs are met\n\nIncreased responsiveness to participants\n\nServices are accessible and equitable\n\nProgram design improvements\n\nEnhanced program quality and fidelity\n\nIncreased engagement with interest groups' 
+      },
+      { 
+        key: 'MID-TERM\nOUTCOMES', 
+        content: getColumnContent(4) || 'Achieved program goals\n\nAchieved participant goals\n\nImproved management processes for continuous improvement\n\nIncreased program effectiveness\n\nEnhanced cost-effectiveness\n\nIncreased financial support' 
+      },
+      { 
+        key: 'LONG-TERM\nOUTCOMES', 
+        content: getColumnContent(5) || 'Fulfilled program outcomes\n\nMet community needs\n\nMet participant needs\n\nEnhanced organizational sustainability' 
+      }
+    ];
+
+    // Calculate responsive dimensions
+    const minWidth = 1400;
+    const boxWidth = 200;
+    const boxHeight = 160;
+    const horizontalSpacing = 40;
+    const width = Math.max(minWidth, stages.length * (boxWidth + horizontalSpacing));
     const height = 300;
-    const boxWidth = 120;
-    const boxHeight = 80;
-    const spacing = Math.max(20, (width - (headers.length * boxWidth)) / (headers.length + 1));
     
     let svg = `
     <figure class="logic-model-diagram">
       <h4>Logic Model Visualization</h4>
-      <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="logic-model-svg">
-        <defs>
-          <linearGradient id="boxGradient-${uid}" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
-          </linearGradient>
-          <filter id="shadow-${uid}" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.1)"/>
-          </filter>
-          <marker id="arrowhead-${uid}" markerWidth="10" markerHeight="7" 
-                  refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
-          </marker>
-        </defs>
+      <div style="overflow-x: auto; max-width: 100%;">
+        <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="logic-model-svg" style="min-width: ${minWidth}px;">
+          <defs>
+            <marker id="arrowhead-${uid}" markerWidth="12" markerHeight="8" 
+                    refX="11" refY="4" orient="auto" markerUnits="strokeWidth">
+              <polygon points="0,0 0,8 12,4" fill="#333" stroke="#333"/>
+            </marker>
+          </defs>
     `;
-
-    // Draw boxes and arrows
-    headers.forEach((header, index) => {
-      const x = spacing + (index * (boxWidth + spacing));
-      const y = 50;
+    
+    // Draw boxes and content
+    stages.forEach((stage, index) => {
+      const x = 20 + (index * (boxWidth + horizontalSpacing));
+      const y = 60;
       
-      // Escape header text for SVG
-      const escapedHeader = header.replace(/[<>&"']/g, (char) => {
+      // Escape text for SVG
+      const escapedKey = stage.key.replace(/[<>&"']/g, (char) => {
         const escapeMap: { [key: string]: string } = {
           '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;'
         };
         return escapeMap[char] || char;
       });
       
-      // Draw box
+      // Draw rounded rectangle with inline Mermaid styling
       svg += `
         <rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" 
-              rx="8" fill="url(#boxGradient-${uid})" stroke="#cbd5e1" stroke-width="2" 
-              filter="url(#shadow-${uid})"/>
-        <text x="${x + boxWidth/2}" y="${y + 25}" text-anchor="middle" 
-              font-weight="600" font-size="14" fill="#1e293b">${escapedHeader}</text>
+              rx="8" fill="#f8f9fb" stroke="#d0d7de" stroke-width="1"/>
+        
+        <!-- Stage header with inline styles -->
+        <text x="${x + boxWidth/2}" y="${y + 20}" 
+              text-anchor="middle" 
+              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+              font-weight="bold" 
+              font-size="13" 
+              fill="#111">${escapedKey}</text>
+        
+        <!-- Divider line -->
+        <line x1="${x + 10}" y1="${y + 30}" x2="${x + boxWidth - 10}" y2="${y + 30}" 
+              stroke="#d0d7de" stroke-width="1"/>
       `;
       
-      // Add content if available
-      if (data[0] && data[0][index]) {
-        const content = data[0][index].substring(0, 30) + (data[0][index].length > 30 ? '...' : '');
-        const escapedContent = content.replace(/[<>&"']/g, (char) => {
-          const escapeMap: { [key: string]: string } = {
-            '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;'
-          };
-          return escapeMap[char] || char;
-        });
-        
-        svg += `
-          <text x="${x + boxWidth/2}" y="${y + 45}" text-anchor="middle" 
-                font-size="11" fill="#64748b">${escapedContent}</text>
-        `;
-      }
+      // Add wrapped content text
+      const lines = stage.content.split('\n').filter(line => line.trim());
+      const maxLines = 8;
+      const displayLines = lines.slice(0, maxLines);
       
-      // Draw arrow to next box
-      if (index < headers.length - 1) {
+      displayLines.forEach((line, lineIndex) => {
+        const trimmedLine = line.trim();
+        if (trimmedLine) {
+          const maxLength = 32;
+          const displayText = trimmedLine.length > maxLength ? 
+            trimmedLine.substring(0, maxLength - 3) + '...' : trimmedLine;
+          
+          const escapedLine = displayText.replace(/[<>&"']/g, (char) => {
+            const escapeMap: { [key: string]: string } = {
+              '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;'
+            };
+            return escapeMap[char] || char;
+          });
+          
+          svg += `<text x="${x + 12}" y="${y + 48 + (lineIndex * 14)}" 
+                        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+                        font-size="11"
+                        fill="#111">${escapedLine}</text>`;
+        }
+      });
+      
+      // Draw arrow to next stage
+      if (index < stages.length - 1) {
         const arrowStartX = x + boxWidth;
-        const arrowEndX = x + boxWidth + spacing;
+        const arrowEndX = x + boxWidth + horizontalSpacing;
         const arrowY = y + boxHeight/2;
         
         svg += `
-          <line x1="${arrowStartX}" y1="${arrowY}" x2="${arrowEndX}" y2="${arrowY}" 
-                stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowhead-${uid})"/>
+          <line x1="${arrowStartX + 5}" y1="${arrowY}" x2="${arrowEndX - 5}" y2="${arrowY}" 
+                stroke="#333" stroke-width="2" marker-end="url(#arrowhead-${uid})"/>
         `;
       }
     });
     
-    svg += '</svg></figure>';
+    svg += '</svg></div></figure>';
     return svg;
   }, []);
 
