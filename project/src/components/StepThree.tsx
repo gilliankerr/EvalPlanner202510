@@ -130,7 +130,7 @@ Deliver a comprehensive program model description including:
           'bg-slate-50 border-slate-200'
         }`}>
           <div className="flex items-center space-x-3">
-            {analysisStatus === 'analyzing' && <Loader2 className="h-6 w-6 animate-spin text-blue-600" />}
+            {analysisStatus === 'analyzing' && <Loader2 className="h-6 w-6 animate-spin text-primary-600" />}
             {analysisStatus === 'complete' && <CheckCircle className="h-6 w-6 text-green-600" />}
             {analysisStatus === 'error' && <AlertCircle className="h-6 w-6 text-red-600" />}
             
@@ -155,7 +155,7 @@ Deliver a comprehensive program model description including:
         {analysisStatus === 'analyzing' && (
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-primary-600 rounded-full animate-pulse"></div>
               <span className="text-sm text-slate-600">Identifying target population and presenting issues</span>
             </div>
             <div className="flex items-center space-x-3">

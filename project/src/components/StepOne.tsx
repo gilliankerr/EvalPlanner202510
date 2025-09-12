@@ -72,8 +72,8 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
     <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center space-x-3 mb-4">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <FileText className="h-6 w-6 text-blue-600" />
+          <div className="p-2 bg-primary-100 rounded-lg">
+            <FileText className="h-6 w-6 text-primary-600" />
           </div>
           <div>
             <h2 className="text-2xl font-bold text-slate-900">Program Information Collection</h2>
@@ -92,7 +92,7 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
             type="text"
             value={programData.organizationName}
             onChange={(e) => updateProgramData({ organizationName: e.target.value })}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
               errors.organizationName ? 'border-red-300 bg-red-50' : 'border-slate-300'
             }`}
             placeholder="Enter organization name"
@@ -114,7 +114,7 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
             type="text"
             value={programData.programName}
             onChange={(e) => updateProgramData({ programName: e.target.value })}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
               errors.programName ? 'border-red-300 bg-red-50' : 'border-slate-300'
             }`}
             placeholder="Enter program name"
@@ -137,7 +137,7 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
             value={programData.aboutProgram}
             onChange={(e) => updateProgramData({ aboutProgram: e.target.value })}
             rows={8}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
               errors.aboutProgram ? 'border-red-300 bg-red-50' : 'border-slate-300'
             }`}
             placeholder="Paste one or more URLs that describe the program, or write/paste information about the program from a funding proposal, report, or your own knowledge. URLs will be automatically detected and scraped for additional information."
@@ -166,7 +166,7 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
         <div className="flex justify-end pt-6">
           <button
             onClick={handleSubmit}
-            className="px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
+            className="px-8 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
           >
             Submit
           </button>
