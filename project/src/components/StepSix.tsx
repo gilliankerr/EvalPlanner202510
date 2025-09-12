@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Download, Loader2, CheckCircle } from 'lucide-react';
+import { Download, Loader2, CheckCircle, FileText } from 'lucide-react';
 import { marked, Tokens } from 'marked';
 import hljs from 'highlight.js';
 import DOMPurify from 'dompurify';
@@ -110,9 +110,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       
       // Add content if available
       if (data[0] && data[0][index]) {
-        // Replace semicolons with line breaks in logic model data
-        const rawContent = data[0][index].replace(/;\s*/g, '\n');
-        const content = rawContent.substring(0, 30) + (rawContent.length > 30 ? '...' : '');
+        const content = data[0][index].substring(0, 30) + (data[0][index].length > 30 ? '...' : '');
         const escapedContent = content.replace(/[<>&"']/g, (char) => {
           const escapeMap: { [key: string]: string } = {
             '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;'
@@ -216,7 +214,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         return `<th>${cellContent}</th>`;
       }).join('');
       
-      let body = token.rows.map(row => 
+      const body = token.rows.map(row => 
         `<tr>${row.map(cell => {
           const cellContent = this.parser.parseInline(cell.tokens);
           return `<td>${cellContent}</td>`;
@@ -229,12 +227,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       ).join(' ');
       
       if (isLogicModelTable(headerRawText)) {
-        // Replace semicolons with line breaks in logic model table data before generating SVG
-        const processedBody = body.replace(/(<td[^>]*>)([^<]*?)(<\/td>)/g, (_match, openTag, content, closeTag) => {
-          const processedContent = content.replace(/;\s*/g, '<br>');
-          return openTag + processedContent + closeTag;
-        });
-        return generateLogicModelSVG(header, processedBody);
+        return generateLogicModelSVG(header, body);
       }
       
       // Detect table type for styling
