@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Download, Loader2, CheckCircle, FileText } from 'lucide-react';
+import { marked, Tokens } from 'marked';
+import hljs from 'highlight.js';
+import DOMPurify from 'dompurify';
 import type { ProgramData } from '../App';
 
 interface StepSixProps {
@@ -9,13 +12,365 @@ interface StepSixProps {
   setIsProcessing: (processing: boolean) => void;
 }
 
-const StepSix: React.FC<StepSixProps> = ({ programData, updateProgramData, onComplete, setIsProcessing }) => {
+const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcessing }) => {
   const [renderStatus, setRenderStatus] = useState<'idle' | 'rendering' | 'complete'>('idle');
   const [htmlContent, setHtmlContent] = useState<string>('');
 
   useEffect(() => {
     renderHtmlReport();
   }, []);
+
+  // Detect table type for enhanced styling
+  const detectTableType = useCallback((headerText: string): string => {
+    const header = headerText.toLowerCase();
+    if (header.includes('timeline') || header.includes('phase') || header.includes('month') || header.includes('quarter')) {
+      return 'timeline-table';
+    }
+    if (header.includes('stakeholder') || header.includes('role') || header.includes('responsibility')) {
+      return 'stakeholder-table';
+    }
+    if (header.includes('evaluation') || header.includes('method') || header.includes('approach')) {
+      return 'evaluation-table';
+    }
+    if (header.includes('metric') || header.includes('indicator') || header.includes('measure')) {
+      return 'metrics-table';
+    }
+    return 'standard-table';
+  }, []);
+
+  // Detect if table represents a logic model
+  const isLogicModelTable = useCallback((headerText: string): boolean => {
+    const header = headerText.toLowerCase();
+    const logicModelKeywords = ['inputs', 'activities', 'outputs', 'outcomes', 'impact'];
+    return logicModelKeywords.some(keyword => header.includes(keyword));
+  }, []);
+
+  // Generate SVG flowchart for logic models with fixed IDs
+  const generateLogicModelSVG = useCallback((headerHtml: string, bodyHtml: string): string => {
+    // Generate consistent unique ID for this SVG
+    const uid = Date.now();
+    
+    // Parse table data from HTML
+    const headerCells = headerHtml.match(/<th[^>]*>([^<]*)<\/th>/g) || [];
+    const headers = headerCells.map(cell => cell.replace(/<\/?th[^>]*>/g, '').trim());
+    
+    const bodyRows = bodyHtml.match(/<tr[^>]*>.*?<\/tr>/gs) || [];
+    const data = bodyRows.map(row => {
+      const cells = row.match(/<td[^>]*>([^<]*)<\/td>/g) || [];
+      return cells.map(cell => cell.replace(/<\/?td[^>]*>/g, '').trim());
+    });
+
+    // Calculate SVG dimensions
+    const width = Math.max(800, headers.length * 150);
+    const height = 300;
+    const boxWidth = 120;
+    const boxHeight = 80;
+    const spacing = Math.max(20, (width - (headers.length * boxWidth)) / (headers.length + 1));
+    
+    let svg = `
+    <figure class="logic-model-diagram">
+      <h4>Logic Model Visualization</h4>
+      <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="logic-model-svg">
+        <defs>
+          <linearGradient id="boxGradient-${uid}" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+          </linearGradient>
+          <filter id="shadow-${uid}" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.1)"/>
+          </filter>
+          <marker id="arrowhead-${uid}" markerWidth="10" markerHeight="7" 
+                  refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
+          </marker>
+        </defs>
+    `;
+
+    // Draw boxes and arrows
+    headers.forEach((header, index) => {
+      const x = spacing + (index * (boxWidth + spacing));
+      const y = 50;
+      
+      // Escape header text for SVG
+      const escapedHeader = header.replace(/[<>&"']/g, (char) => {
+        const escapeMap: { [key: string]: string } = {
+          '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;'
+        };
+        return escapeMap[char] || char;
+      });
+      
+      // Draw box
+      svg += `
+        <rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" 
+              rx="8" fill="url(#boxGradient-${uid})" stroke="#cbd5e1" stroke-width="2" 
+              filter="url(#shadow-${uid})"/>
+        <text x="${x + boxWidth/2}" y="${y + 25}" text-anchor="middle" 
+              font-weight="600" font-size="14" fill="#1e293b">${escapedHeader}</text>
+      `;
+      
+      // Add content if available
+      if (data[0] && data[0][index]) {
+        const content = data[0][index].substring(0, 30) + (data[0][index].length > 30 ? '...' : '');
+        const escapedContent = content.replace(/[<>&"']/g, (char) => {
+          const escapeMap: { [key: string]: string } = {
+            '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;'
+          };
+          return escapeMap[char] || char;
+        });
+        
+        svg += `
+          <text x="${x + boxWidth/2}" y="${y + 45}" text-anchor="middle" 
+                font-size="11" fill="#64748b">${escapedContent}</text>
+        `;
+      }
+      
+      // Draw arrow to next box
+      if (index < headers.length - 1) {
+        const arrowStartX = x + boxWidth;
+        const arrowEndX = x + boxWidth + spacing;
+        const arrowY = y + boxHeight/2;
+        
+        svg += `
+          <line x1="${arrowStartX}" y1="${arrowY}" x2="${arrowEndX}" y2="${arrowY}" 
+                stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowhead-${uid})"/>
+        `;
+      }
+    });
+    
+    svg += '</svg></figure>';
+    return svg;
+  }, []);
+
+
+  // Post-process HTML to properly close section tags
+  const postProcessHTML = useCallback((html: string): string => {
+    // Close any unclosed section tags before new sections or end of content
+    let processed = html.replace(/<section class="content-section"><h2([^>]*)>([^<]*)<\/h2>/g, 
+      '</section><section class="content-section"><h2$1>$2</h2>');
+    
+    // Remove the first closing section tag if it appears at the beginning
+    processed = processed.replace(/^<\/section>/, '');
+    
+    // Add closing section tag at the end if we have any sections
+    if (processed.includes('<section class="content-section">')) {
+      processed += '</section>';
+    }
+    
+    return processed;
+  }, []);
+
+  // Shared slugger for consistent ID generation - use manual implementation
+  const slugger = React.useMemo(() => {
+    const slugs: { [key: string]: number } = {};
+    return {
+      reset: () => {
+        Object.keys(slugs).forEach(key => delete slugs[key]);
+      },
+      slug: (text: string): string => {
+        const baseSlug = text.toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .replace(/--+/g, '-');
+        
+        if (!slugs[baseSlug]) {
+          slugs[baseSlug] = 0;
+          return baseSlug;
+        } else {
+          slugs[baseSlug]++;
+          return `${baseSlug}-${slugs[baseSlug]}`;
+        }
+      }
+    };
+  }, []);
+  
+  // Initialize marked with custom renderer and options (memoized)
+  const initializeMarked = React.useCallback(() => {
+    // Reset slugger for fresh ID generation
+    slugger.reset();
+    
+    // Create custom renderer for enhanced features
+    const renderer = new marked.Renderer();
+
+    // Custom heading renderer with IDs - preserves inline formatting
+    renderer.heading = function(token: Tokens.Heading) {
+      const text = this.parser.parseInline(token.tokens);
+      const rawText = token.tokens.map(t => t.type === 'text' ? (t as Tokens.Text).text : '').join('');
+      const level = token.depth;
+      const id = slugger.slug(rawText);
+      
+      // Add content-section wrapper for h2 elements
+      if (level === 2) {
+        return `<section class="content-section"><h2 id="${id}">${text}</h2>`;
+      }
+      
+      return `<h${level} id="${id}">${text}</h${level}>`;
+    };
+
+    // Enhanced table renderer with logic model detection - preserves inline formatting
+    renderer.table = function(token: Tokens.Table) {
+      const header = token.header.map(cell => {
+        const cellContent = this.parser.parseInline(cell.tokens);
+        return `<th>${cellContent}</th>`;
+      }).join('');
+      
+      const body = token.rows.map(row => 
+        `<tr>${row.map(cell => {
+          const cellContent = this.parser.parseInline(cell.tokens);
+          return `<td>${cellContent}</td>`;
+        }).join('')}</tr>`
+      ).join('');
+      
+      // Detect logic model tables (use raw text for detection)
+      const headerRawText = token.header.map(cell => 
+        cell.tokens.map(t => t.type === 'text' ? (t as Tokens.Text).text : '').join('')
+      ).join(' ');
+      
+      if (isLogicModelTable(headerRawText)) {
+        return generateLogicModelSVG(header, body);
+      }
+      
+      // Detect table type for styling
+      const tableClass = detectTableType(headerRawText);
+      
+      return `<table class="${tableClass}"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>`;
+    };
+
+    // Enhanced paragraph renderer with callout detection - preserves inline formatting
+    renderer.paragraph = function(token: Tokens.Paragraph) {
+      const text = this.parser.parseInline(token.tokens);
+      const rawText = token.tokens.map(t => {
+        if (t.type === 'text') return (t as Tokens.Text).text;
+        if (t.type === 'strong') return (t as Tokens.Strong).tokens.map(st => st.type === 'text' ? (st as Tokens.Text).text : '').join('');
+        return '';
+      }).join('');
+      
+      // Detect callouts and special sections using raw text
+      if (rawText.includes('This evaluation plan is designed to be a living document')) {
+        return `<div class="intro-section">${text}</div>`;
+      }
+      
+      if (rawText.startsWith('Key Insight:') || rawText.startsWith('Important:')) {
+        return `<div class="highlight-box">${text}</div>`;
+      }
+      
+      if (rawText.startsWith('Warning:') || rawText.startsWith('Note:')) {
+        return `<div class="warning-box">${text}</div>`;
+      }
+      
+      if (rawText.includes('Created on') && rawText.includes('LogicalOutcomes Evaluation Planner')) {
+        return `<p class="subtitle">${text}</p>`;
+      }
+      
+      return `<p>${text}</p>`;
+    };
+
+    // Enhanced list renderer - preserves inline formatting
+    renderer.list = function(token: Tokens.List) {
+      const tag = token.ordered ? 'ol' : 'ul';
+      const body = token.items.map(item => {
+        const itemContent = item.tokens.map(t => {
+          if (t.type === 'text') return this.parser.parseInline([t]);
+          if (t.type === 'paragraph') return this.parser.parseInline((t as Tokens.Paragraph).tokens);
+          if (t.type === 'list') return this.list(t as Tokens.List);
+          return '';
+        }).join('');
+        return `<li>${itemContent}</li>`;
+      }).join('');
+      return `<${tag}>${body}</${tag}>`;
+    };
+
+    // Code block renderer with syntax highlighting
+    renderer.code = function(token: Tokens.Code) {
+      const code = token.text;
+      const language = token.lang || '';
+      const validLanguage = language && hljs.getLanguage(language) ? language : 'plaintext';
+      try {
+        const highlighted = hljs.highlight(code, { language: validLanguage }).value;
+        return `<pre class="hljs"><code class="language-${validLanguage}">${highlighted}</code></pre>`;
+      } catch (err) {
+        return `<pre class="hljs"><code>${token.text}</code></pre>`;
+      }
+    };
+
+    // Configure marked with custom renderer
+    marked.use({ 
+      renderer,
+      breaks: true,
+      gfm: true
+    });
+  }, [slugger, detectTableType, isLogicModelTable, generateLogicModelSVG]);
+
+  // Convert markdown to HTML using initialized marked with security
+  const convertMarkdownToHtml = useCallback((markdown: string): string => {
+    try {
+      // Initialize marked with custom renderer
+      initializeMarked();
+      
+      // Convert markdown to HTML
+      const rawHtml = marked.parse(markdown) as string;
+      
+      // Post-process HTML for section closures
+      const processedHtml = postProcessHTML(rawHtml);
+      
+      // Sanitize HTML for security
+      const sanitizedHtml = DOMPurify.sanitize(processedHtml, {
+        ALLOWED_TAGS: [
+          'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'div', 'span', 'a', 'ul', 'ol', 'li',
+          'table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption', 'strong', 'em', 'code',
+          'pre', 'blockquote', 'br', 'hr', 'img', 'figure', 'figcaption', 'section',
+          'svg', 'rect', 'text', 'line', 'polygon', 'defs', 'linearGradient', 'stop',
+          'filter', 'feDropShadow', 'marker'
+        ],
+        ALLOWED_ATTR: [
+          'id', 'class', 'href', 'title', 'alt', 'src', 'width', 'height', 'viewBox',
+          'x', 'y', 'x1', 'y1', 'x2', 'y2', 'rx', 'fill', 'stroke', 'stroke-width',
+          'text-anchor', 'font-weight', 'font-size', 'marker-end', 'points', 'offset',
+          'style', 'stop-color', 'stop-opacity', 'dx', 'dy', 'stdDeviation', 'flood-color',
+          'markerWidth', 'markerHeight', 'refX', 'refY', 'orient'
+        ],
+        ALLOW_DATA_ATTR: false
+      });
+      
+      return sanitizedHtml;
+    } catch (error) {
+      console.error('Error converting markdown to HTML:', error);
+      return `<div class="error-message">Error processing evaluation plan content. Please try regenerating the plan.</div>`;
+    }
+  }, [initializeMarked, postProcessHTML]);
+
+  // Generate table of contents from markdown headings
+  const generateTOC = useCallback((markdown: string): string => {
+    try {
+      // Reset slugger to match heading rendering
+      slugger.reset();
+      
+      const tokens = marked.lexer(markdown);
+      const tocItems: string[] = [];
+      
+      tokens.forEach(token => {
+        if (token.type === 'heading' && (token as Tokens.Heading).depth <= 3) {
+          const headingToken = token as Tokens.Heading;
+          const rawText = headingToken.tokens
+            .map(t => t.type === 'text' ? (t as Tokens.Text).text : '')
+            .join('');
+          const id = slugger.slug(rawText);
+          const level = headingToken.depth;
+          const indent = level === 1 ? '' : level === 2 ? 'ml-2' : 'ml-4';
+          
+          // Sanitize display text
+          const displayText = DOMPurify.sanitize(rawText, { ALLOWED_TAGS: [] });
+          
+          tocItems.push(`<div class="toc-item ${indent}"><a href="#${id}">${displayText}</a></div>`);
+        }
+      });
+      
+      return tocItems.join('');
+    } catch (error) {
+      console.error('Error generating TOC:', error);
+      return '<div class="error-message">Error generating table of contents</div>';
+    }
+  }, [slugger]);
 
   const renderHtmlReport = async () => {
     setIsProcessing(true);
@@ -24,15 +379,21 @@ const StepSix: React.FC<StepSixProps> = ({ programData, updateProgramData, onCom
     // Simulate rendering process
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Convert markdown to HTML with enhanced styling
-    const htmlReport = `
+    try {
+      // Generate table of contents first
+      const tocHtml = generateTOC(programData.evaluationPlan);
+      
+      // Convert markdown content 
+      const contentHtml = convertMarkdownToHtml(programData.evaluationPlan);
+      
+      // Create complete HTML report with sanitized content
+      const htmlReport = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${programData.organizationName} — ${programData.programName} Evaluation Plan</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>${DOMPurify.sanitize(programData.organizationName)} — ${DOMPurify.sanitize(programData.programName)} Evaluation Plan</title>
     <style>
         @media print {
             .no-print { display: none; }
@@ -269,6 +630,266 @@ const StepSix: React.FC<StepSixProps> = ({ programData, updateProgramData, onCom
             margin: 1.5rem 0;
             border-radius: 0 8px 8px 0;
         }
+        
+        /* Syntax Highlighting Styles */
+        .hljs {
+            background: #f8fafc;
+            color: #1e293b;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+        
+        .hljs-comment { color: #64748b; font-style: italic; }
+        .hljs-keyword { color: #7c3aed; font-weight: 600; }
+        .hljs-string { color: #059669; }
+        .hljs-number { color: #dc2626; }
+        .hljs-function { color: #2563eb; }
+        .hljs-variable { color: #b45309; }
+        
+        /* Logic Model Diagram Styles */
+        .logic-model-diagram {
+            margin: 3rem 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 12px;
+            border: 1px solid #0ea5e9;
+            text-align: center;
+        }
+        
+        .logic-model-diagram h4 {
+            color: #0c4a6e;
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .logic-model-svg {
+            max-width: 100%;
+            height: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Enhanced Table Styles */
+        .timeline-table {
+            background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .timeline-table th {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #92400e;
+        }
+        
+        .stakeholder-table {
+            background: linear-gradient(135deg, #ecfdf5 0%, #dcfce7 100%);
+            border-left: 4px solid #10b981;
+        }
+        
+        .stakeholder-table th {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            color: #064e3b;
+        }
+        
+        .evaluation-table {
+            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+            border-left: 4px solid #8b5cf6;
+        }
+        
+        .evaluation-table th {
+            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+            color: #4c1d95;
+        }
+        
+        .metrics-table {
+            background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+            border-left: 4px solid #ec4899;
+        }
+        
+        .metrics-table th {
+            background: linear-gradient(135deg, #f9a8d4 0%, #ec4899 100%);
+            color: #831843;
+        }
+        
+        .standard-table {
+            background: white;
+            border-left: 4px solid #6b7280;
+        }
+        
+        .standard-table th {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: #1e293b;
+        }
+        
+        /* Enhanced Callout Boxes */
+        .highlight-box {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border-left: 4px solid #2563eb;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 12px 12px 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .highlight-box::before {
+            content: "💡";
+            position: absolute;
+            top: 1rem;
+            left: -0.75rem;
+            background: #2563eb;
+            color: white;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid #d97706;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 12px 12px 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .warning-box::before {
+            content: "⚠️";
+            position: absolute;
+            top: 1rem;
+            left: -0.75rem;
+            background: #d97706;
+            color: white;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+        
+        .intro-section {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border-left: 4px solid #0ea5e9;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .intro-section::before {
+            content: "📋";
+            position: absolute;
+            top: 1.5rem;
+            left: -0.75rem;
+            background: #0ea5e9;
+            color: white;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+        
+        /* Error message styling */
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        /* Responsive Improvements */
+        @media (max-width: 768px) {
+            .logic-model-diagram {
+                padding: 1rem;
+                margin: 2rem 0;
+            }
+            
+            .logic-model-svg {
+                width: 100%;
+                height: auto;
+            }
+            
+            /* Enhanced table responsive design */
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+                border-radius: 8px;
+                margin: 1rem 0;
+            }
+            
+            table.timeline-table,
+            table.stakeholder-table,
+            table.evaluation-table,
+            table.metrics-table,
+            table.standard-table {
+                min-width: 600px;
+            }
+            
+            .highlight-box,
+            .warning-box,
+            .intro-section {
+                margin: 1rem 0;
+                padding: 1rem;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .highlight-box::before,
+            .warning-box::before,
+            .intro-section::before {
+                display: none;
+            }
+            
+            .hljs {
+                padding: 1rem;
+                font-size: 0.875rem;
+                margin: 1rem 0;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logic-model-diagram {
+                padding: 0.75rem;
+            }
+            
+            .logic-model-diagram h4 {
+                font-size: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            table {
+                font-size: 0.75rem;
+            }
+            
+            th, td {
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .highlight-box,
+            .warning-box,
+            .intro-section {
+                padding: 0.75rem;
+                margin: 0.75rem 0;
+            }
+        }
     </style>
 </head>
 <body class="bg-white">
@@ -284,11 +905,11 @@ const StepSix: React.FC<StepSixProps> = ({ programData, updateProgramData, onCom
                 </div>
                 <div>
                     <h1 class="text-lg font-semibold">Evaluation Plan Report</h1>
-                    <p class="text-sm text-slate-300">${programData.organizationName}</p>
+                    <p class="text-sm text-slate-300">${DOMPurify.sanitize(programData.organizationName)}</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium transition-colors">
+                <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium transition-colors">
                     Print / Save PDF
                 </button>
             </div>
@@ -300,32 +921,14 @@ const StepSix: React.FC<StepSixProps> = ({ programData, updateProgramData, onCom
         <aside class="w-64 bg-slate-50 min-h-screen p-6 no-print">
             <h3 class="font-semibold text-slate-900 mb-4">Table of Contents</h3>
             <nav class="space-y-1 text-sm">
-                <div class="toc-item"><a href="#program-summary-and-analysis">Program Summary and Analysis</a></div>
-                <div class="toc-item"><a href="#summary-of-the-program">Summary of the Program</a></div>
-                <div class="toc-item"><a href="#program-overview">Program Overview</a></div>
-                <div class="toc-item"><a href="#activities">Activities</a></div>
-                <div class="toc-item"><a href="#desired-impact">Desired Impact</a></div>
-                <div class="toc-item"><a href="#target-population">Target Population</a></div>
-                <div class="toc-item"><a href="#community-context">Community Context</a></div>
-                <div class="toc-item"><a href="#evidence-based-program-processes">Evidence-based Program Processes</a></div>
-                <div class="toc-item"><a href="#critical-success-factors">Critical Success Factors</a></div>
-                <div class="toc-item"><a href="#main-interest-groups">Main Interest Groups</a></div>
-                <div class="toc-item"><a href="#potential-program-risks">Potential Program Risks</a></div>
-                <div class="toc-item"><a href="#areas-of-evaluation-focus">Areas of Evaluation Focus</a></div>
-                <div class="toc-item"><a href="#program-evaluation-plan">Program Evaluation Plan</a></div>
-                <div class="toc-item"><a href="#overview">Overview</a></div>
-                <div class="toc-item"><a href="#evaluation-objectives">Evaluation Objectives</a></div>
-                <div class="toc-item"><a href="#evaluation-questions">Evaluation Questions</a></div>
-                <div class="toc-item"><a href="#logic-model">Logic Model</a></div>
-                <div class="toc-item"><a href="#evaluation-framework-for-${programData.programName.toLowerCase().replace(/\s+/g, '-')}">Evaluation Framework</a></div>
-                <div class="toc-item"><a href="#evaluation-phases-roles-and-agendas">Implementation Phases</a></div>
+                ${tocHtml}
             </nav>
         </aside>
 
         <!-- Main Content -->
         <main class="flex-1 p-6">
             <div class="max-w-none">
-                ${convertMarkdownToHtml(programData.evaluationPlan)}
+                ${contentHtml}
             </div>
         </main>
     </div>
@@ -343,202 +946,39 @@ const StepSix: React.FC<StepSixProps> = ({ programData, updateProgramData, onCom
             </div>
         </div>
     </footer>
-
-    <script>
-        // Smooth scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('href');
-                const target = document.querySelector(targetId);
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                } else {
-                    console.log('Target not found:', targetId);
-                }
-            });
-        });
-
-        // Debug: Log all headings and their IDs
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Available headings:');
-            document.querySelectorAll('h1, h2, h3').forEach(heading => {
-                console.log('ID:', heading.id, 'Text:', heading.textContent);
-            });
-        });
-    </script>
 </body>
 </html>
-    `;
+      `;
 
-    setHtmlContent(htmlReport);
-    setRenderStatus('complete');
-    setIsProcessing(false);
-    onComplete();
-  };
-
-  const convertMarkdownToHtml = (markdown: string): string => {
-    let html = markdown;
-    
-    // Step 1: Handle the main title specially
-    html = html.replace(/^#\s*(.+?)\s*—\s*(.+?)\s*Draft Evaluation Plan$/gm, (match, org, program) => {
-      return `<h1>${org} — ${program} Draft Evaluation Plan</h1>`;
-    });
-    
-    // Handle the subtitle line
-    html = html.replace(/^Created on (.+?) by LogicalOutcomes Evaluation Planner$/gm, (match, date) => {
-      return `<p class="subtitle">Created on ${date} by LogicalOutcomes Evaluation Planner</p>`;
-    });
-    
-    // Step 2: Convert other headers with proper IDs
-    html = html.replace(/^#\s*(.+)$/gm, (match, title) => {
-      const id = title.toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/^-+|-+$/g, '');
-      return `<h1 id="${id}">${title}</h1>`;
-    });
-    
-    html = html.replace(/^##\s*(.+)$/gm, (match, title) => {
-      const id = title.toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/^-+|-+$/g, '');
-      return `<div class="content-section"><h2 id="${id}">${title}</h2>`;
-    });
-    
-    html = html.replace(/^###\s*(.+)$/gm, (match, title) => {
-      const id = title.toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/^-+|-+$/g, '');
-      return `<h3 id="${id}">${title}</h3>`;
-    });
-    
-    html = html.replace(/^####\s*(.+)$/gm, (match, title) => {
-      const id = title.toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/^-+|-+$/g, '');
-      return `<h4 id="${id}">${title}</h4>`;
-    });
-    
-    // Step 3: Convert links - handle markdown links with or without spaces
-    html = html.replace(/\[([^\]]+)\]\s*\(([^)]+)\)/g, (match, text, url) => {
-      return `<a href="${url}" class="text-blue-600 hover:underline" target="_blank">${text}</a>`;
-    });
-    
-    // Step 4: Convert bold and italic
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    
-    // Step 5: Convert bullet points to HTML lists
-    const lines = html.split('\n');
-    const processedLines = [];
-    let inList = false;
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      
-      // Check for bullet points
-      if (line.match(/^[•\-\*]\s+(.+)$/)) {
-        if (!inList) {
-          processedLines.push('<ul>');
-          inList = true;
-        }
-        const content = line.replace(/^[•\-\*]\s+/, '');
-        processedLines.push(`<li>${content}</li>`);
-      } else if (line.match(/^\d+\.\s+(.+)$/)) {
-        // Numbered lists
-        if (!inList) {
-          processedLines.push('<ol>');
-          inList = true;
-        }
-        const content = line.replace(/^\d+\.\s+/, '');
-        processedLines.push(`<li>${content}</li>`);
-      } else {
-        if (inList) {
-          processedLines.push('</ul>');
-          inList = false;
-        }
-        processedLines.push(lines[i]); // Keep original line with spacing
-      }
+      setHtmlContent(htmlReport);
+      setRenderStatus('complete');
+      setIsProcessing(false);
+      onComplete();
+    } catch (error) {
+      console.error('Error rendering HTML report:', error);
+      setRenderStatus('idle');
+      setIsProcessing(false);
+      alert('Failed to render HTML report. Please try again.');
     }
-    
-    if (inList) {
-      processedLines.push('</ul>');
-    }
-    
-    html = processedLines.join('\n');
-    
-    // Step 6: Handle tables with better formatting
-    html = html.replace(/\|(.+)\|\n\|[-\s|]+\|\n((?:\|.+\|\n?)*)/g, (match, headerRow, bodyRows) => {
-      const headers = headerRow.split('|')
-        .filter(h => h.trim())
-        .map(h => `<th>${h.trim()}</th>`)
-        .join('');
-      
-      const rows = bodyRows.split('\n')
-        .filter(row => row.trim() && row.includes('|'))
-        .map(row => {
-          const cells = row.split('|')
-            .filter(c => c.trim())
-            .map(c => `<td>${c.trim()}</td>`)
-            .join('');
-          return `<tr>${cells}</tr>`;
-        }).join('');
-      
-      return `</div><table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table><div class="content-section">`;
-    });
-    
-    // Step 7: Handle the introduction section specially
-    html = html.replace(/(This evaluation plan is designed to be a living document[\s\S]*?Consensus.*?\.\s*)/g, 
-      '<div class="intro-section">$1</div>');
-    
-    // Step 8: Convert paragraphs
-    const paragraphs = html.split('\n\n');
-    html = paragraphs.map(paragraph => {
-      const trimmed = paragraph.trim();
-      if (trimmed && 
-          !trimmed.startsWith('<h') && 
-          !trimmed.startsWith('<table') && 
-          !trimmed.startsWith('<ul') &&
-          !trimmed.startsWith('<ol') && 
-          !trimmed.startsWith('<li') &&
-          !trimmed.startsWith('<div') &&
-          !trimmed.includes('<h1') &&
-          !trimmed.includes('<h2') &&
-          !trimmed.includes('<h3') &&
-          !trimmed.includes('<h4')) {
-        return `<p>${trimmed}</p>`;
-      }
-      return trimmed;
-    }).join('\n\n');
-    
-    // Step 9: Close any open content sections
-    html = html.replace(/<div class="content-section">(?![\s\S]*<\/div>)[\s\S]*$/g, (match) => {
-      return match + '</div>';
-    });
-    
-    // Step 10: Clean up
-    html = html.replace(/<p><\/p>/g, '');
-    html = html.replace(/\n{3,}/g, '\n\n');
-    html = html.replace(/<\/div>\s*<div class="content-section">/g, '');
-    
-    return html;
   };
 
-  const downloadHtml = () => {
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${programData.organizationName}-${programData.programName}-Evaluation-Plan.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  // Download HTML functionality
+  const downloadHtml = useCallback(() => {
+    try {
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${programData.organizationName}_${programData.programName}_Evaluation_Plan.html`.replace(/[^a-zA-Z0-9._-]/g, '_');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading HTML:', error);
+      alert('Failed to download HTML file. Please try again.');
+    }
+  }, [htmlContent, programData.organizationName, programData.programName]);
 
   return (
     <div className="p-8">
