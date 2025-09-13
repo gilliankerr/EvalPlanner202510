@@ -1146,7 +1146,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
                 {renderStatus === 'idle' && 'Preparing HTML Render...'}
               </h3>
               <p className="text-slate-600">
-                {renderStatus === 'rendering' && 'Converting evaluation plan to beautifully formatted HTML document'}
+                {renderStatus === 'rendering' && 'Converting evaluation plan to formatted HTML document'}
                 {renderStatus === 'complete' && 'Your evaluation plan has been formatted as a professional HTML report'}
                 {renderStatus === 'idle' && 'Setting up HTML rendering process'}
               </p>
