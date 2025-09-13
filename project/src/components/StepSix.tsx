@@ -479,10 +479,6 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             color: #7c3aed;
         }
         
-        /* TOC links - no underlines */
-        .toc-item a {
-            text-decoration: none;
-        }
         
         /* Tables */
         table {
@@ -936,7 +932,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             display: block;
             padding: 0.25rem 0;
             color: #64748b;
-            text-decoration: none;
+            text-decoration: none !important;
             transition: color 0.2s;
         }
         
