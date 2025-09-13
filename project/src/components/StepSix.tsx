@@ -1026,6 +1026,34 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             margin-bottom: 0.5rem;
         }
         
+        /* Print Button Styling */
+        .print-btn {
+            background-color: #dbeafe;
+            color: #1f2937;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #93c5fd;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1.5rem;
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .print-btn:hover {
+            background-color: #bfdbfe;
+            border-color: #60a5fa;
+        }
+        
+        /* Print Styles - Default to Landscape */
+        @page {
+            size: landscape;
+            margin: 0.5in;
+        }
+        
         /* Responsive: Stack on smaller screens */
         @media (max-width: 768px) {
             .flex {
@@ -1052,11 +1080,6 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
                     <p class="text-sm text-slate-300">${DOMPurify.sanitize(programData.organizationName)}</p>
                 </div>
             </div>
-            <div class="text-right">
-                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs font-medium transition-colors">
-                    Print / Save PDF
-                </button>
-            </div>
         </div>
     </nav>
 
@@ -1065,6 +1088,9 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         <div class="flex">
         <!-- TOC Sidebar: Always visible on left -->
         <aside class="w-80 bg-slate-50 min-h-screen p-6 no-print">
+            <button onclick="window.print()" class="print-btn">
+                Print / Save PDF
+            </button>
             <h3 class="font-semibold text-slate-900 mb-4">Table of Contents</h3>
             <nav class="space-y-1 text-sm">
                 ${tocHtml}
