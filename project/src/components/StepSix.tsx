@@ -462,6 +462,23 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             color: #1e293b;
         }
         
+        /* Links styling - underlined and visible */
+        a {
+            color: #2563eb;
+            text-decoration: underline;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        a:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+        
+        a:visited {
+            color: #7c3aed;
+        }
+        
         /* Tables */
         table {
             width: 100%;
@@ -612,7 +629,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         
         .toc-item a {
             color: #475569;
-            text-decoration: none;
+            text-decoration: underline;
             font-weight: 500;
         }
         
