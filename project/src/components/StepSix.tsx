@@ -271,17 +271,30 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       }
     };
 
-    // Link renderer for proper anchor tags
+    // Link renderer for proper anchor tags with target="_blank"
     renderer.link = function(token: Tokens.Link) {
       const text = this.parser.parseInline(token.tokens);
       const href = token.href || '';
       const title = token.title ? ` title="${token.title}"` : '';
-      return `<a href="${href}"${title}>${text}</a>`;
+      return `<a href="${href}"${title} target="_blank" rel="noopener noreferrer">${text}</a>`;
     };
 
     // Return configured renderer for per-call use
     return renderer;
   }, [slugger, detectTableType, isLogicModelTable]);
+
+  // Normalize markdown to fix common link formatting issues
+  const normalizeMarkdown = useCallback((markdown: string): string => {
+    let normalized = markdown;
+    
+    // Fix spaced links: [text] (url) → [text](url)
+    normalized = normalized.replace(/\[(.+?)\]\s*\(\s*(https?:\/\/[^)\s]+)\s*\)/g, '[$1]($2)');
+    
+    // Convert "Name (URL)" patterns to markdown links
+    normalized = normalized.replace(/\b([A-Z][\w .&-]{2,})\s*\(\s*(https?:\/\/[^)\s]+)\s*\)/g, '[$1]($2)');
+    
+    return normalized;
+  }, []);
 
   // Convert markdown to HTML using initialized marked with security
   const convertMarkdownToHtml = useCallback((markdown: string): string => {
@@ -289,8 +302,11 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       // Get custom renderer
       const renderer = initializeMarked();
       
+      // Normalize markdown first to fix malformed links
+      const normalizedMarkdown = normalizeMarkdown(markdown);
+      
       // Convert markdown to HTML with our custom renderer
-      const rawHtml = marked.parse(markdown, { 
+      const rawHtml = marked.parse(normalizedMarkdown, { 
         renderer, 
         gfm: true, 
         breaks: true 
@@ -307,7 +323,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
           'pre', 'blockquote', 'br', 'hr', 'img', 'figure', 'figcaption', 'section'
         ],
         ALLOWED_ATTR: [
-          'id', 'class', 'href', 'title', 'alt', 'src', 'width', 'height', 'style'
+          'id', 'class', 'href', 'title', 'alt', 'src', 'width', 'height', 'style', 'target', 'rel'
         ],
         ALLOW_DATA_ATTR: false
       });
