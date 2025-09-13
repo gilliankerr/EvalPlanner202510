@@ -41,7 +41,7 @@ The project is configured for the Replit environment:
 - **Port**: 5000 (strictly enforced)
 - **Fix Applied**: Added root-level package.json proxy to handle Replit's auto npm detection
 
-## Recent Changes (September 12, 2025)
+## Recent Changes (September 13, 2025)
 - Configured Vite for Replit environment with proper host/port binding
 - Added `strictPort: true` to prevent port conflicts
 - Created production start script for deployment
@@ -50,6 +50,7 @@ The project is configured for the Replit environment:
 - **Fixed deployment directory issue**: Added root-level package.json proxy to handle Replit's auto npm detection and directory mismatch
 - **Completely overhauled HTML report generation**: Replaced custom markdown parser with professional marked library, added logic model SVG diagrams, enhanced table styling, improved responsive design, and added security sanitization
 - **Updated HTML report styling**: Removed navigation graphic, enabled functional print-to-PDF button, and standardized all table formatting to consistent blue theme colors
+- **Enhanced URL scraping capabilities**: Increased character limit from 5,000 to 25,000 characters per URL for comprehensive program understanding and better evaluation analysis quality
 
 ## File Structure
 ```
