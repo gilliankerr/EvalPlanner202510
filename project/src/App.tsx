@@ -147,7 +147,7 @@ function App() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-slate-900">Evaluation Planner</h1>
-                <p className="text-sm text-slate-600">AI-powered nonprofit program evaluation planning based on LogicalOutcomes Evaluation Planning Handbook</p>
+                <p className="text-sm text-slate-600">Based on LogicalOutcomes Evaluation Planning Handbook</p>
               </div>
             </div>
             {isProcessing && (
