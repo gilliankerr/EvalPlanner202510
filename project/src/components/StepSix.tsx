@@ -45,149 +45,6 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
     return logicModelKeywords.some(keyword => header.includes(keyword));
   }, []);
 
-  // Generate enhanced Mermaid-style SVG flowchart for logic models
-  const generateLogicModelSVG = useCallback((bodyHtml: string): string => {
-    // Generate consistent unique ID for this SVG
-    const uid = Date.now();
-    
-    // Parse table data from HTML - extract data from ALL rows, not just first row
-    const bodyRows = bodyHtml.match(/<tr[^>]*>.*?<\/tr>/gs) || [];
-    const data = bodyRows.map(row => {
-      const cells = row.match(/<td[^>]*>([^<]*)<\/td>/g) || [];
-      return cells.map(cell => cell.replace(/<\/?td[^>]*>/g, '').trim());
-    });
-
-    // Extract content for each column by aggregating ALL rows
-    const getColumnContent = (columnIndex: number): string => {
-      const columnValues = data
-        .map(row => row[columnIndex])
-        .filter(value => value && value.trim())
-        .join('\n\n');
-      return columnValues;
-    };
-
-    // Enhanced logic model stages with proper data extraction from all rows
-    const stages = [
-      { 
-        key: 'INPUTS', 
-        content: getColumnContent(0) || 'Staff training and tools for service provision\n\nProvider skill and effort\n\nManagement attention and effort\n\nFinancial resources' 
-      },
-      { 
-        key: 'ACTIVITIES', 
-        content: getColumnContent(1) || '(List of program activities)\n\nQuality assurance processes' 
-      },
-      { 
-        key: 'OUTPUTS', 
-        content: getColumnContent(2) || 'Number of participants served\n\nServices provided\n\nStaff meetings on participant feedback and service quality' 
-      },
-      { 
-        key: 'SHORT-TERM\nOUTCOMES', 
-        content: getColumnContent(3) || 'Participants\' needs are met\n\nIncreased responsiveness to participants\n\nServices are accessible and equitable\n\nProgram design improvements\n\nEnhanced program quality and fidelity\n\nIncreased engagement with interest groups' 
-      },
-      { 
-        key: 'MID-TERM\nOUTCOMES', 
-        content: getColumnContent(4) || 'Achieved program goals\n\nAchieved participant goals\n\nImproved management processes for continuous improvement\n\nIncreased program effectiveness\n\nEnhanced cost-effectiveness\n\nIncreased financial support' 
-      },
-      { 
-        key: 'LONG-TERM\nOUTCOMES', 
-        content: getColumnContent(5) || 'Fulfilled program outcomes\n\nMet community needs\n\nMet participant needs\n\nEnhanced organizational sustainability' 
-      }
-    ];
-
-    // Calculate responsive dimensions
-    const minWidth = 1400;
-    const boxWidth = 200;
-    const boxHeight = 160;
-    const horizontalSpacing = 40;
-    const width = Math.max(minWidth, stages.length * (boxWidth + horizontalSpacing));
-    const height = 300;
-    
-    let svg = `
-    <figure class="logic-model-diagram">
-      <h4>Logic Model Visualization</h4>
-      <div style="overflow-x: auto; max-width: 100%;">
-        <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="logic-model-svg" style="min-width: ${minWidth}px;">
-          <defs>
-            <marker id="arrowhead-${uid}" markerWidth="12" markerHeight="8" 
-                    refX="11" refY="4" orient="auto" markerUnits="strokeWidth">
-              <polygon points="0,0 0,8 12,4" fill="#333" stroke="#333"/>
-            </marker>
-          </defs>
-    `;
-    
-    // Draw boxes and content
-    stages.forEach((stage, index) => {
-      const x = 20 + (index * (boxWidth + horizontalSpacing));
-      const y = 60;
-      
-      // Escape text for SVG
-      const escapedKey = stage.key.replace(/[<>&"']/g, (char) => {
-        const escapeMap: { [key: string]: string } = {
-          '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;'
-        };
-        return escapeMap[char] || char;
-      });
-      
-      // Draw rounded rectangle with inline Mermaid styling
-      svg += `
-        <rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" 
-              rx="8" fill="#f8f9fb" stroke="#d0d7de" stroke-width="1"/>
-        
-        <!-- Stage header with inline styles -->
-        <text x="${x + boxWidth/2}" y="${y + 20}" 
-              text-anchor="middle" 
-              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-              font-weight="bold" 
-              font-size="13" 
-              fill="#111">${escapedKey}</text>
-        
-        <!-- Divider line -->
-        <line x1="${x + 10}" y1="${y + 30}" x2="${x + boxWidth - 10}" y2="${y + 30}" 
-              stroke="#d0d7de" stroke-width="1"/>
-      `;
-      
-      // Add wrapped content text
-      const lines = stage.content.split('\n').filter(line => line.trim());
-      const maxLines = 8;
-      const displayLines = lines.slice(0, maxLines);
-      
-      displayLines.forEach((line, lineIndex) => {
-        const trimmedLine = line.trim();
-        if (trimmedLine) {
-          const maxLength = 32;
-          const displayText = trimmedLine.length > maxLength ? 
-            trimmedLine.substring(0, maxLength - 3) + '...' : trimmedLine;
-          
-          const escapedLine = displayText.replace(/[<>&"']/g, (char) => {
-            const escapeMap: { [key: string]: string } = {
-              '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;'
-            };
-            return escapeMap[char] || char;
-          });
-          
-          svg += `<text x="${x + 12}" y="${y + 48 + (lineIndex * 14)}" 
-                        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-                        font-size="11"
-                        fill="#111">${escapedLine}</text>`;
-        }
-      });
-      
-      // Draw arrow to next stage
-      if (index < stages.length - 1) {
-        const arrowStartX = x + boxWidth;
-        const arrowEndX = x + boxWidth + horizontalSpacing;
-        const arrowY = y + boxHeight/2;
-        
-        svg += `
-          <line x1="${arrowStartX + 5}" y1="${arrowY}" x2="${arrowEndX - 5}" y2="${arrowY}" 
-                stroke="#333" stroke-width="2" marker-end="url(#arrowhead-${uid})"/>
-        `;
-      }
-    });
-    
-    svg += '</svg></div></figure>';
-    return svg;
-  }, []);
 
 
   // Post-process HTML to properly close section tags
@@ -420,7 +277,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       breaks: true,
       gfm: true
     });
-  }, [slugger, detectTableType, isLogicModelTable, generateLogicModelSVG]);
+  }, [slugger, detectTableType, isLogicModelTable]);
 
   // Convert markdown to HTML using initialized marked with security
   const convertMarkdownToHtml = useCallback((markdown: string): string => {
@@ -439,16 +296,10 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         ALLOWED_TAGS: [
           'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'div', 'span', 'a', 'ul', 'ol', 'li',
           'table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption', 'strong', 'em', 'code',
-          'pre', 'blockquote', 'br', 'hr', 'img', 'figure', 'figcaption', 'section',
-          'svg', 'rect', 'text', 'line', 'polygon', 'defs', 'linearGradient', 'stop',
-          'filter', 'feDropShadow', 'marker'
+          'pre', 'blockquote', 'br', 'hr', 'img', 'figure', 'figcaption', 'section'
         ],
         ALLOWED_ATTR: [
-          'id', 'class', 'href', 'title', 'alt', 'src', 'width', 'height', 'viewBox',
-          'x', 'y', 'x1', 'y1', 'x2', 'y2', 'rx', 'fill', 'stroke', 'stroke-width',
-          'text-anchor', 'font-weight', 'font-size', 'marker-end', 'points', 'offset',
-          'style', 'stop-color', 'stop-opacity', 'dx', 'dy', 'stdDeviation', 'flood-color',
-          'markerWidth', 'markerHeight', 'refX', 'refY', 'orient'
+          'id', 'class', 'href', 'title', 'alt', 'src', 'width', 'height', 'style'
         ],
         ALLOW_DATA_ATTR: false
       });
@@ -676,6 +527,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             color: #374151;
             vertical-align: top;
             line-height: 1.5;
+            font-size: 0.875rem;
         }
         
         tbody tr:hover {
@@ -803,30 +655,6 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         .hljs-function { color: #2563eb; }
         .hljs-variable { color: #b45309; }
         
-        /* Logic Model Diagram Styles */
-        .logic-model-diagram {
-            margin: 3rem 0;
-            padding: 2rem;
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border-radius: 12px;
-            border: 1px solid #0ea5e9;
-            text-align: center;
-        }
-        
-        .logic-model-diagram h4 {
-            color: #0c4a6e;
-            margin-bottom: 1.5rem;
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-        
-        .logic-model-svg {
-            max-width: 100%;
-            height: auto;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
         
         /* Enhanced Table Styles - Using Theme Colors */
         .timeline-table,
