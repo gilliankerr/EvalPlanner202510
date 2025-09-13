@@ -1100,18 +1100,39 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
   // Download HTML functionality
   const downloadHtml = useCallback(() => {
     try {
+      console.log('Starting download process...');
+      console.log('HTML content length:', htmlContent?.length || 0);
+      
+      if (!htmlContent || htmlContent.trim().length === 0) {
+        alert('No HTML content available for download. Please try regenerating the report.');
+        return;
+      }
+
       const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
+      
+      const filename = `${programData.organizationName}_${programData.programName}_Evaluation_Plan.html`.replace(/[^a-zA-Z0-9._-]/g, '_');
+      console.log('Download filename:', filename);
+      
       link.href = url;
-      link.download = `${programData.organizationName}_${programData.programName}_Evaluation_Plan.html`.replace(/[^a-zA-Z0-9._-]/g, '_');
+      link.download = filename;
+      link.style.display = 'none';
+      
       document.body.appendChild(link);
+      console.log('Triggering download...');
       link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      
+      // Clean up after a short delay
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        console.log('Download cleanup completed');
+      }, 100);
+      
     } catch (error) {
       console.error('Error downloading HTML:', error);
-      alert('Failed to download HTML file. Please try again.');
+      alert(`Failed to download HTML file: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
     }
   }, [htmlContent, programData.organizationName, programData.programName]);
 
