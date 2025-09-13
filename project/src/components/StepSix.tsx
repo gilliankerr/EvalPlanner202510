@@ -279,22 +279,22 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       return `<a href="${href}"${title}>${text}</a>`;
     };
 
-    // Configure marked with custom renderer
-    marked.use({ 
-      renderer,
-      breaks: true,
-      gfm: true
-    });
+    // Return configured renderer for per-call use
+    return renderer;
   }, [slugger, detectTableType, isLogicModelTable]);
 
   // Convert markdown to HTML using initialized marked with security
   const convertMarkdownToHtml = useCallback((markdown: string): string => {
     try {
-      // Initialize marked with custom renderer
-      initializeMarked();
+      // Get custom renderer
+      const renderer = initializeMarked();
       
-      // Convert markdown to HTML
-      const rawHtml = marked.parse(markdown) as string;
+      // Convert markdown to HTML with our custom renderer
+      const rawHtml = marked.parse(markdown, { 
+        renderer, 
+        gfm: true, 
+        breaks: true 
+      }) as string;
       
       // Post-process HTML for section closures
       const processedHtml = postProcessHTML(rawHtml);
