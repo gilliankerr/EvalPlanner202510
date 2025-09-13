@@ -126,9 +126,9 @@ const StepTwo: React.FC<StepTwoProps> = ({ programData, updateProgramData, onCom
           .replace(/\n\s*\n/g, '\n')
           .trim();
         
-        // Limit content length to prevent overwhelming the analysis
-        if (extractedText.length > 5000) {
-          extractedText = extractedText.substring(0, 5000) + '... [Content truncated]';
+        // Limit content length to ensure comprehensive program understanding while managing processing
+        if (extractedText.length > 25000) {
+          extractedText = extractedText.substring(0, 25000) + '... [Content truncated]';
         }
         
         const scrapedContent = `
@@ -168,8 +168,8 @@ ${extractedText}
             let extractedText = doc.body?.textContent || '';
             extractedText = extractedText.replace(/\s+/g, ' ').trim();
             
-            if (extractedText.length > 5000) {
-              extractedText = extractedText.substring(0, 5000) + '... [Content truncated]';
+            if (extractedText.length > 25000) {
+              extractedText = extractedText.substring(0, 25000) + '... [Content truncated]';
             }
             
             const scrapedContent = `
