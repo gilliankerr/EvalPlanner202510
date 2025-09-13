@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FileText, Globe, Brain, Clipboard, FileOutput, Download, Loader2, ChevronRight, Check } from 'lucide-react';
 import logoIcon from './assets/logo.jpg';
 import StepOne from './components/StepOne';
