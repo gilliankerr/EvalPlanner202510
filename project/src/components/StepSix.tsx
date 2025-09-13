@@ -1072,7 +1072,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         <div class="flex">
         <!-- TOC Sidebar: Always visible on left -->
         <aside class="w-80 bg-slate-50 min-h-screen p-6 no-print">
-            <button onclick="window.print()" class="print-btn">
+            <button onclick="printLandscape()" class="print-btn">
                 Print / Save PDF
             </button>
             <h3 class="font-semibold text-slate-900 mb-4">Table of Contents</h3>
@@ -1099,6 +1099,38 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             </div>
         </div>
     </footer>
+
+    <script>
+        function printLandscape() {
+            // Inject landscape CSS before printing
+            const style = document.createElement('style');
+            style.textContent = \`
+                @media print {
+                    @page { 
+                        size: landscape; 
+                        margin: 1cm;
+                    }
+                    body { 
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                }
+            \`;
+            style.id = 'landscape-print-style';
+            document.head.appendChild(style);
+            
+            // Print the document
+            window.print();
+            
+            // Clean up the injected style after printing
+            setTimeout(function() {
+                const tempStyle = document.getElementById('landscape-print-style');
+                if (tempStyle) {
+                    tempStyle.remove();
+                }
+            }, 1000);
+        }
+    </script>
 </body>
 </html>
       `;
