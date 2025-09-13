@@ -46,7 +46,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
   }, []);
 
   // Generate enhanced Mermaid-style SVG flowchart for logic models
-  const generateLogicModelSVG = useCallback((headerHtml: string, bodyHtml: string): string => {
+  const generateLogicModelSVG = useCallback((bodyHtml: string): string => {
     // Generate consistent unique ID for this SVG
     const uid = Date.now();
     
@@ -285,8 +285,6 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         flattenHeaderTokens(cell.tokens)
       ).join(' ');
       
-      console.info('Header detection text:', headerRawText);
-      console.info('Is logic model table?', isLogicModelTable(headerRawText));
       
       if (isLogicModelTable(headerRawText)) {
         // Robust recursive token flattener for all token types
@@ -316,27 +314,18 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
           row.map(cell => flattenTokensToText(cell.tokens))
         );
         
-        // Validate content: need at least 4 columns with some content
-        const hasValidStructure = tokenTextData.length > 0 && 
-                                 tokenTextData[0].length >= 4;
+        // Extract comprehensive plain text data for processing
         
-        console.info(`Logic model validation: ${hasValidStructure ? 'valid' : 'invalid'} structure detected`);
-        console.info('Token text data:', tokenTextData);
         
         // Enhanced table fallback with comprehensive separator handling
-        const enhancedBody = tokenTextData.map((row, rowIndex) => {
-          console.info(`Processing row ${rowIndex}:`, row);
-          return `<tr>${row.map((cellText, cellIndex) => {
-            console.info(`Cell ${cellIndex} original text:`, cellText);
-            
+        const enhancedBody = tokenTextData.map(row => 
+          `<tr>${row.map(cellText => {
             if (!cellText.trim()) {
               return '<td><em>No content specified</em></td>';
             }
             
             // Split on semicolons OR line breaks, process all separators
             const semicolonItems = cellText.split(/;\s*/);
-            console.info(`Cell ${cellIndex} semicolon items:`, semicolonItems);
-            
             const allItems: string[] = [];
             
             semicolonItems.forEach(item => {
@@ -345,23 +334,19 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             });
             
             const finalItems = allItems.filter(item => item.length > 0);
-            console.info(`Cell ${cellIndex} final items:`, finalItems);
             
             // Render bullets only when multiple items exist
             const bulletedHtml = finalItems.length > 1 
               ? finalItems.map(item => `• ${item}`).join('<br>')
               : (finalItems[0] || '<em>No content</em>');
-            
-            console.info(`Cell ${cellIndex} bulleted HTML:`, bulletedHtml);
               
             return `<td>${bulletedHtml}</td>`;
           }).join('')}</tr>`
-        }).join('');
+        ).join('');
         
         return `<div class="logic-model-container">
-          <h4 style="margin: 0 0 1rem 0; color: #1e40af; text-align: center;">Program Logic Model</h4>
-          <p style="text-align: center; color: #6b7280; font-size: 0.9rem; margin-bottom: 1.5rem;">Items separated by semicolons or line breaks are displayed as bulleted lists</p>
-          <table class="logic-model-table">
+          <h4 style="margin: 0 0 1rem 0; color: #1e40af; text-align: center;">${programData.programName} Logic Model</h4>
+          <table class="standard-table">
             <thead><tr>${header}</tr></thead>
             <tbody>${enhancedBody}</tbody>
           </table>
@@ -653,16 +638,6 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             border: 2px solid #3b82f6;
         }
         
-        .logic-model-table th {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-            font-weight: 600;
-            text-align: center;
-            padding: 1.5rem 1rem;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
         
         .logic-model-table td {
             padding: 1.5rem;
