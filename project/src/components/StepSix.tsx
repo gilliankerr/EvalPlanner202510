@@ -479,6 +479,11 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             color: #7c3aed;
         }
         
+        /* TOC links - no underlines */
+        .toc-item a {
+            text-decoration: none;
+        }
+        
         /* Tables */
         table {
             width: 100%;
