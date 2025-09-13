@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Application Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        button { padding: 10px 20px; margin: 5px; }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Live Application Test - Hyperlink Rendering</h1>
+    
+    <div class="test-section">
+        <h3>Test Feature 2: Hyperlink Rendering in Generated HTML</h3>
+        <p>This test will verify that the generated HTML report has properly rendered hyperlinks.</p>
+        <button onclick="testHyperlinkRendering()">Run Hyperlink Test</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+    async function testHyperlinkRendering() {
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '<p>🔄 Testing hyperlink rendering...</p>';
+        
+        try {
+            // Test the markdown processing that happens in StepSix
+            const testMarkdown = `This plan does not include citations or research references. It is based on the [LogicalOutcomes Evaluation Planning Handbook](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4815131) by Gillian Kerr and Sophie Llewelyn, which describes a structured process that relies on general evidence about effective nonprofit programs, supported by an in-depth web search. 
+
+We recommend that users also carry out a literature review to check that the evaluation plan is supported by peer-reviewed evidence in research journals. Our current recommended AI literature search tools are [Undermind](https://www.undermind.ai/) followed by [FutureHouse Falcon](https://platform.futurehouse.org/) and [Consensus](https://consensus.app/).`;
+
+            // Test markdown rendering (simulate what happens in StepSix)
+            const { marked } = await import('https://cdn.jsdelivr.net/npm/marked@13.0.3/+esm');
+            
+            // Configure marked similar to the application
+            marked.setOptions({
+                highlight: function(code, lang) {
+                    // Simple highlight simulation
+                    return code;
+                },
+                breaks: true,
+                gfm: true
+            });
+            
+            const htmlOutput = await marked.parse(testMarkdown);
+            
+            // Test that links are properly rendered
+            const linkTests = [
+                { text: 'LogicalOutcomes Evaluation Planning Handbook', url: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4815131' },
+                { text: 'Undermind', url: 'https://www.undermind.ai/' },
+                { text: 'FutureHouse Falcon', url: 'https://platform.futurehouse.org/' },
+                { text: 'Consensus', url: 'https://consensus.app/' }
+            ];
+            
+            let allPassed = true;
+            let testResults = '<div class="test-section success"><h4>✅ Hyperlink Rendering Test Results</h4><ul>';
+            
+            // Check each expected link
+            linkTests.forEach(link => {
+                const linkRegex = new RegExp(`<a[^>]+href="${escapeRegex(link.url)}"[^>]*>${escapeRegex(link.text)}</a>`, 'i');
+                const found = linkRegex.test(htmlOutput);
+                
+                testResults += `<li>${found ? '✅' : '❌'} "${link.text}" → ${link.url}</li>`;
+                if (!found) allPassed = false;
+            });
+            
+            // Check that no raw URLs are visible (they should all be in href attributes)
+            const rawUrlPattern = /\(https?:\/\/[^)]+\)/g;
+            const rawUrls = htmlOutput.match(rawUrlPattern);
+            
+            if (rawUrls && rawUrls.length > 0) {
+                testResults += `<li>❌ Found ${rawUrls.length} raw URLs that should be links: ${rawUrls.join(', ')}</li>`;
+                allPassed = false;
+            } else {
+                testResults += '<li>✅ No raw URLs found - all converted to proper links</li>';
+            }
+            
+            testResults += '</ul>';
+            
+            // Show sample of generated HTML
+            testResults += '<h5>Generated HTML Sample:</h5>';
+            testResults += '<pre style="background:#f5f5f5; padding:10px; overflow:auto; max-height:200px;">' + 
+                          escapeHtml(htmlOutput.substring(0, 500)) + '...</pre>';
+            
+            testResults += `<h5>Overall Result: ${allPassed ? '✅ ALL TESTS PASSED' : '❌ SOME TESTS FAILED'}</h5></div>`;
+            
+            resultsDiv.innerHTML = testResults;
+            
+        } catch (error) {
+            resultsDiv.innerHTML = `<div class="test-section error">
+                <h4>❌ Test Failed</h4>
+                <p>Error: ${error.message}</p>
+            </div>`;
+        }
+    }
+    
+    function escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    </script>
+</body>
+</html>
