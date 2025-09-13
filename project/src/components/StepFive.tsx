@@ -82,7 +82,7 @@ This evaluation plan is designed to be a living document, supporting ${programDa
 
 This plan does not include citations or research references. It is based on the [LogicalOutcomes Evaluation Planning Handbook](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4815131) by Gillian Kerr and Sophie Llewelyn, which describes a structured process that relies on general evidence about effective nonprofit programs, supported by an in-depth web search. 
 
-We recommend that users also carry out a literature review to check that the evaluation plan is supported by peer-reviewed evidence in research journals. Our current recommended AI literature search tools are [Undermind](https://www.undermind.ai/) followed by [FutureHouse Falcon](https://platform.futurehouse.org/) and [Consensus](https://consensus.app/). The prompt should be something like, "I want to find empirical research (including peer-reviewed publications and high-quality gray literature) identifying essential program delivery elements and critical success factors for after-school physical literacy and youth development programs serving rural children in grades 3–8." You can then re-do this evaluation plan and paste the literature review into the 'About the Program' box. 
+We recommend that users also carry out a literature review to check that the evaluation plan is supported by peer-reviewed evidence in research journals. Our current recommended AI literature search tools are [Undermind](https://www.undermind.ai/) followed by [FutureHouse Falcon](https://platform.futurehouse.org/) and [Consensus](https://consensus.app/). The prompt should be something like, "I want to find empirical research (including peer-reviewed publications and high-quality gray literature) identifying essential program delivery elements and critical success factors for [type of program] serving [brief description of target population]." You can then re-do the evaluation planing app and paste the literature review into the 'About the Program' box. 
 
 ## Program summary and analysis
 
@@ -385,7 +385,7 @@ Now customize this entire template for the specific program described in the pro
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'openai/gpt-4.1',
+          model: 'openai/gpt-5',
           messages: [
             {
               role: 'user',

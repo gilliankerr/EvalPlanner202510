@@ -51,7 +51,7 @@ The project is configured for the Replit environment:
 - **Completely overhauled HTML report generation**: Replaced custom markdown parser with professional marked library, added logic model SVG diagrams, enhanced table styling, improved responsive design, and added security sanitization
 - **Updated HTML report styling**: Removed navigation graphic, enabled functional print-to-PDF button, and standardized all table formatting to consistent blue theme colors
 - **Enhanced URL scraping capabilities**: Increased character limit from 5,000 to 25,000 characters per URL for comprehensive program understanding and better evaluation analysis quality
-- **Fixed evaluation plan generation**: Updated AI model from non-existent 'gpt-5' to current 'gpt-4.1' to resolve API timeout issues
+- **Fixed evaluation plan generation**: Updated AI model maintaining GPT-5 model consistency across all analysis steps
 - **Updated HTML report formatting**: Added specific literature search tool references and ensured all links are underlined and clearly visible
 
 ## File Structure
