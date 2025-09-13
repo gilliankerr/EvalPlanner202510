@@ -928,7 +928,9 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         }
         
         .w-96 {
-            width: 24rem;
+            width: 24rem !important;
+            min-width: 24rem;
+            flex-shrink: 0;
         }
         
         .bg-slate-50 {
