@@ -397,7 +397,9 @@ Now customize this entire template for the specific program described in the pro
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`API request failed: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
