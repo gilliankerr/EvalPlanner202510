@@ -45,6 +45,33 @@ const containsCodeFences = (content: string): boolean => {
   return false;
 };
 
+// Post-processing function to ensure canonical hyperlinks are always present
+const ensureCanonicalLinks = (content: string): string => {
+  if (!content) return content;
+  
+  // Define the canonical links that must be present
+  const canonicalLinks = {
+    'LogicalOutcomes Evaluation Planning Handbook': '[LogicalOutcomes Evaluation Planning Handbook](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4815131)',
+    'Undermind': '[Undermind](https://www.undermind.ai/)',
+    'FutureHouse Falcon': '[FutureHouse Falcon](https://platform.futurehouse.org/)',
+    'Consensus': '[Consensus](https://consensus.app/)'
+  };
+  
+  let processedContent = content;
+  
+  // For each canonical link, check if it's missing the markdown syntax
+  Object.entries(canonicalLinks).forEach(([text, markdownLink]) => {
+    // Create a regex that matches the text only if it's NOT already in markdown link format
+    // This avoids double-processing if links are already present
+    const notAlreadyLinkedRegex = new RegExp(`(?<!\\[)\\b${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\])(?!\\]\\([^)]*\\))`, 'gi');
+    
+    // Replace plain text occurrences with markdown links
+    processedContent = processedContent.replace(notAlreadyLinkedRegex, markdownLink);
+  });
+  
+  return processedContent;
+};
+
 interface StepFiveProps {
   programData: ProgramData;
   updateProgramData: (data: Partial<ProgramData>) => void;
@@ -452,6 +479,9 @@ Now customize this entire template for the specific program described in the pro
 
       // Strip code fences if present (prevents markdown from being treated as code block)
       evaluationPlan = stripCodeFences(evaluationPlan);
+
+      // Ensure canonical hyperlinks are always present (fixes AI inconsistency with link preservation)
+      evaluationPlan = ensureCanonicalLinks(evaluationPlan);
 
       // Validate that the response doesn't contain code fences after stripping
       if (containsCodeFences(evaluationPlan)) {
