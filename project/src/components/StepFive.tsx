@@ -532,7 +532,6 @@ Now customize this entire template for the specific program described in the pro
         <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
           <h4 className="text-sm font-medium text-slate-700 mb-2">Plan Generation Details</h4>
           <div className="text-xs text-slate-600 space-y-1">
-            <div>• AI Model: Claude 4 Sonnet (via OpenRouter)</div>
             <div>• Method: LogicalOutcomes Evaluation Planning Template</div>
             <div>• Program: {programData.programName}</div>
             <div>• Organization: {programData.organizationName}</div>
