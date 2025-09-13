@@ -111,37 +111,44 @@ Deliver a comprehensive program model description including:
     <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center space-x-3 mb-4">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <Brain className="h-6 w-6 text-purple-600" />
+          <div className="p-2 rounded-lg" style={{backgroundColor: '#e6f3ff'}}>
+            <Brain className="h-6 w-6" style={{color: '#0085ca'}} />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">AI Program Model Analysis</h2>
-            <p className="text-slate-600">Analyzing program model using advanced AI and web search</p>
+            <h2 className="text-2xl font-bold" style={{color: '#30302f'}}>AI Program Model Analysis</h2>
+            <p className="text-gray-600">Analyzing program model using advanced AI and web search</p>
           </div>
         </div>
       </div>
 
       <div className="space-y-6">
         {/* Status Card */}
-        <div className={`p-6 rounded-lg border ${
-          analysisStatus === 'analyzing' ? 'bg-blue-50 border-blue-200' :
-          analysisStatus === 'complete' ? 'bg-green-50 border-green-200' :
-          analysisStatus === 'error' ? 'bg-red-50 border-red-200' :
-          'bg-slate-50 border-slate-200'
-        }`}>
+        <div 
+          className="p-6 rounded-lg border"
+          style={{
+            backgroundColor: analysisStatus === 'analyzing' ? '#e6f3ff' :
+                           analysisStatus === 'complete' ? '#f0f9ff' :
+                           analysisStatus === 'error' ? '#fef2f2' :
+                           '#f8fafc',
+            borderColor: analysisStatus === 'analyzing' ? '#0085ca' :
+                        analysisStatus === 'complete' ? '#10b981' :
+                        analysisStatus === 'error' ? '#ef4444' :
+                        '#e2e8f0'
+          }}
+        >
           <div className="flex items-center space-x-3">
-            {analysisStatus === 'analyzing' && <Loader2 className="h-6 w-6 animate-spin text-blue-600" />}
+            {analysisStatus === 'analyzing' && <Loader2 className="h-6 w-6 animate-spin" style={{color: '#0085ca'}} />}
             {analysisStatus === 'complete' && <CheckCircle className="h-6 w-6 text-green-600" />}
             {analysisStatus === 'error' && <AlertCircle className="h-6 w-6 text-red-600" />}
             
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold" style={{color: '#30302f'}}>
                 {analysisStatus === 'analyzing' && 'Analyzing Program Model...'}
                 {analysisStatus === 'complete' && 'Analysis Complete'}
                 {analysisStatus === 'error' && 'Analysis Failed'}
                 {analysisStatus === 'idle' && 'Preparing Analysis...'}
               </h3>
-              <p className="text-slate-600">
+              <p className="text-gray-600">
                 {analysisStatus === 'analyzing' && 'Using AI to define program terms, goals, activities, and intended outcomes'}
                 {analysisStatus === 'complete' && 'Program model analysis completed successfully'}
                 {analysisStatus === 'error' && 'An error occurred during analysis'}

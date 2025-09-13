@@ -146,12 +146,12 @@ function App() {
                 <img src={logoIcon} alt="Evaluation Planner" className="h-10 w-10 object-contain" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">Evaluation Planner</h1>
-                <p className="text-sm text-slate-600">Based on LogicalOutcomes Evaluation Planning Handbook</p>
+                <h1 className="text-2xl font-bold" style={{color: '#30302f'}}>Evaluation Planner</h1>
+                <p className="text-sm" style={{color: '#666'}}>Based on LogicalOutcomes Evaluation Planning Handbook</p>
               </div>
             </div>
             {isProcessing && (
-              <div className="flex items-center space-x-2 text-blue-600">
+              <div className="flex items-center space-x-2" style={{color: '#0085ca'}}>
                 <Loader2 className="h-5 w-5 animate-spin" />
                 <span className="text-sm font-medium">Processing...</span>
               </div>
@@ -167,13 +167,21 @@ function App() {
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center">
                 <div className="flex flex-col items-center space-y-2">
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300 ${
-                    completedSteps.includes(step.id) 
-                      ? 'bg-green-600 border-green-600 text-white' 
-                      : currentStep === step.id 
-                        ? 'bg-blue-600 border-blue-600 text-white' 
+                  <div 
+                    className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300 ${
+                      completedSteps.includes(step.id) 
+                        ? 'text-white' 
+                        : currentStep === step.id 
+                        ? 'text-white' 
                         : 'bg-white border-slate-300 text-slate-400'
-                  }`}>
+                    }`}
+                    style={{
+                      backgroundColor: completedSteps.includes(step.id) ? '#ed8b00' : 
+                                     currentStep === step.id ? '#0085ca' : undefined,
+                      borderColor: completedSteps.includes(step.id) ? '#ed8b00' : 
+                                 currentStep === step.id ? '#0085ca' : undefined
+                    }}
+                  >
                     {completedSteps.includes(step.id) ? (
                       <Check className="h-5 w-5" />
                     ) : (
@@ -181,10 +189,13 @@ function App() {
                     )}
                   </div>
                   <div className="text-center">
-                    <p className={`text-sm font-medium ${
-                      currentStep === step.id ? 'text-blue-600' : 
-                      completedSteps.includes(step.id) ? 'text-green-600' : 'text-slate-500'
-                    }`}>
+                    <p 
+                      className="text-sm font-medium"
+                      style={{
+                        color: currentStep === step.id ? '#0085ca' : 
+                               completedSteps.includes(step.id) ? '#ed8b00' : '#64748b'
+                      }}
+                    >
                       {step.title}
                     </p>
                     <p className="text-xs text-slate-400 max-w-20 leading-tight">
@@ -209,13 +220,13 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-white mt-16">
+      <footer style={{backgroundColor: '#30302f'}} className="text-white mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <p className="text-slate-400">
+            <p className="text-gray-300">
               Powered by LogicalOutcomes Evaluation Planning Framework
             </p>
-            <p className="text-sm text-slate-500 mt-2">
+            <p className="text-sm text-gray-400 mt-2">
               AI-enhanced evaluation planning for nonprofit organizations
             </p>
           </div>

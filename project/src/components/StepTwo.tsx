@@ -247,21 +247,21 @@ Please manually copy relevant content from ${url} and include it in your program
     <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center space-x-3 mb-4">
-          <div className="p-2 bg-teal-100 rounded-lg">
-            <Globe className="h-6 w-6 text-teal-600" />
+          <div className="p-2 rounded-lg" style={{backgroundColor: '#e6f3ff'}}>
+            <Globe className="h-6 w-6" style={{color: '#0085ca'}} />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Web Content Extraction</h2>
-            <p className="text-slate-600">Extracting information from provided URLs</p>
+            <h2 className="text-2xl font-bold" style={{color: '#30302f'}}>Web Content Extraction</h2>
+            <p className="text-gray-600">Extracting information from provided URLs</p>
           </div>
         </div>
       </div>
 
       {programData.urls.length === 0 ? (
         <div className="text-center py-12">
-          <Globe className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-slate-900 mb-2">No URLs to Process</h3>
-          <p className="text-slate-600">
+          <Globe className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium mb-2" style={{color: '#30302f'}}>No URLs to Process</h3>
+          <p className="text-gray-600">
             No URLs were found in the URL fields or program description, proceeding with the text you entered.
           </p>
         </div>
@@ -277,16 +277,16 @@ Please manually copy relevant content from ${url} and include it in your program
             
             return (
               <>
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">
+                <h3 className="text-lg font-semibold mb-4" style={{color: '#30302f'}}>
                   Processing {allUrls.length} URL{allUrls.length > 1 ? 's' : ''}
                 </h3>
                 
                 {urlsFromText.length > 0 && (
-                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <p className="text-sm text-blue-800">
+                  <div className="mb-4 p-3 rounded-lg border" style={{backgroundColor: '#e6f3ff', borderColor: '#0085ca'}}>
+                    <p className="text-sm" style={{color: '#0085ca'}}>
                       <strong>Found {urlsFromText.length} URL{urlsFromText.length > 1 ? 's' : ''} in program description:</strong>
                     </p>
-                    <ul className="text-xs text-blue-700 mt-1 ml-4">
+                    <ul className="text-xs mt-1 ml-4" style={{color: '#006b9f'}}>
                       {urlsFromText.map((url, index) => (
                         <li key={index} className="truncate">{url}</li>
                       ))}

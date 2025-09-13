@@ -424,37 +424,44 @@ Now customize this entire template for the specific program described in the pro
     <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center space-x-3 mb-4">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <FileOutput className="h-6 w-6 text-green-600" />
+          <div className="p-2 rounded-lg" style={{backgroundColor: '#e6f3ff'}}>
+            <FileOutput className="h-6 w-6" style={{color: '#0085ca'}} />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Evaluation Plan Generation</h2>
-            <p className="text-slate-600">Creating comprehensive evaluation plan using LogicalOutcomes template</p>
+            <h2 className="text-2xl font-bold" style={{color: '#30302f'}}>Evaluation Plan Generation</h2>
+            <p className="text-gray-600">Creating comprehensive evaluation plan using LogicalOutcomes template</p>
           </div>
         </div>
       </div>
 
       <div className="space-y-6">
         {/* Status Card */}
-        <div className={`p-6 rounded-lg border ${
-          planStatus === 'generating' ? 'bg-blue-50 border-blue-200' :
-          planStatus === 'complete' ? 'bg-green-50 border-green-200' :
-          planStatus === 'error' ? 'bg-red-50 border-red-200' :
-          'bg-slate-50 border-slate-200'
-        }`}>
+        <div 
+          className="p-6 rounded-lg border"
+          style={{
+            backgroundColor: planStatus === 'generating' ? '#e6f3ff' :
+                           planStatus === 'complete' ? '#f0f9ff' :
+                           planStatus === 'error' ? '#fef2f2' :
+                           '#f8fafc',
+            borderColor: planStatus === 'generating' ? '#0085ca' :
+                        planStatus === 'complete' ? '#10b981' :
+                        planStatus === 'error' ? '#ef4444' :
+                        '#e2e8f0'
+          }}
+        >
           <div className="flex items-center space-x-3">
-            {planStatus === 'generating' && <Loader2 className="h-6 w-6 animate-spin text-blue-600" />}
+            {planStatus === 'generating' && <Loader2 className="h-6 w-6 animate-spin" style={{color: '#0085ca'}} />}
             {planStatus === 'complete' && <CheckCircle className="h-6 w-6 text-green-600" />}
             {planStatus === 'error' && <AlertCircle className="h-6 w-6 text-red-600" />}
             
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold" style={{color: '#30302f'}}>
                 {planStatus === 'generating' && 'Generating Evaluation Plan...'}
                 {planStatus === 'complete' && 'Evaluation Plan Complete'}
                 {planStatus === 'error' && 'Plan Generation Failed'}
                 {planStatus === 'idle' && 'Preparing Plan Generation...'}
               </h3>
-              <p className="text-slate-600">
+              <p className="text-gray-600">
                 {planStatus === 'generating' && 'Customizing LogicalOutcomes evaluation plan template with program-specific analysis'}
                 {planStatus === 'complete' && 'Complete evaluation plan generated following LogicalOutcomes methodology'}
                 {planStatus === 'error' && 'An error occurred during plan generation'}
@@ -468,24 +475,24 @@ Now customize this entire template for the specific program described in the pro
         {planStatus === 'generating' && (
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
-              <span className="text-sm text-slate-600">Following LogicalOutcomes template structure</span>
+              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#ed8b00'}}></div>
+              <span className="text-sm text-gray-600">Following LogicalOutcomes template structure</span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-              <span className="text-sm text-slate-600">Customizing program summary and analysis section</span>
+              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#ed8b00', animationDelay: '0.5s'}}></div>
+              <span className="text-sm text-gray-600">Customizing program summary and analysis section</span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-              <span className="text-sm text-slate-600">Creating program-specific logic model and evaluation framework</span>
+              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#ed8b00', animationDelay: '1s'}}></div>
+              <span className="text-sm text-gray-600">Creating program-specific logic model and evaluation framework</span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
-              <span className="text-sm text-slate-600">Including standard implementation phases and roles</span>
+              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#ed8b00', animationDelay: '1.5s'}}></div>
+              <span className="text-sm text-gray-600">Including standard implementation phases and roles</span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
-              <span className="text-sm text-slate-600">Finalizing comprehensive evaluation plan</span>
+              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#ed8b00', animationDelay: '2s'}}></div>
+              <span className="text-sm text-gray-600">Finalizing comprehensive evaluation plan</span>
             </div>
           </div>
         )}
