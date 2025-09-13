@@ -15,6 +15,8 @@ export interface ProgramData {
   urls: string[];
   scrapedContent: string;
   programAnalysis: string;
+  programTypePlural: string;
+  targetPopulation: string;
   evaluationFramework: string;
   evaluationPlan: string;
 }
@@ -39,6 +41,8 @@ function App() {
     urls: [],
     scrapedContent: '',
     programAnalysis: '',
+    programTypePlural: '',
+    targetPopulation: '',
     evaluationFramework: '',
     evaluationPlan: '',
   });
