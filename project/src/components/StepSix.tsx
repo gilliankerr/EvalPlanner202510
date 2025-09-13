@@ -922,15 +922,20 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             max-width: 72rem;
         }
         
+        .report-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
         .mx-auto {
             margin-left: auto;
             margin-right: auto;
         }
         
-        .w-96 {
-            width: 24rem !important;
-            min-width: 24rem;
-            flex-shrink: 0;
+        .w-80 {
+            width: 20rem;
+            min-width: 200px;
         }
         
         .bg-slate-50 {
@@ -1027,7 +1032,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
                 display: block;
             }
             
-            .w-96 {
+            .w-80 {
                 width: 100%;
                 min-height: auto;
                 margin-bottom: 1rem;
@@ -1056,9 +1061,10 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
     </nav>
 
     <!-- Table of Contents Layout -->
-    <div class="flex max-w-6xl mx-auto">
+    <div class="report-container">
+        <div class="flex">
         <!-- TOC Sidebar: Always visible on left -->
-        <aside class="w-96 bg-slate-50 min-h-screen p-6 no-print">
+        <aside class="w-80 bg-slate-50 min-h-screen p-6 no-print">
             <h3 class="font-semibold text-slate-900 mb-4">Table of Contents</h3>
             <nav class="space-y-1 text-sm">
                 ${tocHtml}
@@ -1072,6 +1078,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
                 ${contentHtml}
             </div>
         </main>
+        </div>
     </div>
 
     <!-- Footer -->
