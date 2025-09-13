@@ -385,7 +385,7 @@ Now customize this entire template for the specific program described in the pro
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'openai/gpt-5',
+          model: 'openai/gpt-4-turbo',
           messages: [
             {
               role: 'user',
