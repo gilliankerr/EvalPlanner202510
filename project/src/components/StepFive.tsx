@@ -2,6 +2,49 @@ import React, { useEffect, useState } from 'react';
 import { FileOutput, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import type { ProgramData } from '../App';
 
+// Utility functions for handling code fences in AI responses
+const stripCodeFences = (content: string): string => {
+  if (!content) return content;
+  
+  // Remove opening and closing triple backticks at start and end of content
+  // This handles cases where AI wraps the entire response in code fences
+  const trimmed = content.trim();
+  
+  // Check for code block wrapping (```markdown or just ``` at start)
+  const codeBlockStart = /^```(?:markdown|md|text)?\s*\n/i;
+  const codeBlockEnd = /\n\s*```\s*$/;
+  
+  let processed = trimmed;
+  
+  // Strip opening code fence
+  if (codeBlockStart.test(processed)) {
+    processed = processed.replace(codeBlockStart, '');
+  }
+  
+  // Strip closing code fence
+  if (codeBlockEnd.test(processed)) {
+    processed = processed.replace(codeBlockEnd, '');
+  }
+  
+  return processed.trim();
+};
+
+const containsCodeFences = (content: string): boolean => {
+  if (!content) return false;
+  
+  // Check for remaining code fences that could interfere with markdown rendering
+  const codeFencePattern = /```/g;
+  const matches = content.match(codeFencePattern);
+  
+  // If we find code fences, check if they are balanced pairs (even number)
+  // Unbalanced code fences are problematic for markdown rendering
+  if (matches) {
+    return matches.length % 2 !== 0; // Odd number means unbalanced
+  }
+  
+  return false;
+};
+
 interface StepFiveProps {
   programData: ProgramData;
   updateProgramData: (data: Partial<ProgramData>) => void;
@@ -33,6 +76,8 @@ const StepFive: React.FC<StepFiveProps> = ({ programData, updateProgramData, onC
 # Primary Objective
 
 Produce an accurate, detailed, and comprehensive evaluation plan that will guide a useful evaluation based on the previous analyses and by customizing the detailed document template below. The output should be one consolidated Markdown document that follows the exact structure and formatting rules specified below.
+
+**CRITICAL: Do not wrap the output in triple backticks or code fences of any kind. Return plain Markdown text only. The output will be processed as Markdown and any code fences will break the formatting and prevent proper link rendering.**
 
 ---
 
@@ -403,7 +448,16 @@ Now customize this entire template for the specific program described in the pro
       }
 
       const data = await response.json();
-      const evaluationPlan = data.choices[0].message.content;
+      let evaluationPlan = data.choices[0].message.content;
+
+      // Strip code fences if present (prevents markdown from being treated as code block)
+      evaluationPlan = stripCodeFences(evaluationPlan);
+
+      // Validate that the response doesn't contain code fences after stripping
+      if (containsCodeFences(evaluationPlan)) {
+        console.warn('AI response still contains code fences after stripping. This may affect markdown rendering.');
+        // Could implement retry logic here if needed
+      }
 
       setPlanResult(evaluationPlan);
       updateProgramData({ evaluationPlan: evaluationPlan });
