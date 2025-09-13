@@ -62,6 +62,21 @@ Deliver a comprehensive program model description including:
 • Key assumptions about how change occurs
 • Primary mechanisms of action
 • Comparison to similar evidence-based models in the literature
+
+## Structured Data Extraction
+
+After completing the comprehensive narrative analysis above, provide exactly one JSON object at the end with these specific keys:
+
+- **program_type_plural**: A concise phrase describing the general type/category of program in plural form (e.g., "financial literacy programs", "mental health services", "after-school programs", "workforce development programs")
+- **target_population**: A specific description of who the program serves (e.g., "low-income families in urban areas", "youth ages 12-18", "adults with substance use disorders", "rural communities")
+
+Example JSON format:
+\`\`\`json
+{
+  "program_type_plural": "financial literacy programs",
+  "target_population": "low-income adults in Toronto"
+}
+\`\`\`
       `;
 
       // Make API call to OpenRouter
@@ -90,8 +105,39 @@ Deliver a comprehensive program model description including:
       const data = await response.json();
       const analysis = data.choices[0].message.content;
 
+      // Extract structured JSON data from the analysis response
+      let programTypePlural = '';
+      let targetPopulation = '';
+      
+      try {
+        // Look for JSON block in the response
+        const jsonMatch = analysis.match(/```json\s*({[\s\S]*?})\s*```/);
+        if (jsonMatch) {
+          const extractedData = JSON.parse(jsonMatch[1]);
+          programTypePlural = extractedData.program_type_plural || '';
+          targetPopulation = extractedData.target_population || '';
+        } else {
+          // Fallback: look for JSON object anywhere in the text
+          const jsonObjectMatch = analysis.match(/{[\s\S]*?"program_type_plural"[\s\S]*?"target_population"[\s\S]*?}/);
+          if (jsonObjectMatch) {
+            const extractedData = JSON.parse(jsonObjectMatch[0]);
+            programTypePlural = extractedData.program_type_plural || '';
+            targetPopulation = extractedData.target_population || '';
+          }
+        }
+      } catch (error) {
+        console.warn('Could not extract structured data from analysis:', error);
+        // Use fallback values if extraction fails
+        programTypePlural = 'programs of this type';
+        targetPopulation = 'the target population described in this evaluation plan';
+      }
+
       setAnalysisResult(analysis);
-      updateProgramData({ programAnalysis: analysis });
+      updateProgramData({ 
+        programAnalysis: analysis,
+        programTypePlural: programTypePlural,
+        targetPopulation: targetPopulation
+      });
       setAnalysisStatus('complete');
 
       // Auto-advance after a brief delay
