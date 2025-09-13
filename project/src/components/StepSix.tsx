@@ -269,10 +269,24 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         }).join('')}</tr>`
       ).join('');
       
-      // Detect logic model tables (use raw text for detection)
+      // Detect logic model tables (flatten ALL header tokens for detection)
+      const flattenHeaderTokens = (tokens: any[]): string => {
+        return tokens.map(t => {
+          if (t.type === 'text') return (t as Tokens.Text).text;
+          if (t.type === 'strong') return flattenHeaderTokens((t as Tokens.Strong).tokens);
+          if (t.type === 'em') return flattenHeaderTokens((t as Tokens.Em).tokens);
+          if (t.type === 'link') return flattenHeaderTokens((t as Tokens.Link).tokens);
+          if (t.type === 'codespan') return (t as Tokens.Codespan).text;
+          return '';
+        }).join('');
+      };
+      
       const headerRawText = token.header.map(cell => 
-        cell.tokens.map(t => t.type === 'text' ? (t as Tokens.Text).text : '').join('')
+        flattenHeaderTokens(cell.tokens)
       ).join(' ');
+      
+      console.info('Header detection text:', headerRawText);
+      console.info('Is logic model table?', isLogicModelTable(headerRawText));
       
       if (isLogicModelTable(headerRawText)) {
         // Robust recursive token flattener for all token types
@@ -307,16 +321,22 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
                                  tokenTextData[0].length >= 4;
         
         console.info(`Logic model validation: ${hasValidStructure ? 'valid' : 'invalid'} structure detected`);
+        console.info('Token text data:', tokenTextData);
         
         // Enhanced table fallback with comprehensive separator handling
-        const enhancedBody = tokenTextData.map(row => 
-          `<tr>${row.map(cellText => {
+        const enhancedBody = tokenTextData.map((row, rowIndex) => {
+          console.info(`Processing row ${rowIndex}:`, row);
+          return `<tr>${row.map((cellText, cellIndex) => {
+            console.info(`Cell ${cellIndex} original text:`, cellText);
+            
             if (!cellText.trim()) {
               return '<td><em>No content specified</em></td>';
             }
             
             // Split on semicolons OR line breaks, process all separators
             const semicolonItems = cellText.split(/;\s*/);
+            console.info(`Cell ${cellIndex} semicolon items:`, semicolonItems);
+            
             const allItems: string[] = [];
             
             semicolonItems.forEach(item => {
@@ -325,15 +345,18 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             });
             
             const finalItems = allItems.filter(item => item.length > 0);
+            console.info(`Cell ${cellIndex} final items:`, finalItems);
             
             // Render bullets only when multiple items exist
             const bulletedHtml = finalItems.length > 1 
               ? finalItems.map(item => `• ${item}`).join('<br>')
               : (finalItems[0] || '<em>No content</em>');
+            
+            console.info(`Cell ${cellIndex} bulleted HTML:`, bulletedHtml);
               
             return `<td>${bulletedHtml}</td>`;
           }).join('')}</tr>`
-        ).join('');
+        }).join('');
         
         return `<div class="logic-model-container">
           <h4 style="margin: 0 0 1rem 0; color: #1e40af; text-align: center;">Program Logic Model</h4>
