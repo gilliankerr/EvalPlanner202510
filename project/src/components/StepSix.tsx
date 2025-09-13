@@ -271,6 +271,14 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       }
     };
 
+    // Link renderer for proper anchor tags
+    renderer.link = function(token: Tokens.Link) {
+      const text = this.parser.parseInline(token.tokens);
+      const href = token.href || '';
+      const title = token.title ? ` title="${token.title}"` : '';
+      return `<a href="${href}"${title}>${text}</a>`;
+    };
+
     // Configure marked with custom renderer
     marked.use({ 
       renderer,
