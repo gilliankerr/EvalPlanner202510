@@ -53,7 +53,6 @@ The project is configured for the Replit environment:
 - **Enhanced URL scraping capabilities**: Increased character limit from 5,000 to 25,000 characters per URL for comprehensive program understanding and better evaluation analysis quality
 - **Fixed evaluation plan generation**: Updated AI model maintaining GPT-5 model consistency across all analysis steps
 - **Updated HTML report formatting**: Added specific literature search tool references and ensured all links are underlined and clearly visible
-- **Fixed HTML report link rendering**: Added markdown normalization to fix malformed links, implemented proper link renderer with target="_blank", and resolved TOC underline issues
 
 ## File Structure
 ```
