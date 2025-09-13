@@ -275,7 +275,74 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       ).join(' ');
       
       if (isLogicModelTable(headerRawText)) {
-        return generateLogicModelSVG(header, body);
+        // Robust recursive token flattener for all token types
+        const flattenTokensToText = (tokens: any[]): string => {
+          return tokens.map(t => {
+            if (t.type === 'text') return (t as Tokens.Text).text;
+            if (t.type === 'strong') return flattenTokensToText((t as Tokens.Strong).tokens);
+            if (t.type === 'em') return flattenTokensToText((t as Tokens.Em).tokens);
+            if (t.type === 'link') return flattenTokensToText((t as Tokens.Link).tokens);
+            if (t.type === 'codespan') return (t as Tokens.Codespan).text;
+            if (t.type === 'br') return '\n';
+            if (t.type === 'html') {
+              // Strip tags except <br>, convert <br> to newlines
+              const htmlText = (t as Tokens.HTML).text;
+              return htmlText.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
+            }
+            return ''; // Unknown token types
+          }).join('')
+            .replace(/[\t\r\f\v ]+/g, ' ')    // collapse spaces/tabs only, preserve \n
+            .replace(/\s*\n\s*/g, '\n')       // normalize whitespace around newlines
+            .replace(/\n{3,}/g, '\n\n')        // collapse excessive newlines
+            .trim();
+        };
+        
+        // Extract comprehensive plain text data
+        const tokenTextData = token.rows.map(row => 
+          row.map(cell => flattenTokensToText(cell.tokens))
+        );
+        
+        // Validate content: need at least 4 columns with some content
+        const hasValidStructure = tokenTextData.length > 0 && 
+                                 tokenTextData[0].length >= 4;
+        
+        console.info(`Logic model validation: ${hasValidStructure ? 'valid' : 'invalid'} structure detected`);
+        
+        // Enhanced table fallback with comprehensive separator handling
+        const enhancedBody = tokenTextData.map(row => 
+          `<tr>${row.map(cellText => {
+            if (!cellText.trim()) {
+              return '<td><em>No content specified</em></td>';
+            }
+            
+            // Split on semicolons OR line breaks, process all separators
+            const semicolonItems = cellText.split(/;\s*/);
+            const allItems: string[] = [];
+            
+            semicolonItems.forEach(item => {
+              const lineItems = item.split(/\n+/).map(s => s.trim()).filter(s => s.length > 0);
+              allItems.push(...lineItems);
+            });
+            
+            const finalItems = allItems.filter(item => item.length > 0);
+            
+            // Render bullets only when multiple items exist
+            const bulletedHtml = finalItems.length > 1 
+              ? finalItems.map(item => `• ${item}`).join('<br>')
+              : (finalItems[0] || '<em>No content</em>');
+              
+            return `<td>${bulletedHtml}</td>`;
+          }).join('')}</tr>`
+        ).join('');
+        
+        return `<div class="logic-model-container">
+          <h4 style="margin: 0 0 1rem 0; color: #1e40af; text-align: center;">Program Logic Model</h4>
+          <p style="text-align: center; color: #6b7280; font-size: 0.9rem; margin-bottom: 1.5rem;">Items separated by semicolons or line breaks are displayed as bulleted lists</p>
+          <table class="logic-model-table">
+            <thead><tr>${header}</tr></thead>
+            <tbody>${enhancedBody}</tbody>
+          </table>
+        </div>`;
       }
       
       // Detect table type for styling
@@ -546,6 +613,48 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             overflow: hidden;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             border: 1px solid #e5e7eb;
+        }
+        
+        /* Logic Model Table Styling */
+        .logic-model-container {
+            margin: 2.5rem 0;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 16px;
+            border: 2px solid #3b82f6;
+        }
+        
+        .logic-model-table {
+            margin: 0;
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+            border: 2px solid #3b82f6;
+        }
+        
+        .logic-model-table th {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            padding: 1.5rem 1rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .logic-model-table td {
+            padding: 1.5rem;
+            vertical-align: top;
+            line-height: 1.6;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+        }
+        
+        .logic-model-table td:last-child {
+            border-right: none;
+        }
+        
+        .logic-model-table tbody tr:hover {
+            background: #f1f5f9;
         }
         
         th {
@@ -1048,10 +1157,41 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             border-color: #60a5fa;
         }
         
-        /* Print Styles - Default to Landscape */
+        /* Print Styles - Comprehensive Landscape Print Setup */
         @page {
             size: landscape;
             margin: 0.5in;
+        }
+        
+        @media print {
+            .no-print { 
+                display: none !important; 
+            }
+            .page-break { 
+                page-break-before: always; 
+            }
+            @page {
+                size: landscape;
+                margin: 0.5in;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            * {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            html, body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+                font-size: 12pt;
+                line-height: 1.4;
+            }
+            table, th, td {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
         }
         
         /* Responsive: Stack on smaller screens */
