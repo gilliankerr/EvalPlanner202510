@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FileText, Globe, Brain, Clipboard, FileOutput, Download, Loader2, ChevronRight, Check } from 'lucide-react';
+import logoIcon from './assets/logo.jpg';
 import StepOne from './components/StepOne';
 import StepTwo from './components/StepTwo';
 import StepThree from './components/StepThree';
@@ -141,12 +142,12 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-600 rounded-lg">
-                <FileText className="h-6 w-6 text-white" />
+              <div className="rounded-lg overflow-hidden">
+                <img src={logoIcon} alt="Evaluation Planner" className="h-10 w-10 object-contain" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-slate-900">Evaluation Planner</h1>
-                <p className="text-sm text-slate-600">AI-powered nonprofit program evaluation planning</p>
+                <p className="text-sm text-slate-600">AI-powered nonprofit program evaluation planning based on LogicalOutcomes Evaluation Planning Handbook</p>
               </div>
             </div>
             {isProcessing && (

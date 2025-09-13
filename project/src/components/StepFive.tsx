@@ -385,7 +385,7 @@ Now customize this entire template for the specific program described in the pro
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'anthropic/claude-sonnet-4',
+          model: 'openai/gpt-5',
           messages: [
             {
               role: 'user',
@@ -536,7 +536,6 @@ Now customize this entire template for the specific program described in the pro
             <div>• Method: LogicalOutcomes Evaluation Planning Template</div>
             <div>• Program: {programData.programName}</div>
             <div>• Organization: {programData.organizationName}</div>
-            <div>• Template: Evidence-based nonprofit evaluation framework</div>
             <div>• Generated: {new Date().toLocaleString()}</div>
           </div>
         </div>

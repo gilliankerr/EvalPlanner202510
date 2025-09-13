@@ -189,7 +189,7 @@ Deliver a comprehensive program model description including:
 
         {/* Technical Details */}
         <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-          <h4 className="text-sm font-medium text-slate-700 mb-2">Analysis Parameters</h4>
+          <h4 className="text-sm font-medium text-slate-700 mb-2">Analysis Details</h4>
           <div className="text-xs text-slate-600 space-y-1">
             <div>• AI Model: GPT-5 (via OpenRouter)</div>
             <div>• Focus: {programData.programName}</div>
