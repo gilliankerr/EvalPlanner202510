@@ -1278,15 +1278,7 @@ LogicalOutcomes Evaluation Planner`;
 
   // Trigger automatic email sending when HTML is ready
   useEffect(() => {
-    console.log('Email trigger check:', {
-      renderStatus,
-      deliveryMethod: programData.deliveryMethod,
-      userEmail: programData.userEmail,
-      htmlContentLength: htmlContent?.length || 0
-    });
-    
     if (renderStatus === 'complete' && programData.deliveryMethod === 'email') {
-      console.log('Triggering automatic email send...');
       sendEmailAutomatically();
     }
   }, [renderStatus, sendEmailAutomatically]);
