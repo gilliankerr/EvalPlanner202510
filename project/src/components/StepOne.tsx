@@ -118,7 +118,7 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
               errors.organizationName ? 'border-red-300 bg-red-50' : 'border-gray-300'
             }`}
             style={{'--tw-ring-color': '#0085ca'} as React.CSSProperties}
-            placeholder="Enter organization name"
+            placeholder="Enter the organization or partnership name"
           />
           {errors.organizationName && (
             <p className="text-red-600 text-sm mt-1 flex items-center">
@@ -141,7 +141,7 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
               errors.programName ? 'border-red-300 bg-red-50' : 'border-gray-300'
             }`}
             style={{'--tw-ring-color': '#0085ca'} as React.CSSProperties}
-            placeholder="Enter program name"
+            placeholder="Enter the program name. To evaluate the entire organization, write 'All Programs'"
           />
           {errors.programName && (
             <p className="text-red-600 text-sm mt-1 flex items-center">
@@ -165,7 +165,7 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
               errors.aboutProgram ? 'border-red-300 bg-red-50' : 'border-gray-300'
             }`}
             style={{'--tw-ring-color': '#0085ca'} as React.CSSProperties}
-            placeholder="Paste one or more URLs that describe the program, or write/paste information about the program from a funding proposal, report, or your own knowledge. URLs will be automatically detected and scraped for additional information."
+            placeholder="Enter a web page URL describing the program (not an entire web site). It is a good idea to also include a web page URL describing the organization, e.g., the About Us page. You can also write or paste text about the program from a funding proposal, report or your own knowledge."
           />
           {errors.aboutProgram && (
             <p className="text-red-600 text-sm mt-1 flex items-center">
