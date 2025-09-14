@@ -118,8 +118,11 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
               errors.organizationName ? 'border-red-300 bg-red-50' : 'border-gray-300'
             }`}
             style={{'--tw-ring-color': '#0085ca'} as React.CSSProperties}
-            placeholder="Enter the organization or partnership name"
+            placeholder="Organization or partnership name"
           />
+          <p className="text-gray-500 text-sm mt-1">
+            Enter the organization or partnership name
+          </p>
           {errors.organizationName && (
             <p className="text-red-600 text-sm mt-1 flex items-center">
               <AlertCircle className="h-4 w-4 mr-1" />
@@ -141,8 +144,11 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
               errors.programName ? 'border-red-300 bg-red-50' : 'border-gray-300'
             }`}
             style={{'--tw-ring-color': '#0085ca'} as React.CSSProperties}
-            placeholder="Enter the program name. To evaluate the entire organization, write 'All Programs'"
+            placeholder="Program name or All Programs"
           />
+          <p className="text-gray-500 text-sm mt-1">
+            Enter the program name. To evaluate the entire organization, write 'All Programs'
+          </p>
           {errors.programName && (
             <p className="text-red-600 text-sm mt-1 flex items-center">
               <AlertCircle className="h-4 w-4 mr-1" />
@@ -165,8 +171,11 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
               errors.aboutProgram ? 'border-red-300 bg-red-50' : 'border-gray-300'
             }`}
             style={{'--tw-ring-color': '#0085ca'} as React.CSSProperties}
-            placeholder="Enter a web page URL describing the program (not an entire web site). It is a good idea to also include a web page URL describing the organization, e.g., the About Us page. You can also write or paste text about the program from a funding proposal, report or your own knowledge."
+            placeholder="https://example.org/about-program.html"
           />
+          <p className="text-gray-500 text-sm mt-1">
+            Enter a web page URL describing the program (not an entire web site). It is a good idea to also include a web page URL describing the organization, e.g., the About Us page. You can also write or paste text about the program from a funding proposal, report or your own knowledge.
+          </p>
           {errors.aboutProgram && (
             <p className="text-red-600 text-sm mt-1 flex items-center">
               <AlertCircle className="h-4 w-4 mr-1" />
