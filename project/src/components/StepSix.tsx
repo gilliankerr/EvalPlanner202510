@@ -1104,33 +1104,8 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
 
     <script>
         function printLandscape() {
-            // Inject landscape CSS before printing
-            const style = document.createElement('style');
-            style.textContent = \`
-                @media print {
-                    @page { 
-                        size: landscape; 
-                        margin: 1cm;
-                    }
-                    body { 
-                        -webkit-print-color-adjust: exact;
-                        print-color-adjust: exact;
-                    }
-                }
-            \`;
-            style.id = 'landscape-print-style';
-            document.head.appendChild(style);
-            
-            // Print the document
+            // Use the existing comprehensive landscape CSS in the main styles
             window.print();
-            
-            // Clean up the injected style after printing
-            setTimeout(function() {
-                const tempStyle = document.getElementById('landscape-print-style');
-                if (tempStyle) {
-                    tempStyle.remove();
-                }
-            }, 1000);
         }
     </script>
 </body>
