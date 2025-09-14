@@ -3,6 +3,7 @@ import { Download, Loader2, CheckCircle, Mail } from 'lucide-react';
 import { marked, Tokens } from 'marked';
 import hljs from 'highlight.js';
 import DOMPurify from 'dompurify';
+import { sendEmail, type SmtpMessage } from '../utils/replitmail';
 import type { ProgramData } from '../App';
 
 interface StepSixProps {
@@ -1181,7 +1182,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
     }
   }, [htmlContent, programData.organizationName, programData.programName]);
 
-  // Email sending function using backend API
+  // Email sending function using Replit Mail integration
   const sendEmailReport = useCallback(async () => {
     try {
       if (!htmlContent || htmlContent.trim().length === 0) {
@@ -1196,33 +1197,52 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
 
       setEmailStatus('sending');
 
-      // Get the backend URL - in Replit, backend will run on port 8000
-      const backendUrl = import.meta.env.PROD 
-        ? `https://${window.location.hostname.replace(/^[^.]*/, 'server')}`
-        : 'http://localhost:8000';
-
-      const response = await fetch(`${backendUrl}/send-report`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: programData.userEmail,
-          programName: programData.programName,
-          organizationName: programData.organizationName,
-          htmlContent: htmlContent
-        })
+      // Get current date and time
+      const currentDateTime = new Date().toLocaleString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
       });
 
-      const result = await response.json();
+      // Create email body with user's specified template
+      const emailBody = `Hello,
 
-      if (response.ok) {
-        setEmailStatus('sent');
-        alert('Evaluation plan has been successfully sent to your email!');
-      } else {
-        setEmailStatus('error');
-        alert(`Failed to send email: ${result.error || 'Unknown error'}`);
-      }
+Attached is the evaluation plan you requested from the LogicalOutcomes Evaluation Planner.
+
+It is for ${programData.programName} delivered by ${programData.organizationName}. It was generated on ${currentDateTime}.
+
+This is just a draft. If it is inaccurate, feel free to re-try the Evaluation Planner app but add additional useful information in the form.
+
+If you have any questions, contact support@logicaloutcomes.com.
+
+Best regards,
+LogicalOutcomes Evaluation Planner`;
+
+      // Create filename
+      const filename = `${programData.organizationName}_${programData.programName}_Evaluation_Plan.html`.replace(/[^a-zA-Z0-9._-]/g, '_');
+
+      // Convert HTML content to base64 for attachment
+      const base64Content = btoa(unescape(encodeURIComponent(htmlContent)));
+
+      // Send email using Replit Mail integration
+      const result = await sendEmail({
+        to: programData.userEmail,
+        subject: `Evaluation Plan for ${programData.programName} - ${programData.organizationName}`,
+        text: emailBody,
+        attachments: [{
+          filename: filename,
+          content: base64Content,
+          contentType: 'text/html',
+          encoding: 'base64' as const
+        }]
+      });
+
+      setEmailStatus('sent');
+      alert('Evaluation plan has been successfully sent to your email!');
+      console.log('Email sent successfully:', result);
       
     } catch (error) {
       console.error('Error sending email:', error);
