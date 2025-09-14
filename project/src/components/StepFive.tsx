@@ -51,22 +51,80 @@ const ensureCanonicalLinks = (content: string): string => {
   
   // Define the canonical links that must be present
   const canonicalLinks = {
-    'LogicalOutcomes Evaluation Planning Handbook': '[LogicalOutcomes Evaluation Planning Handbook](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4815131)',
-    'Undermind': '[Undermind](https://www.undermind.ai/)',
-    'FutureHouse Falcon': '[FutureHouse Falcon](https://platform.futurehouse.org/)',
-    'Consensus': '[Consensus](https://consensus.app/)'
+    'LogicalOutcomes Evaluation Planning Handbook': {
+      url: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4815131',
+      markdown: '[LogicalOutcomes Evaluation Planning Handbook](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4815131)'
+    },
+    'Undermind': {
+      url: 'https://www.undermind.ai/',
+      markdown: '[Undermind](https://www.undermind.ai/)'
+    },
+    'FutureHouse Falcon': {
+      url: 'https://platform.futurehouse.org/',
+      markdown: '[FutureHouse Falcon](https://platform.futurehouse.org/)'
+    },
+    'Consensus': {
+      url: 'https://consensus.app/',
+      markdown: '[Consensus](https://consensus.app/)'
+    }
   };
   
   let processedContent = content;
   
-  // For each canonical link, check if it's missing the markdown syntax
-  Object.entries(canonicalLinks).forEach(([text, markdownLink]) => {
-    // Create a regex that matches the text only if it's NOT already in markdown link format
-    // This avoids double-processing if links are already present
-    const notAlreadyLinkedRegex = new RegExp(`(?<!\\[)\\b${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\])(?!\\]\\([^)]*\\))`, 'gi');
+  // For each canonical link, handle various formatting patterns
+  Object.entries(canonicalLinks).forEach(([text, linkInfo]) => {
+    const escapedText = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedUrl = linkInfo.url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     
-    // Replace plain text occurrences with markdown links
-    processedContent = processedContent.replace(notAlreadyLinkedRegex, markdownLink);
+    // Pattern 1: Text followed by URL in parentheses - e.g., "Consensus (https://consensus.app/)"
+    const textWithParenUrlRegex = new RegExp(`\\b${escapedText}\\s*\\(\\s*${escapedUrl}\\s*\\)`, 'g');
+    processedContent = processedContent.replace(textWithParenUrlRegex, linkInfo.markdown);
+    
+    // Pattern 2: Text followed by URL with various separators - e.g., "Consensus: https://consensus.app/" or "Consensus - https://consensus.app/"
+    const textWithSeparatorUrlRegex = new RegExp(`\\b${escapedText}\\s*[\\:\\-\\u2013]?\\s*${escapedUrl}`, 'g');
+    processedContent = processedContent.replace(textWithSeparatorUrlRegex, linkInfo.markdown);
+    
+    // Pattern 3: Bare canonical URL conversion - convert standalone URLs to branded links
+    const bareUrlRegex = new RegExp(escapedUrl, 'g');
+    processedContent = processedContent.replace(bareUrlRegex, (match, offset, fullString) => {
+      // Check if this URL is already part of a markdown link by examining context
+      const contextStart = Math.max(0, offset - 10);
+      const contextEnd = Math.min(fullString.length, offset + match.length + 5);
+      const beforeContext = fullString.substring(contextStart, offset);
+      const afterContext = fullString.substring(offset + match.length, contextEnd);
+      
+      // If it's already inside markdown link syntax, don't replace
+      if (beforeContext.includes('](') || afterContext.startsWith(')')) {
+        return match;
+      }
+      
+      return linkInfo.markdown;
+    });
+    
+    // Pattern 4: Plain text that's not already in markdown link format (case-sensitive for brand names)
+    const plainTextRegex = new RegExp(`\\b${escapedText}\\b`, 'g');
+    processedContent = processedContent.replace(plainTextRegex, (match, offset, fullString) => {
+      // Check context around the actual match position
+      const contextStart = Math.max(0, offset - 10);
+      const contextEnd = Math.min(fullString.length, offset + match.length + 10);
+      const beforeContext = fullString.substring(contextStart, offset);
+      const afterContext = fullString.substring(offset + match.length, contextEnd);
+      
+      // If it's already part of a markdown link, don't replace
+      if (beforeContext.includes('[') && !beforeContext.includes(']') ||
+          afterContext.startsWith('](') ||
+          beforeContext.endsWith('[')) {
+        return match;
+      }
+      
+      // Also check if this text is immediately followed by the URL pattern (already handled above)
+      if (afterContext.match(/^\s*[\:\-\u2013]?\s*https?:\/\//) || 
+          afterContext.match(/^\s*[\:\-\u2013]?\s*\[[^\]]+\]\(/)) {
+        return match;
+      }
+      
+      return linkInfo.markdown;
+    });
   });
   
   return processedContent;
