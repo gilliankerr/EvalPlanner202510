@@ -12,6 +12,8 @@ export interface ProgramData {
   organizationName: string;
   programName: string;
   aboutProgram: string;
+  userEmail: string;
+  deliveryMethod: string;
   urls: string[];
   scrapedContent: string;
   programAnalysis: string;
@@ -38,6 +40,8 @@ function App() {
     organizationName: '',
     programName: '',
     aboutProgram: '',
+    userEmail: '',
+    deliveryMethod: 'download',
     urls: [],
     scrapedContent: '',
     programAnalysis: '',
