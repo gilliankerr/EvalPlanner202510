@@ -216,7 +216,7 @@ We recommend that users also carry out a literature review to check that the eva
 
 ## Program summary and analysis
 
-This section synthesizes the information provided about the ${programData.programName} program enriched with an analysis of its context and program model.
+This section synthesizes the information provided about ${programData.programName} enriched with an analysis of its context and program model.
 
 ### Summary of the program
 
