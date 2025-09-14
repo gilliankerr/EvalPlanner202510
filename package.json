@@ -4,7 +4,7 @@
   "scripts": {
     "postinstall": "cd project && npm ci",
     "build": "cd project && npm run build",
-    "start": "cd project && npm start",
+    "start": "node start-production.js",
     "dev": "cd project && npm run dev"
   },
   "dependencies": {

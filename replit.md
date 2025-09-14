@@ -35,11 +35,12 @@ The project is configured for the Replit environment:
 - **Production Server**: `npm start` (Vite preview on port 5000)
 
 ## Deployment Configuration
-- **Type**: Autoscale (frontend-only deployment)
-- **Build**: `npm run build` (from repository root, proxies to project directory)
-- **Start**: `npm start` (from repository root, proxies to project directory)
-- **Port**: 5000 (strictly enforced)
-- **Fix Applied**: Added root-level package.json proxy to handle Replit's auto npm detection
+- **Type**: Autoscale (full-stack deployment with frontend and email server)
+- **Build**: `npm run build` (builds the React frontend)
+- **Start**: `npm start` (runs production script that starts both frontend server on port 5000 and email server on port 3001)
+- **Port**: 5000 (frontend exposed to users, email server internal only)
+- **Architecture**: Two-server setup with Vite proxy routing `/api/*` requests from frontend to email server
+- **Fix Applied**: Created `start-production.js` script to run both servers simultaneously in deployed environment
 
 ## Recent Changes (September 14, 2025)
 - **Added Email Delivery Option**: Enhanced initial program information form with email delivery choice, allowing users to receive HTML reports via email instead of waiting in browser window for up to 20 minutes during generation
