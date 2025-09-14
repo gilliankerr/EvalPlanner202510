@@ -29,22 +29,7 @@ export const zSmtpMessage = z.object({
 
 export type SmtpMessage = z.infer<typeof zSmtpMessage>
 
-function getAuthToken(): string {
-  const xReplitToken = process.env.REPL_IDENTITY
-    ? "repl " + process.env.REPL_IDENTITY
-    : process.env.WEB_REPL_RENEWAL
-      ? "depl " + process.env.WEB_REPL_RENEWAL
-      : null;
-
-  if (!xReplitToken) {
-    throw new Error(
-      "No authentication token found. Please set REPL_IDENTITY or ensure you're running in Replit environment."
-    );
-  }
-
-  return xReplitToken;
-}
-
+// Client-side email function that calls our backend API
 export async function sendEmail(message: SmtpMessage): Promise<{
   accepted: string[];
   rejected: string[];
@@ -52,31 +37,26 @@ export async function sendEmail(message: SmtpMessage): Promise<{
   messageId: string;
   response: string;
 }> {
-  const authToken = getAuthToken();
-
-  const response = await fetch(
-    "https://connectors.replit.com/api/v2/mailer/send",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X_REPLIT_TOKEN": authToken,
-      },
-      body: JSON.stringify({
-        to: message.to,
-        cc: message.cc,
-        subject: message.subject,
-        text: message.text,
-        html: message.html,
-        attachments: message.attachments,
-      }),
-    }
-  );
+  const response = await fetch('https://f1e3c298-42e7-4368-ae8a-874f5aa7ceff-00-srz067cyuap4.kirk.replit.dev:3001/send-email', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      to: message.to,
+      cc: message.cc,
+      subject: message.subject,
+      text: message.text,
+      html: message.html,
+      attachments: message.attachments,
+    }),
+  });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || "Failed to send email");
+    throw new Error(error.error || "Failed to send email");
   }
 
-  return await response.json();
+  const result = await response.json();
+  return result.result;
 }

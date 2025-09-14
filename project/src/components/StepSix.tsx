@@ -3,7 +3,7 @@ import { Download, Loader2, CheckCircle, Mail } from 'lucide-react';
 import { marked, Tokens } from 'marked';
 import hljs from 'highlight.js';
 import DOMPurify from 'dompurify';
-import { sendEmail, type SmtpMessage } from '../utils/replitmail';
+import { sendEmail } from '../utils/replitmail';
 import type { ProgramData } from '../App';
 
 interface StepSixProps {
@@ -16,7 +16,7 @@ interface StepSixProps {
 const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcessing }) => {
   const [renderStatus, setRenderStatus] = useState<'idle' | 'rendering' | 'complete'>('idle');
   const [htmlContent, setHtmlContent] = useState<string>('');
-  const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [, setEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
   useEffect(() => {
     renderHtmlReport();
@@ -1253,15 +1253,7 @@ LogicalOutcomes Evaluation Planner`;
 
   // Automatic email sending when deliveryMethod is email
   const sendEmailAutomatically = useCallback(async () => {
-    console.log('sendEmailAutomatically called with:', {
-      deliveryMethod: programData.deliveryMethod,
-      userEmail: programData.userEmail,
-      hasHtmlContent: !!htmlContent,
-      htmlContentLength: htmlContent?.length || 0
-    });
-    
     if (programData.deliveryMethod === 'email' && programData.userEmail && htmlContent) {
-      console.log('All conditions met, sending email...');
       try {
         await sendEmailReport();
       } catch (error) {
