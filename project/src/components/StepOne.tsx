@@ -51,6 +51,14 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
       newErrors.aboutProgram = 'Program description is required';
     }
 
+    if (programData.deliveryMethod === 'email') {
+      if (!programData.userEmail.trim()) {
+        newErrors.userEmail = 'Email address is required for email delivery';
+      } else if (!/\S+@\S+\.\S+/.test(programData.userEmail)) {
+        newErrors.userEmail = 'Please enter a valid email address';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
