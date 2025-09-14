@@ -3,6 +3,7 @@
 
 const express = require('express');
 const cors = require('cors');
+// Node.js v20 has built-in fetch
 
 const app = express();
 const PORT = 3001;
@@ -58,11 +59,18 @@ async function sendEmail(message) {
   return await response.json();
 }
 
+// Test endpoint
+app.get('/test', (req, res) => {
+  res.json({ status: 'Email server is running' });
+});
+
 // Email endpoint
 app.post('/send-email', async (req, res) => {
+  console.log('Received email request:', req.body);
   try {
     const { to, subject, text, html, attachments } = req.body;
     
+    console.log('Sending email to:', to);
     const result = await sendEmail({
       to,
       subject,
@@ -71,6 +79,7 @@ app.post('/send-email', async (req, res) => {
       attachments
     });
     
+    console.log('Email sent successfully:', result);
     res.json({ success: true, result });
   } catch (error) {
     console.error('Email sending error:', error);

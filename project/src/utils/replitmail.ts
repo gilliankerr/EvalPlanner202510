@@ -37,7 +37,7 @@ export async function sendEmail(message: SmtpMessage): Promise<{
   messageId: string;
   response: string;
 }> {
-  const response = await fetch('https://f1e3c298-42e7-4368-ae8a-874f5aa7ceff-00-srz067cyuap4.kirk.replit.dev:3001/send-email', {
+  const response = await fetch('/api/send-email', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -53,8 +53,15 @@ export async function sendEmail(message: SmtpMessage): Promise<{
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to send email");
+    let errorMessage = "Failed to send email";
+    try {
+      const error = await response.json();
+      errorMessage = error.error || errorMessage;
+    } catch {
+      // If response is not JSON, use status text
+      errorMessage = response.statusText || errorMessage;
+    }
+    throw new Error(errorMessage);
   }
 
   const result = await response.json();
