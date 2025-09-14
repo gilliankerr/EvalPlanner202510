@@ -43,6 +43,9 @@ The project is configured for the Replit environment:
 - **Fix Applied**: Switched from Autoscale to Reserved VM to support multiple processes and internal localhost connections
 
 ## Recent Changes (September 14, 2025)
+- **Enhanced Web Scraping Error Handling**: Completely overhauled URL extraction and web scraping with robust error handling, timeout protection (10s), smart retry logic with exponential backoff, concurrent processing (3 URLs), individual retry buttons, and detailed error classification (timeout, rate limited, blocked, unsupported content)
+- **Improved URL Processing**: Added URL normalization, validation, and sanitization utilities that handle dangerous schemes, trailing punctuation, www prefixes, and deduplication
+- **Better User Feedback**: Enhanced scraping progress UI with real-time status updates, specific error messages, content type detection, and per-URL retry functionality
 - **Added Email Delivery Option**: Enhanced initial program information form with email delivery choice, allowing users to receive HTML reports via email instead of waiting in browser window for up to 20 minutes during generation
 - **Improved User Experience**: Added 20-minute processing time warning with clear delivery method options (download now vs email when complete) 
 - **Enhanced Form Validation**: Added conditional email validation that requires valid email address only when email delivery method is selected
@@ -85,4 +88,3 @@ project/
 ## Next Steps
 - Optional: Update Browserslist database to silence development warnings
 - Optional: Configure HMR client port (443) if connection issues arise in proxy environment
-- Consider implementing proper error handling for web scraping functionality
