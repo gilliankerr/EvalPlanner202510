@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Download, Loader2, CheckCircle } from 'lucide-react';
+import { Download, Loader2, CheckCircle, Mail } from 'lucide-react';
 import { marked, Tokens } from 'marked';
 import hljs from 'highlight.js';
 import DOMPurify from 'dompurify';
+import { sendEmail, type SmtpMessage } from '../utils/replitmail';
 import type { ProgramData } from '../App';
 
 interface StepSixProps {
@@ -1231,16 +1232,38 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
                 <p className="text-slate-600 mb-6">
                   Your comprehensive evaluation plan for {programData.programName} has been successfully generated 
                   and formatted as a professional HTML document.
+                  {programData.deliveryMethod === 'email' && (
+                    <span> It has been sent to {programData.userEmail}.</span>
+                  )}
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button
-                    onClick={downloadHtml}
-                    className="flex items-center justify-center space-x-2 px-8 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200"
-                  >
-                    <Download className="h-5 w-5" />
-                    <span>Download Evaluation Plan</span>
-                  </button>
+                  {programData.deliveryMethod === 'download' ? (
+                    <button
+                      onClick={downloadHtml}
+                      className="flex items-center justify-center space-x-2 px-8 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200"
+                    >
+                      <Download className="h-5 w-5" />
+                      <span>Download Evaluation Plan</span>
+                    </button>
+                  ) : (
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <button
+                        onClick={downloadHtml}
+                        className="flex items-center justify-center space-x-2 px-6 py-3 bg-slate-600 text-white font-medium rounded-lg hover:bg-slate-700 focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-all duration-200"
+                      >
+                        <Download className="h-5 w-5" />
+                        <span>Download Copy</span>
+                      </button>
+                      <button
+                        onClick={sendEmailReport}
+                        className="flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
+                      >
+                        <Mail className="h-5 w-5" />
+                        <span>Resend Email</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
