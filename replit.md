@@ -41,7 +41,12 @@ The project is configured for the Replit environment:
 - **Port**: 5000 (strictly enforced)
 - **Fix Applied**: Added root-level package.json proxy to handle Replit's auto npm detection
 
-## Recent Changes (September 13, 2025)
+## Recent Changes (September 14, 2025)
+- **Added Email Delivery Option**: Enhanced initial program information form with email delivery choice, allowing users to receive HTML reports via email instead of waiting in browser window for up to 20 minutes during generation
+- **Improved User Experience**: Added 20-minute processing time warning with clear delivery method options (download now vs email when complete) 
+- **Enhanced Form Validation**: Added conditional email validation that requires valid email address only when email delivery method is selected
+
+## Previous Changes (September 13, 2025)
 - Configured Vite for Replit environment with proper host/port binding
 - Added `strictPort: true` to prevent port conflicts
 - Created production start script for deployment
