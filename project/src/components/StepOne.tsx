@@ -187,28 +187,30 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
           )}
         </div>
 
-        {/* Email Address */}
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{color: '#30302f'}}>
-            Email Address {programData.deliveryMethod === 'email' ? '*' : '(optional)'}
-          </label>
-          <input
-            type="email"
-            value={programData.userEmail}
-            onChange={(e) => updateProgramData({ userEmail: e.target.value })}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors ${
-              errors.userEmail ? 'border-red-300 bg-red-50' : 'border-gray-300'
-            }`}
-            style={{'--tw-ring-color': '#0085ca'} as React.CSSProperties}
-            placeholder="Enter your email address"
-          />
-          {errors.userEmail && (
-            <p className="text-red-600 text-sm mt-1 flex items-center">
-              <AlertCircle className="h-4 w-4 mr-1" />
-              {errors.userEmail}
-            </p>
-          )}
-        </div>
+        {/* Email Address - Only show when email delivery is selected */}
+        {programData.deliveryMethod === 'email' && (
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{color: '#30302f'}}>
+              Email Address *
+            </label>
+            <input
+              type="email"
+              value={programData.userEmail}
+              onChange={(e) => updateProgramData({ userEmail: e.target.value })}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors ${
+                errors.userEmail ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
+              style={{'--tw-ring-color': '#0085ca'} as React.CSSProperties}
+              placeholder="Enter your email address"
+            />
+            {errors.userEmail && (
+              <p className="text-red-600 text-sm mt-1 flex items-center">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                {errors.userEmail}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Delivery Method */}
         <div>
