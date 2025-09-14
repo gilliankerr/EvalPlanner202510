@@ -1253,18 +1253,40 @@ LogicalOutcomes Evaluation Planner`;
 
   // Automatic email sending when deliveryMethod is email
   const sendEmailAutomatically = useCallback(async () => {
+    console.log('sendEmailAutomatically called with:', {
+      deliveryMethod: programData.deliveryMethod,
+      userEmail: programData.userEmail,
+      hasHtmlContent: !!htmlContent,
+      htmlContentLength: htmlContent?.length || 0
+    });
+    
     if (programData.deliveryMethod === 'email' && programData.userEmail && htmlContent) {
+      console.log('All conditions met, sending email...');
       try {
         await sendEmailReport();
       } catch (error) {
         console.error('Auto email send failed:', error);
       }
+    } else {
+      console.log('Email conditions not met:', {
+        hasDeliveryMethod: programData.deliveryMethod === 'email',
+        hasUserEmail: !!programData.userEmail,
+        hasHtmlContent: !!htmlContent
+      });
     }
   }, [programData.deliveryMethod, programData.userEmail, htmlContent, sendEmailReport]);
 
   // Trigger automatic email sending when HTML is ready
   useEffect(() => {
+    console.log('Email trigger check:', {
+      renderStatus,
+      deliveryMethod: programData.deliveryMethod,
+      userEmail: programData.userEmail,
+      htmlContentLength: htmlContent?.length || 0
+    });
+    
     if (renderStatus === 'complete' && programData.deliveryMethod === 'email') {
+      console.log('Triggering automatic email send...');
       sendEmailAutomatically();
     }
   }, [renderStatus, sendEmailAutomatically]);
