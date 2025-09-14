@@ -12,6 +12,7 @@
     "@types/marked": "^5.0.2",
     "dompurify": "^3.2.6",
     "highlight.js": "^11.11.1",
-    "marked": "^16.2.1"
+    "marked": "^16.2.1",
+    "zod": "^4.1.8"
   }
 }
