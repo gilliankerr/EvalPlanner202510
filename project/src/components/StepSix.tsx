@@ -1057,18 +1057,6 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
     </style>
 </head>
 <body class="bg-white">
-    <!-- Navigation Header -->
-    <nav class="bg-slate-900 text-white px-6 py-4 no-print sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto">
-            <div class="flex items-center space-x-3 mb-2">
-                <div>
-                    <h1 class="text-lg font-semibold">Evaluation Plan Report</h1>
-                    <p class="text-sm text-slate-300">${DOMPurify.sanitize(programData.organizationName)}</p>
-                </div>
-            </div>
-        </div>
-    </nav>
-
     <!-- Table of Contents Layout -->
     <div class="report-container">
         <div class="flex">
