@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, AlertCircle } from 'lucide-react';
+import { FileText, AlertCircle, Clock } from 'lucide-react';
 import type { ProgramData } from '../App';
 
 interface StepOneProps {
@@ -78,6 +78,20 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
           <div>
             <h2 className="text-2xl font-bold" style={{color: '#30302f'}}>Program Information Collection</h2>
             <p className="text-gray-600">Please provide information about the program you want to evaluate</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Processing Time Warning */}
+      <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+        <div className="flex items-start space-x-3">
+          <Clock className="h-5 w-5 text-amber-600 mt-0.5" />
+          <div>
+            <h4 className="font-medium text-amber-800">Processing Time</h4>
+            <p className="text-sm text-amber-700">
+              Report generation may take up to 20 minutes depending on program complexity. 
+              Choose your preferred delivery method below.
+            </p>
           </div>
         </div>
       </div>
@@ -163,6 +177,69 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
               </ul>
             </div>
           )}
+        </div>
+
+        {/* Email Address */}
+        <div>
+          <label className="block text-sm font-medium mb-2" style={{color: '#30302f'}}>
+            Email Address {programData.deliveryMethod === 'email' ? '*' : '(optional)'}
+          </label>
+          <input
+            type="email"
+            value={programData.userEmail}
+            onChange={(e) => updateProgramData({ userEmail: e.target.value })}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors ${
+              errors.userEmail ? 'border-red-300 bg-red-50' : 'border-gray-300'
+            }`}
+            style={{'--tw-ring-color': '#0085ca'} as React.CSSProperties}
+            placeholder="Enter your email address"
+          />
+          {errors.userEmail && (
+            <p className="text-red-600 text-sm mt-1 flex items-center">
+              <AlertCircle className="h-4 w-4 mr-1" />
+              {errors.userEmail}
+            </p>
+          )}
+        </div>
+
+        {/* Delivery Method */}
+        <div>
+          <label className="block text-sm font-medium mb-3" style={{color: '#30302f'}}>
+            How would you like to receive your evaluation plan?
+          </label>
+          <div className="space-y-3">
+            <label className="flex items-start cursor-pointer">
+              <input
+                type="radio"
+                value="download"
+                checked={programData.deliveryMethod === 'download'}
+                onChange={(e) => updateProgramData({ deliveryMethod: e.target.value })}
+                className="mr-3 mt-1"
+              />
+              <div>
+                <span className="font-medium" style={{color: '#30302f'}}>Download when ready</span>
+                <p className="text-sm text-gray-600">
+                  Keep your browser open for up to 20 minutes while the report generates
+                </p>
+              </div>
+            </label>
+            
+            <label className="flex items-start cursor-pointer">
+              <input
+                type="radio"
+                value="email"
+                checked={programData.deliveryMethod === 'email'}
+                onChange={(e) => updateProgramData({ deliveryMethod: e.target.value })}
+                className="mr-3 mt-1"
+              />
+              <div>
+                <span className="font-medium" style={{color: '#30302f'}}>Email me when complete</span>
+                <p className="text-sm text-gray-600">
+                  Close your browser anytime - you'll receive the report via email within 20 minutes
+                </p>
+              </div>
+            </label>
+          </div>
         </div>
 
         {/* Submit Button */}
