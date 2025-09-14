@@ -1208,18 +1208,14 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       });
 
       // Create email body with user's specified template
-      const emailBody = `Hello,
+      const emailBody = `Hello, attached is the evaluation plan you requested from the LogicalOutcomes Evaluation Planner at www.logicaloutcomes.net. 
 
-Attached is the evaluation plan you requested from the LogicalOutcomes Evaluation Planner.
+It is for ${programData.programName} delivered by ${programData.organizationName}. It was generated on ${currentDateTime}. 
 
-It is for ${programData.programName} delivered by ${programData.organizationName}. It was generated on ${currentDateTime}.
-
-This is just a draft. If it is inaccurate, feel free to re-try the Evaluation Planner app but add additional useful information in the form.
-
-If you have any questions, contact support@logicaloutcomes.com.
+This is just a draft and should be reviewed carefully for accuracy. To improve its accuracy, feel free to re-try the Evaluation Planner app and add relevant information in the form. For example, paste additional web pages about the organization or information about the population served or the results of a literature review on effective program models. 
 
 Best regards,
-LogicalOutcomes Evaluation Planner`;
+LogicalOutcomes`;
 
       // Create filename
       const filename = `${programData.organizationName}_${programData.programName}_Evaluation_Plan.html`.replace(/[^a-zA-Z0-9._-]/g, '_');
