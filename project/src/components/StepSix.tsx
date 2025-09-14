@@ -1077,6 +1077,9 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             <button onclick="printLandscape()" class="print-btn">
                 Print / Save PDF
             </button>
+            <p class="text-xs text-slate-600 mb-4 px-2 py-1 bg-blue-50 border border-blue-200 rounded text-center">
+                💡 For best results, select <strong>Landscape</strong> orientation in your print dialog
+            </p>
             <h3 class="font-semibold text-slate-900 mb-4">Table of Contents</h3>
             <nav class="space-y-1 text-sm">
                 ${tocHtml}
