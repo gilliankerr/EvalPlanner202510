@@ -3,7 +3,6 @@ import { Download, Loader2, CheckCircle, Mail } from 'lucide-react';
 import { marked, Tokens } from 'marked';
 import hljs from 'highlight.js';
 import DOMPurify from 'dompurify';
-import { sendEmail, type SmtpMessage } from '../utils/replitmail';
 import type { ProgramData } from '../App';
 
 interface StepSixProps {
@@ -16,6 +15,7 @@ interface StepSixProps {
 const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcessing }) => {
   const [renderStatus, setRenderStatus] = useState<'idle' | 'rendering' | 'complete'>('idle');
   const [htmlContent, setHtmlContent] = useState<string>('');
+  const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
   useEffect(() => {
     renderHtmlReport();
@@ -1180,6 +1180,74 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       alert(`Failed to download HTML file: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
     }
   }, [htmlContent, programData.organizationName, programData.programName]);
+
+  // Email sending function using backend API
+  const sendEmailReport = useCallback(async () => {
+    try {
+      if (!htmlContent || htmlContent.trim().length === 0) {
+        alert('No HTML content available to send. Please try regenerating the report.');
+        return;
+      }
+
+      if (!programData.userEmail) {
+        alert('No email address provided. Please ensure an email address was entered.');
+        return;
+      }
+
+      setEmailStatus('sending');
+
+      // Get the backend URL - in Replit, backend will run on port 8000
+      const backendUrl = import.meta.env.PROD 
+        ? `https://${window.location.hostname.replace(/^[^.]*/, 'server')}`
+        : 'http://localhost:8000';
+
+      const response = await fetch(`${backendUrl}/send-report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: programData.userEmail,
+          programName: programData.programName,
+          organizationName: programData.organizationName,
+          htmlContent: htmlContent
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setEmailStatus('sent');
+        alert('Evaluation plan has been successfully sent to your email!');
+      } else {
+        setEmailStatus('error');
+        alert(`Failed to send email: ${result.error || 'Unknown error'}`);
+      }
+      
+    } catch (error) {
+      console.error('Error sending email:', error);
+      setEmailStatus('error');
+      alert(`Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
+    }
+  }, [htmlContent, programData.organizationName, programData.programName, programData.userEmail]);
+
+  // Automatic email sending when deliveryMethod is email
+  const sendEmailAutomatically = useCallback(async () => {
+    if (programData.deliveryMethod === 'email' && programData.userEmail && htmlContent) {
+      try {
+        await sendEmailReport();
+      } catch (error) {
+        console.error('Auto email send failed:', error);
+      }
+    }
+  }, [programData.deliveryMethod, programData.userEmail, htmlContent, sendEmailReport]);
+
+  // Trigger automatic email sending when HTML is ready
+  useEffect(() => {
+    if (renderStatus === 'complete' && programData.deliveryMethod === 'email') {
+      sendEmailAutomatically();
+    }
+  }, [renderStatus, sendEmailAutomatically]);
 
   return (
     <div className="p-8">
