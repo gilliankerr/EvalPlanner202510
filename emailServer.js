@@ -1,9 +1,10 @@
 // Simple Node.js server for handling email sending
-// Uses the exact Replit Mail integration pattern
+// Uses Resend integration for email delivery
 
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
+const { Resend } = require('resend');
 
 const app = express();
 const PORT = 3001;
@@ -17,51 +18,75 @@ const pool = new Pool({
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Email sending function using Replit Mail integration
-function getAuthToken() {
+// Resend client initialization
+let connectionSettings;
+
+async function getCredentials() {
+  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
   const xReplitToken = process.env.REPL_IDENTITY
-    ? "repl " + process.env.REPL_IDENTITY
+    ? 'repl ' + process.env.REPL_IDENTITY
     : process.env.WEB_REPL_RENEWAL
-      ? "depl " + process.env.WEB_REPL_RENEWAL
-      : null;
+    ? 'depl ' + process.env.WEB_REPL_RENEWAL
+    : null;
 
   if (!xReplitToken) {
-    throw new Error(
-      "No authentication token found. Please set REPL_IDENTITY or ensure you're running in Replit environment."
-    );
+    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
   }
 
-  return xReplitToken;
+  connectionSettings = await fetch(
+    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=resend',
+    {
+      headers: {
+        'Accept': 'application/json',
+        'X_REPLIT_TOKEN': xReplitToken
+      }
+    }
+  ).then(res => res.json()).then(data => data.items?.[0]);
+
+  if (!connectionSettings || !connectionSettings.settings.api_key) {
+    throw new Error('Resend not connected');
+  }
+  
+  return {
+    apiKey: connectionSettings.settings.api_key,
+    fromEmail: connectionSettings.settings.from_email
+  };
 }
 
+// Get fresh Resend client (tokens expire, so never cache)
+async function getResendClient() {
+  const credentials = await getCredentials();
+  return {
+    client: new Resend(credentials.apiKey),
+    fromEmail: credentials.fromEmail
+  };
+}
+
+// Email sending function using Resend
 async function sendEmail(message) {
-  const authToken = getAuthToken();
+  const { client, fromEmail } = await getResendClient();
 
-  const response = await fetch(
-    "https://connectors.replit.com/api/v2/mailer/send",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X_REPLIT_TOKEN": authToken,
-      },
-      body: JSON.stringify({
-        to: message.to,
-        cc: message.cc,
-        subject: message.subject,
-        text: message.text,
-        html: message.html,
-        attachments: message.attachments,
-      }),
-    }
-  );
+  const emailData = {
+    from: fromEmail,
+    to: Array.isArray(message.to) ? message.to : [message.to],
+    subject: message.subject,
+    html: message.html || undefined,
+    text: message.text || undefined,
+    attachments: message.attachments || undefined
+  };
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to send email");
+  // Add CC if provided
+  if (message.cc) {
+    emailData.cc = Array.isArray(message.cc) ? message.cc : [message.cc];
   }
 
-  return await response.json();
+  const result = await client.emails.send(emailData);
+  
+  if (result.error) {
+    throw new Error(result.error.message || 'Failed to send email');
+  }
+
+  return result.data;
 }
 
 // Test endpoint
