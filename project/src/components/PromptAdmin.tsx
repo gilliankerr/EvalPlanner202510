@@ -57,7 +57,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
 
   const fetchPrompts = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/prompts`);
+      const response = await fetch(`${API_URL}/prompts`);
       const data = await response.json();
       setPrompts(data);
     } catch (error) {
@@ -74,7 +74,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
     
     // Fetch versions for this prompt
     try {
-      const response = await fetch(`${API_URL}/api/prompts/${prompt.step_name}/versions`);
+      const response = await fetch(`${API_URL}/prompts/${prompt.step_name}/versions`);
       const data = await response.json();
       setVersions(data);
     } catch (error) {
@@ -87,7 +87,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
     
     setSaving(true);
     try {
-      const response = await fetch(`${API_URL}/api/prompts/${selectedPrompt.step_name}`, {
+      const response = await fetch(`${API_URL}/prompts/${selectedPrompt.step_name}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,12 +104,12 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
         fetchPrompts();
         
         // Refresh the selected prompt
-        const updatedPrompt = await fetch(`${API_URL}/api/prompts/${selectedPrompt.step_name}`);
+        const updatedPrompt = await fetch(`${API_URL}/prompts/${selectedPrompt.step_name}`);
         const updatedData = await updatedPrompt.json();
         setSelectedPrompt(updatedData);
         
         // Refresh versions
-        const versionsResponse = await fetch(`${API_URL}/api/prompts/${selectedPrompt.step_name}/versions`);
+        const versionsResponse = await fetch(`${API_URL}/prompts/${selectedPrompt.step_name}/versions`);
         const versionsData = await versionsResponse.json();
         setVersions(versionsData);
         
@@ -130,7 +130,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
     }
     
     try {
-      const response = await fetch(`${API_URL}/api/prompts/${selectedPrompt.step_name}/rollback/${version}`, {
+      const response = await fetch(`${API_URL}/prompts/${selectedPrompt.step_name}/rollback/${version}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${ADMIN_API_KEY}`
@@ -139,13 +139,13 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
       
       if (response.ok) {
         // Refresh the selected prompt
-        const updatedPrompt = await fetch(`${API_URL}/api/prompts/${selectedPrompt.step_name}`);
+        const updatedPrompt = await fetch(`${API_URL}/prompts/${selectedPrompt.step_name}`);
         const updatedData = await updatedPrompt.json();
         setSelectedPrompt(updatedData);
         setEditedContent(updatedData.content);
         
         // Refresh versions
-        const versionsResponse = await fetch(`${API_URL}/api/prompts/${selectedPrompt.step_name}/versions`);
+        const versionsResponse = await fetch(`${API_URL}/prompts/${selectedPrompt.step_name}/versions`);
         const versionsData = await versionsResponse.json();
         setVersions(versionsData);
         
@@ -161,7 +161,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
     setPasswordError('');
     
     try {
-      const response = await fetch(`${API_URL}/api/verify-admin-password`, {
+      const response = await fetch(`${API_URL}/verify-admin-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
