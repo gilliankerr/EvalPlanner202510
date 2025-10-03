@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Save, History, RotateCcw, Check } from 'lucide-react';
+import { ArrowLeft, Save, History, RotateCcw, Check, LogOut } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
 
 interface Prompt {
@@ -35,12 +35,25 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
   const [showVersions, setShowVersions] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const API_URL = '/api';
   const ADMIN_API_KEY = 'dev-admin-key-change-in-production';
 
   useEffect(() => {
-    fetchPrompts();
+    const authenticated = sessionStorage.getItem('adminAuthenticated');
+    if (authenticated === 'true') {
+      setIsAuthenticated(true);
+      fetchPrompts();
+    }
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchPrompts();
+    }
+  }, [isAuthenticated]);
 
   const fetchPrompts = async () => {
     try {
@@ -143,6 +156,78 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
     }
   };
 
+  const verifyPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    
+    try {
+      const response = await fetch(`${API_URL}/api/verify-admin-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password })
+      });
+      
+      if (response.ok) {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('adminAuthenticated', 'true');
+        setPassword('');
+      } else {
+        setPasswordError('Incorrect password. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error verifying password:', error);
+      setPasswordError('An error occurred. Please try again.');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    sessionStorage.removeItem('adminAuthenticated');
+    setPassword('');
+    setPasswordError('');
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="bg-white rounded-lg border p-8 w-full max-w-md">
+          <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: '#30302f' }}>
+            Admin Authentication Required
+          </h2>
+          <form onSubmit={verifyPassword} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: '#30302f' }}>
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter admin password"
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoFocus
+              />
+            </div>
+            {passwordError && (
+              <div className="text-red-600 text-sm">
+                {passwordError}
+              </div>
+            )}
+            <button
+              type="submit"
+              className="w-full px-4 py-2 rounded-lg text-white font-medium"
+              style={{ backgroundColor: '#0085ca' }}
+            >
+              Access Admin Panel
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#f8fafc' }}>
       {/* Header */}
@@ -160,32 +245,42 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                 Prompt Management
               </h1>
             </div>
-            {selectedPrompt && (
-              <div className="flex items-center space-x-2">
-                {saveSuccess && (
-                  <div className="flex items-center space-x-2 text-green-600">
-                    <Check className="h-5 w-5" />
-                    <span>Saved successfully!</span>
-                  </div>
-                )}
-                <button
-                  onClick={() => setShowVersions(!showVersions)}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg border hover:bg-gray-50"
-                >
-                  <History className="h-4 w-4" />
-                  <span>Version History</span>
-                </button>
-                <button
-                  onClick={savePrompt}
-                  disabled={saving || editedContent === selectedPrompt.content}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg text-white disabled:opacity-50"
-                  style={{ backgroundColor: '#0085ca' }}
-                >
-                  <Save className="h-4 w-4" />
-                  <span>{saving ? 'Saving...' : 'Save Changes'}</span>
-                </button>
-              </div>
-            )}
+            <div className="flex items-center space-x-2">
+              {selectedPrompt && (
+                <>
+                  {saveSuccess && (
+                    <div className="flex items-center space-x-2 text-green-600">
+                      <Check className="h-5 w-5" />
+                      <span>Saved successfully!</span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setShowVersions(!showVersions)}
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg border hover:bg-gray-50"
+                  >
+                    <History className="h-4 w-4" />
+                    <span>Version History</span>
+                  </button>
+                  <button
+                    onClick={savePrompt}
+                    disabled={saving || editedContent === selectedPrompt.content}
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg text-white disabled:opacity-50"
+                    style={{ backgroundColor: '#0085ca' }}
+                  >
+                    <Save className="h-4 w-4" />
+                    <span>{saving ? 'Saving...' : 'Save Changes'}</span>
+                  </button>
+                </>
+              )}
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg border hover:bg-gray-50"
+                title="Logout"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
