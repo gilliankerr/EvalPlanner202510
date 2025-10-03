@@ -125,6 +125,37 @@ const StepThree: React.FC<StepThreeProps> = ({ programData, updateProgramData, o
           </div>
         </div>
 
+        {/* Error Recovery Options */}
+        {analysisStatus === 'error' && (
+          <div className="space-y-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <p className="text-sm text-amber-800 mb-3">
+                The evaluation framework generation encountered an issue. This could be due to API connectivity or rate limits. You can:
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={analyzeProgram}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Retry Generation
+                </button>
+                <button
+                  onClick={() => {
+                    updateProgramData({ 
+                      evaluationFramework: 'Framework generation skipped by user due to error'
+                    });
+                    setIsProcessing(false);
+                    onComplete();
+                  }}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Skip and Continue
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Analysis Progress */}
         {analysisStatus === 'analyzing' && (
           <div className="space-y-4">
