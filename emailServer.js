@@ -95,9 +95,21 @@ app.post('/send-email', async (req, res) => {
   }
 });
 
+// Simple authentication middleware for admin routes
+const authenticateAdmin = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  const adminKey = process.env.ADMIN_API_KEY || 'dev-admin-key-change-in-production';
+  
+  if (!authHeader || authHeader !== `Bearer ${adminKey}`) {
+    return res.status(401).json({ error: 'Unauthorized - Admin access required' });
+  }
+  
+  next();
+};
+
 // Prompt Management API Routes
 
-// GET /api/prompts - List all prompts
+// GET /api/prompts - List all prompts (read-only, no auth required)
 app.get('/api/prompts', async (req, res) => {
   try {
     const result = await pool.query(
@@ -110,7 +122,7 @@ app.get('/api/prompts', async (req, res) => {
   }
 });
 
-// GET /api/prompts/:step - Get active prompt for a specific step
+// GET /api/prompts/:step - Get active prompt for a specific step (read-only, no auth required)
 app.get('/api/prompts/:step', async (req, res) => {
   try {
     const { step } = req.params;
@@ -130,8 +142,8 @@ app.get('/api/prompts/:step', async (req, res) => {
   }
 });
 
-// POST /api/prompts/:step - Create new version of a prompt
-app.post('/api/prompts/:step', async (req, res) => {
+// POST /api/prompts/:step - Create new version of a prompt (ADMIN ONLY)
+app.post('/api/prompts/:step', authenticateAdmin, async (req, res) => {
   const client = await pool.connect();
   
   try {
@@ -202,8 +214,8 @@ app.get('/api/prompts/:step/versions', async (req, res) => {
   }
 });
 
-// POST /api/prompts/:step/rollback/:version - Rollback to a specific version
-app.post('/api/prompts/:step/rollback/:version', async (req, res) => {
+// POST /api/prompts/:step/rollback/:version - Rollback to a specific version (ADMIN ONLY)
+app.post('/api/prompts/:step/rollback/:version', authenticateAdmin, async (req, res) => {
   const client = await pool.connect();
   
   try {

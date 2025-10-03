@@ -55,10 +55,10 @@ const StepThree: React.FC<StepThreeProps> = ({ programData, updateProgramData, o
       }
 
       const data = await response.json();
-      const analysis = data.choices[0].message.content;
+      const framework = data.choices[0].message.content;
 
-      setAnalysisResult(analysis);
-      updateProgramData({ programAnalysis: analysis });
+      setAnalysisResult(framework);
+      updateProgramData({ evaluationFramework: framework });
       setAnalysisStatus('complete');
 
       // Auto-advance after a brief delay

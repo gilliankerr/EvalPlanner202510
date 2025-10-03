@@ -36,6 +36,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const API_URL = 'http://localhost:3001';
+  const ADMIN_API_KEY = 'dev-admin-key-change-in-production';
 
   useEffect(() => {
     fetchPrompts();
@@ -77,6 +78,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${ADMIN_API_KEY}`
         },
         body: JSON.stringify({
           content: editedContent,
@@ -116,7 +118,10 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
     
     try {
       const response = await fetch(`${API_URL}/api/prompts/${selectedPrompt.step_name}/rollback/${version}`, {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${ADMIN_API_KEY}`
+        }
       });
       
       if (response.ok) {

@@ -42,7 +42,17 @@ The project is configured for the Replit environment:
 - **Architecture**: Two-server setup with Vite proxy routing `/api/*` requests from frontend to email server
 - **Fix Applied**: Switched from Autoscale to Reserved VM to support multiple processes and internal localhost connections
 
-## Recent Changes (September 14, 2025)
+## Recent Changes (October 3, 2025)
+- **Prompt Management System**: Implemented comprehensive admin interface for managing AI prompts with markdown editor, version history, and rollback functionality
+- **Database-Driven Prompts**: Migrated hardcoded prompts to PostgreSQL database with template variable support
+- **API Backend**: Created RESTful API routes for prompt CRUD operations with basic authentication
+- **Admin UI**: Built admin interface with markdown editor (@uiw/react-md-editor), step selector, and version history viewer
+- **Dynamic Prompt Loading**: Refactored Step components (StepThree, StepFour, StepFive) to fetch prompts from database instead of hardcoded strings
+
+### Security Note
+⚠️ **IMPORTANT**: The current authentication implementation uses a hardcoded API key that is exposed in the client bundle. This is **NOT production-ready** and should be replaced with a proper authentication system (login flow, JWT tokens, server-side session management) before deploying to production. The current implementation is suitable for development and testing purposes only.
+
+## Previous Changes (September 14, 2025)
 - **Enhanced Web Scraping Error Handling**: Completely overhauled URL extraction and web scraping with robust error handling, timeout protection (10s), smart retry logic with exponential backoff, concurrent processing (3 URLs), individual retry buttons, and detailed error classification (timeout, rate limited, blocked, unsupported content)
 - **Improved URL Processing**: Added URL normalization, validation, and sanitization utilities that handle dangerous schemes, trailing punctuation, www prefixes, and deduplication
 - **Better User Feedback**: Enhanced scraping progress UI with real-time status updates, specific error messages, content type detection, and per-URL retry functionality
@@ -67,24 +77,67 @@ The project is configured for the Replit environment:
 ```
 project/
 ├── src/
-│   ├── components/     # Step components (StepOne through StepSix)
-│   ├── App.tsx        # Main application with step management
-│   ├── main.tsx       # React app entry point
-│   └── index.css      # Global styles
-├── package.json       # Dependencies and scripts
-├── vite.config.ts     # Vite configuration
-├── tailwind.config.js # Tailwind CSS configuration
-└── tsconfig.json      # TypeScript configuration
+│   ├── components/
+│   │   ├── StepOne.tsx through StepSix.tsx  # Evaluation wizard steps
+│   │   └── PromptAdmin.tsx                   # Admin interface for prompt management
+│   ├── utils/
+│   │   └── promptApi.ts                      # API utilities for fetching prompts
+│   ├── App.tsx                               # Main application with step management
+│   ├── main.tsx                              # React app entry point
+│   └── index.css                             # Global styles
+├── emailServer.js                            # Express backend (email + prompt API)
+├── seed-prompts.js                           # Database seed script for initial prompts
+├── package.json                              # Dependencies and scripts
+├── vite.config.ts                            # Vite configuration
+├── tailwind.config.js                        # Tailwind CSS configuration
+└── tsconfig.json                             # TypeScript configuration
 ```
 
 ## Dependencies
-- **Supabase**: Database and authentication services
+- **PostgreSQL**: Database for storing prompts and version history
+- **Express.js**: Backend server for API and email functionality
+- **pg**: PostgreSQL client for Node.js
+- **@uiw/react-md-editor**: Markdown editor component for admin interface
 - **External APIs**: Uses CORS proxy for web scraping functionality
 - **Lucide React**: Icon library for UI elements
 
 ## User Preferences
 - None specified yet
 
+## Prompt Management System
+
+### Database Schema
+- **prompts table**: Stores active prompts with version tracking
+- **prompt_versions table**: Full version history with change notes
+
+### Admin Interface
+Access via "Admin" button in the top-right corner of the main application:
+- Markdown editor for editing prompts
+- Template variable support ({{programName}}, {{organizationName}}, etc.)
+- Version history viewer
+- Rollback to previous versions
+- Change notes for tracking modifications
+
+### API Endpoints
+- `GET /api/prompts` - List all prompts
+- `GET /api/prompts/:step` - Get specific prompt
+- `POST /api/prompts/:step` - Create new version (requires auth)
+- `GET /api/prompts/:step/versions` - Get version history
+- `POST /api/prompts/:step/rollback/:version` - Rollback (requires auth)
+
+### Template Variables
+Prompts support dynamic variable replacement:
+- `{{organizationName}}` - Organization name
+- `{{programName}}` - Program name
+- `{{aboutProgram}}` - Program description
+- `{{scrapedContent}}` - Web scraped content
+- `{{programAnalysis}}` - Step 3 analysis
+- `{{evaluationFramework}}` - Step 4 framework
+- `{{currentDate}}` - Current date
+- `{{programTypePlural}}` - Program type (plural)
+- `{{targetPopulation}}` - Target population
+
 ## Next Steps
+- **CRITICAL**: Implement proper authentication before production deployment
 - Optional: Update Browserslist database to silence development warnings
 - Optional: Configure HMR client port (443) if connection issues arise in proxy environment
