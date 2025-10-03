@@ -66,19 +66,23 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
   };
 
   const selectPrompt = async (prompt: Prompt) => {
-    setSelectedPrompt(prompt);
-    setEditedContent(prompt.content);
     setChangeNotes('');
     setSaveSuccess(false);
     setShowVersions(false);
     
-    // Fetch versions for this prompt
+    // Fetch full prompt details including content
     try {
-      const response = await fetch(`${API_URL}/prompts/${prompt.step_name}/versions`);
-      const data = await response.json();
-      setVersions(data);
+      const response = await fetch(`${API_URL}/prompts/${prompt.step_name}`);
+      const fullPromptData = await response.json();
+      setSelectedPrompt(fullPromptData);
+      setEditedContent(fullPromptData.content);
+      
+      // Fetch versions for this prompt
+      const versionsResponse = await fetch(`${API_URL}/prompts/${prompt.step_name}/versions`);
+      const versionsData = await versionsResponse.json();
+      setVersions(versionsData);
     } catch (error) {
-      console.error('Error fetching versions:', error);
+      console.error('Error fetching prompt details:', error);
     }
   };
 
