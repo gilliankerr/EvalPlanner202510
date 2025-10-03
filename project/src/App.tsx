@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Globe, Brain, Clipboard, FileOutput, Download, Loader2, ChevronRight, Check } from 'lucide-react';
+import { FileText, Globe, Brain, Clipboard, FileOutput, Download, Loader2, ChevronRight, Check, Settings } from 'lucide-react';
 import logoIcon from './assets/logo.jpg';
 import StepOne from './components/StepOne';
 import StepTwo from './components/StepTwo';
@@ -7,6 +7,7 @@ import StepThree from './components/StepThree';
 import StepFour from './components/StepFour';
 import StepFive from './components/StepFive';
 import StepSix from './components/StepSix';
+import PromptAdmin from './components/PromptAdmin';
 
 export interface ProgramData {
   organizationName: string;
@@ -33,6 +34,7 @@ const steps = [
 ];
 
 function App() {
+  const [showAdmin, setShowAdmin] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -143,6 +145,10 @@ function App() {
     }
   };
 
+  if (showAdmin) {
+    return <PromptAdmin onBack={() => setShowAdmin(false)} />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
@@ -158,12 +164,21 @@ function App() {
                 <p className="text-sm" style={{color: '#666'}}>Based on LogicalOutcomes Evaluation Planning Handbook</p>
               </div>
             </div>
-            {isProcessing && (
-              <div className="flex items-center space-x-2" style={{color: '#0085ca'}}>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span className="text-sm font-medium">Processing...</span>
-              </div>
-            )}
+            <div className="flex items-center space-x-4">
+              {isProcessing && (
+                <div className="flex items-center space-x-2" style={{color: '#0085ca'}}>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-sm font-medium">Processing...</span>
+                </div>
+              )}
+              <button
+                onClick={() => setShowAdmin(true)}
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+              >
+                <Settings className="h-4 w-4" />
+                <span className="text-sm font-medium">Admin</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>

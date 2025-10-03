@@ -3,10 +3,15 @@
 
 const express = require('express');
 const cors = require('cors');
-// Node.js v20 has built-in fetch
+const { Pool } = require('pg');
 
 const app = express();
 const PORT = 3001;
+
+// Database setup
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
 // Middleware
 app.use(cors());
@@ -87,6 +92,169 @@ app.post('/send-email', async (req, res) => {
       success: false, 
       error: error.message 
     });
+  }
+});
+
+// Prompt Management API Routes
+
+// GET /api/prompts - List all prompts
+app.get('/api/prompts', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, step_name, display_name, current_version, is_active, updated_at FROM prompts ORDER BY step_name'
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching prompts:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/prompts/:step - Get active prompt for a specific step
+app.get('/api/prompts/:step', async (req, res) => {
+  try {
+    const { step } = req.params;
+    const result = await pool.query(
+      'SELECT * FROM prompts WHERE step_name = $1 AND is_active = true',
+      [step]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Prompt not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching prompt:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/prompts/:step - Create new version of a prompt
+app.post('/api/prompts/:step', async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const { step } = req.params;
+    const { content, change_notes } = req.body;
+    
+    await client.query('BEGIN');
+    
+    // Get current prompt
+    const promptResult = await client.query(
+      'SELECT id, current_version FROM prompts WHERE step_name = $1',
+      [step]
+    );
+    
+    if (promptResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Prompt not found' });
+    }
+    
+    const prompt = promptResult.rows[0];
+    const newVersion = prompt.current_version + 1;
+    
+    // Update prompt content and version
+    await client.query(
+      'UPDATE prompts SET content = $1, current_version = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+      [content, newVersion, prompt.id]
+    );
+    
+    // Insert version history
+    await client.query(
+      'INSERT INTO prompt_versions (prompt_id, version_number, content, change_notes) VALUES ($1, $2, $3, $4)',
+      [prompt.id, newVersion, content, change_notes || 'Updated via admin interface']
+    );
+    
+    await client.query('COMMIT');
+    
+    res.json({ 
+      success: true, 
+      version: newVersion,
+      message: 'Prompt updated successfully'
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error updating prompt:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    client.release();
+  }
+});
+
+// GET /api/prompts/:step/versions - Get version history
+app.get('/api/prompts/:step/versions', async (req, res) => {
+  try {
+    const { step } = req.params;
+    
+    const result = await pool.query(`
+      SELECT pv.*, p.step_name, p.display_name
+      FROM prompt_versions pv
+      JOIN prompts p ON pv.prompt_id = p.id
+      WHERE p.step_name = $1
+      ORDER BY pv.version_number DESC
+    `, [step]);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching version history:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/prompts/:step/rollback/:version - Rollback to a specific version
+app.post('/api/prompts/:step/rollback/:version', async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const { step, version } = req.params;
+    
+    await client.query('BEGIN');
+    
+    // Get the prompt
+    const promptResult = await client.query(
+      'SELECT id FROM prompts WHERE step_name = $1',
+      [step]
+    );
+    
+    if (promptResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Prompt not found' });
+    }
+    
+    const promptId = promptResult.rows[0].id;
+    
+    // Get the version content
+    const versionResult = await client.query(
+      'SELECT content FROM prompt_versions WHERE prompt_id = $1 AND version_number = $2',
+      [promptId, version]
+    );
+    
+    if (versionResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Version not found' });
+    }
+    
+    const versionContent = versionResult.rows[0].content;
+    
+    // Update current prompt
+    await client.query(
+      'UPDATE prompts SET content = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [versionContent, promptId]
+    );
+    
+    await client.query('COMMIT');
+    
+    res.json({ 
+      success: true, 
+      message: `Rolled back to version ${version}`
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error rolling back prompt:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    client.release();
   }
 });
 
