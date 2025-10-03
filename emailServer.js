@@ -95,6 +95,37 @@ app.post('/send-email', async (req, res) => {
   }
 });
 
+// Password verification endpoint
+app.post('/verify-admin-password', (req, res) => {
+  try {
+    const { password } = req.body;
+    
+    if (!password) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Password is required' 
+      });
+    }
+    
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    
+    if (password === adminPassword) {
+      res.json({ success: true });
+    } else {
+      res.status(401).json({ 
+        success: false, 
+        error: 'Invalid password' 
+      });
+    }
+  } catch (error) {
+    console.error('Error verifying password:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Internal server error' 
+    });
+  }
+});
+
 // Simple authentication middleware for admin routes
 const authenticateAdmin = (req, res, next) => {
   const authHeader = req.headers.authorization;
