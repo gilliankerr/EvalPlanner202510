@@ -35,7 +35,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
   const [showVersions, setShowVersions] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const API_URL = 'http://localhost:3001';
+  const API_URL = '/api';
   const ADMIN_API_KEY = 'dev-admin-key-change-in-production';
 
   useEffect(() => {

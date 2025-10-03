@@ -109,8 +109,8 @@ const authenticateAdmin = (req, res, next) => {
 
 // Prompt Management API Routes
 
-// GET /api/prompts - List all prompts (read-only, no auth required)
-app.get('/api/prompts', async (req, res) => {
+// GET /prompts - List all prompts (read-only, no auth required)
+app.get('/prompts', async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, step_name, display_name, current_version, is_active, updated_at FROM prompts ORDER BY step_name'
@@ -122,8 +122,8 @@ app.get('/api/prompts', async (req, res) => {
   }
 });
 
-// GET /api/prompts/:step - Get active prompt for a specific step (read-only, no auth required)
-app.get('/api/prompts/:step', async (req, res) => {
+// GET /prompts/:step - Get active prompt for a specific step (read-only, no auth required)
+app.get('/prompts/:step', async (req, res) => {
   try {
     const { step } = req.params;
     const result = await pool.query(
@@ -142,8 +142,8 @@ app.get('/api/prompts/:step', async (req, res) => {
   }
 });
 
-// POST /api/prompts/:step - Create new version of a prompt (ADMIN ONLY)
-app.post('/api/prompts/:step', authenticateAdmin, async (req, res) => {
+// POST /prompts/:step - Create new version of a prompt (ADMIN ONLY)
+app.post('/prompts/:step', authenticateAdmin, async (req, res) => {
   const client = await pool.connect();
   
   try {
@@ -194,8 +194,8 @@ app.post('/api/prompts/:step', authenticateAdmin, async (req, res) => {
   }
 });
 
-// GET /api/prompts/:step/versions - Get version history
-app.get('/api/prompts/:step/versions', async (req, res) => {
+// GET /prompts/:step/versions - Get version history
+app.get('/prompts/:step/versions', async (req, res) => {
   try {
     const { step } = req.params;
     
@@ -214,8 +214,8 @@ app.get('/api/prompts/:step/versions', async (req, res) => {
   }
 });
 
-// POST /api/prompts/:step/rollback/:version - Rollback to a specific version (ADMIN ONLY)
-app.post('/api/prompts/:step/rollback/:version', authenticateAdmin, async (req, res) => {
+// POST /prompts/:step/rollback/:version - Rollback to a specific version (ADMIN ONLY)
+app.post('/prompts/:step/rollback/:version', authenticateAdmin, async (req, res) => {
   const client = await pool.connect();
   
   try {
