@@ -152,7 +152,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ programData, updateProgramData, onCom
       case 'not_found':
         return 'Page not found (404 error)';
       case 'unsupported_content':
-        return `Unsupported content type: ${result.contentType || 'unknown'}`;
+        return 'Skipped (not a webpage)';
       case 'network_error':
       default:
         return result.error || 'Processing...';
@@ -232,7 +232,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ programData, updateProgramData, onCom
                       <span className="ml-2 text-xs text-blue-600">(from description)</span>
                     )}
                   </p>
-                  {result.error && result.status !== 'network_error' && (
+                  {result.error && result.status !== 'network_error' && result.status !== 'unsupported_content' && (
                     <p className="text-xs text-red-600 mt-1">
                       {result.error}
                     </p>
