@@ -3,7 +3,7 @@ import { Download, Loader2, CheckCircle, Mail } from 'lucide-react';
 import { marked, Tokens } from 'marked';
 import hljs from 'highlight.js';
 import DOMPurify from 'dompurify';
-import { sendEmail } from '../utils/replitmail';
+import { sendEmail } from '../utils/email';
 import type { ProgramData } from '../App';
 
 interface StepSixProps {

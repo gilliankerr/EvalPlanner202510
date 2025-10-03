@@ -43,6 +43,11 @@ The project is configured for the Replit environment:
 - **Fix Applied**: Switched from Autoscale to Reserved VM to support multiple processes and internal localhost connections
 
 ## Recent Changes (October 3, 2025)
+- **Email Service Migration**: Migrated from Replit Mail to Resend for transactional email delivery
+  - Integrated Resend connector for API key management and rotation
+  - Updated emailServer.js to use Resend SDK with proper authentication
+  - Renamed replitmail.ts to email.ts to reflect service-agnostic design
+  - Compatible with autoscale deployments (email triggered by user actions only)
 - **Prompt Management System**: Implemented comprehensive admin interface for managing AI prompts with markdown editor, version history, and rollback functionality
 - **Database-Driven Prompts**: Migrated hardcoded prompts to PostgreSQL database with template variable support
 - **API Backend**: Created RESTful API routes for prompt CRUD operations with basic authentication
@@ -86,11 +91,12 @@ project/
 │   │   ├── StepOne.tsx through StepSix.tsx  # Evaluation wizard steps
 │   │   └── PromptAdmin.tsx                   # Admin interface for prompt management
 │   ├── utils/
-│   │   └── promptApi.ts                      # API utilities for fetching prompts
+│   │   ├── promptApi.ts                      # API utilities for fetching prompts
+│   │   └── email.ts                          # Email sending utilities (Resend integration)
 │   ├── App.tsx                               # Main application with step management
 │   ├── main.tsx                              # React app entry point
 │   └── index.css                             # Global styles
-├── emailServer.js                            # Express backend (email + prompt API)
+├── emailServer.js                            # Express backend (Resend email + prompt API)
 ├── seed-prompts.js                           # Database seed script for initial prompts
 ├── package.json                              # Dependencies and scripts
 ├── vite.config.ts                            # Vite configuration
@@ -102,6 +108,7 @@ project/
 - **PostgreSQL**: Database for storing prompts and version history
 - **Express.js**: Backend server for API and email functionality
 - **pg**: PostgreSQL client for Node.js
+- **Resend**: Transactional email service for sending evaluation reports
 - **@uiw/react-md-editor**: Markdown editor component for admin interface
 - **External APIs**: Uses CORS proxy for web scraping functionality
 - **Lucide React**: Icon library for UI elements
