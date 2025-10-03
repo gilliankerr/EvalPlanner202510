@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3001';
+const API_URL = '/api';
 
 interface PromptData {
   [key: string]: string;
@@ -6,7 +6,7 @@ interface PromptData {
 
 export async function fetchPrompt(stepName: string): Promise<string> {
   try {
-    const response = await fetch(`${API_URL}/api/prompts/${stepName}`);
+    const response = await fetch(`${API_URL}/prompts/${stepName}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch prompt: ${response.status}`);
     }
