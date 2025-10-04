@@ -55,7 +55,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [config, setConfig] = useState<Config | null>(null);
-  const [adminApiKey, setAdminApiKey] = useState<string>('');
+  const [sessionToken, setSessionToken] = useState<string>('');
   const API_URL = '/api';
 
   useEffect(() => {
@@ -119,7 +119,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminApiKey}`
+          'Authorization': `Bearer ${sessionToken}`
         },
         body: JSON.stringify({
           content: editedContent,
@@ -161,7 +161,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
       const response = await fetch(`${API_URL}/prompts/${selectedPrompt.step_name}/rollback/${version}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${adminApiKey}`
+          'Authorization': `Bearer ${sessionToken}`
         }
       });
       
@@ -199,7 +199,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
       
       if (response.ok) {
         const data = await response.json();
-        setAdminApiKey(data.apiKey);
+        setSessionToken(data.sessionToken);
         setIsAuthenticated(true);
         setPassword('');
       } else {
@@ -211,11 +211,24 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
     }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setAdminApiKey('');
-    setPassword('');
-    setPasswordError('');
+  const handleLogout = async () => {
+    try {
+      if (sessionToken) {
+        await fetch(`${API_URL}/admin-logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${sessionToken}`
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      setIsAuthenticated(false);
+      setSessionToken('');
+      setPassword('');
+      setPasswordError('');
+    }
   };
 
   if (!isAuthenticated) {

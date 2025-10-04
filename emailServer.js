@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const { Resend } = require('resend');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = 3001;
@@ -29,6 +30,69 @@ const PORT = 3001;
 // ============================================================================
 
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'ai@gkerr.com';
+
+// ============================================================================
+// SESSION MANAGEMENT
+// ============================================================================
+// In-memory session store for admin authentication
+// Sessions expire after 24 hours and are automatically cleaned up
+// ============================================================================
+
+const sessions = new Map();
+const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+// Generate a cryptographically secure random token
+function generateSessionToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+// Create a new session
+function createSession() {
+  const token = generateSessionToken();
+  const expiresAt = Date.now() + SESSION_DURATION;
+  
+  sessions.set(token, {
+    createdAt: Date.now(),
+    expiresAt: expiresAt
+  });
+  
+  return { token, expiresAt };
+}
+
+// Validate a session token
+function validateSession(token) {
+  const session = sessions.get(token);
+  
+  if (!session) {
+    return false;
+  }
+  
+  // Check if session has expired
+  if (Date.now() > session.expiresAt) {
+    sessions.delete(token);
+    return false;
+  }
+  
+  return true;
+}
+
+// Invalidate a session (for logout)
+function invalidateSession(token) {
+  return sessions.delete(token);
+}
+
+// Clean up expired sessions (runs periodically)
+function cleanupExpiredSessions() {
+  const now = Date.now();
+  for (const [token, session] of sessions.entries()) {
+    if (now > session.expiresAt) {
+      sessions.delete(token);
+    }
+  }
+}
+
+// Run cleanup every hour
+setInterval(cleanupExpiredSessions, 60 * 60 * 1000);
 
 // Database setup
 const pool = new Pool({
@@ -156,10 +220,13 @@ app.post('/verify-admin-password', (req, res) => {
     const adminPassword = process.env.ADMIN_PASSWORD;
     
     if (password === adminPassword) {
-      const adminApiKey = process.env.ADMIN_API_KEY || 'dev-admin-key-change-in-production';
+      // Create a new session
+      const { token, expiresAt } = createSession();
+      
       res.json({ 
         success: true,
-        apiKey: adminApiKey
+        sessionToken: token,
+        expiresAt: expiresAt
       });
     } else {
       res.status(401).json({ 
@@ -176,13 +243,46 @@ app.post('/verify-admin-password', (req, res) => {
   }
 });
 
-// Simple authentication middleware for admin routes
+// Admin logout endpoint
+app.post('/admin-logout', (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'No session token provided' 
+      });
+    }
+    
+    const token = authHeader.substring(7);
+    const invalidated = invalidateSession(token);
+    
+    res.json({ 
+      success: true,
+      message: invalidated ? 'Session invalidated successfully' : 'Session already expired or invalid'
+    });
+  } catch (error) {
+    console.error('Error during logout:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Internal server error' 
+    });
+  }
+});
+
+// Session-based authentication middleware for admin routes
 const authenticateAdmin = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  const adminKey = process.env.ADMIN_API_KEY || 'dev-admin-key-change-in-production';
   
-  if (!authHeader || authHeader !== `Bearer ${adminKey}`) {
-    return res.status(401).json({ error: 'Unauthorized - Admin access required' });
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized - Admin session required' });
+  }
+  
+  const token = authHeader.substring(7);
+  
+  if (!validateSession(token)) {
+    return res.status(401).json({ error: 'Unauthorized - Session expired or invalid' });
   }
   
   next();
