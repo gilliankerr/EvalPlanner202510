@@ -485,7 +485,9 @@ async function seedPrompts() {
       const insertPromptResult = await client.query(
         `INSERT INTO prompts (step_name, display_name, content, is_active, current_version)
          VALUES ($1, $2, $3, true, 1)
-         ON CONFLICT (step_name) DO NOTHING
+         ON CONFLICT (step_name) DO UPDATE SET 
+           display_name = EXCLUDED.display_name,
+           content = EXCLUDED.content
          RETURNING id`,
         [prompt.step_name, prompt.display_name, prompt.content]
       );
