@@ -423,8 +423,95 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-lg border p-12 text-center">
-                <p className="text-gray-500">Select a prompt to edit</p>
+              <div className="bg-white rounded-lg border p-6">
+                <h2 className="text-xl font-semibold mb-4" style={{ color: '#30302f' }}>
+                  How to change configuration
+                </h2>
+                <div className="space-y-6 text-sm text-gray-700">
+                  <div>
+                    <h3 className="font-semibold text-base mb-2" style={{ color: '#30302f' }}>
+                      Changing the sent-from email address
+                    </h3>
+                    <p className="mb-2">
+                      To change the email address used for sending evaluation reports:
+                    </p>
+                    <ol className="list-decimal ml-5 space-y-2">
+                      <li>
+                        <strong>Using the default domain (gkerr.com):</strong> Set the <code className="bg-gray-100 px-1 rounded">RESEND_FROM_EMAIL</code> environment variable to your desired address (e.g., <code className="bg-gray-100 px-1 rounded">reports@gkerr.com</code>).
+                      </li>
+                      <li>
+                        <strong>Using a custom domain:</strong>
+                        <ul className="list-disc ml-5 mt-2 space-y-1">
+                          <li>Add and verify your domain in your <a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Resend dashboard</a></li>
+                          <li>Add the required DNS records (MX, TXT, CNAME) to your domain's DNS settings</li>
+                          <li>Wait for DNS propagation (typically 15-60 minutes)</li>
+                          <li>Set <code className="bg-gray-100 px-1 rounded">RESEND_FROM_EMAIL</code> to your verified domain address</li>
+                        </ul>
+                      </li>
+                    </ol>
+                    <p className="mt-2 text-gray-600 italic">
+                      Note: The Resend connector in this project automatically manages API keys and handles rotation.
+                    </p>
+                  </div>
+
+                  <div className="border-t pt-6">
+                    <h3 className="font-semibold text-base mb-2" style={{ color: '#30302f' }}>
+                      Changing LLM models and settings
+                    </h3>
+                    <p className="mb-3">
+                      Configure AI models for each processing step using environment variables. All models use OpenRouter for routing to different providers.
+                    </p>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-medium mb-1">Prompt 1 (Program Model Analysis)</h4>
+                        <ul className="list-disc ml-5 space-y-1">
+                          <li><code className="bg-gray-100 px-1 rounded">VITE_STEP3_MODEL</code> - Model identifier (e.g., <code className="bg-gray-100 px-1 rounded">openai/gpt-5</code>, <code className="bg-gray-100 px-1 rounded">anthropic/claude-3.5-sonnet</code>)</li>
+                          <li><code className="bg-gray-100 px-1 rounded">VITE_STEP3_TEMPERATURE</code> - Temperature value (0.0 to 2.0, optional)</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h4 className="font-medium mb-1">Prompt 2 (Evaluation Framework)</h4>
+                        <ul className="list-disc ml-5 space-y-1">
+                          <li><code className="bg-gray-100 px-1 rounded">VITE_STEP4_MODEL</code> - Model identifier</li>
+                          <li><code className="bg-gray-100 px-1 rounded">VITE_STEP4_TEMPERATURE</code> - Temperature value (optional)</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h4 className="font-medium mb-1">Report Template (Evaluation Plan)</h4>
+                        <ul className="list-disc ml-5 space-y-1">
+                          <li><code className="bg-gray-100 px-1 rounded">VITE_STEP5_MODEL</code> - Model identifier</li>
+                          <li><code className="bg-gray-100 px-1 rounded">VITE_STEP5_TEMPERATURE</code> - Temperature value (optional)</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h4 className="font-medium mb-2 text-blue-900">Available providers via OpenRouter:</h4>
+                      <ul className="list-disc ml-5 text-blue-800 text-xs space-y-1">
+                        <li><strong>OpenAI:</strong> openai/gpt-4, openai/gpt-5, openai/gpt-4-turbo</li>
+                        <li><strong>Anthropic:</strong> anthropic/claude-3.5-sonnet, anthropic/claude-3-opus</li>
+                        <li><strong>Google:</strong> google/gemini-pro, google/gemini-1.5-pro</li>
+                        <li><strong>Meta:</strong> meta-llama/llama-3.1-405b-instruct</li>
+                        <li>See <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">openrouter.ai/models</a> for complete list</li>
+                      </ul>
+                    </div>
+
+                    <p className="mt-4 text-gray-600 italic">
+                      <strong>API Key:</strong> The OpenRouter API key is managed via <code className="bg-gray-100 px-1 rounded">VITE_OPENROUTER_API_KEY</code> environment variable. All models route through OpenRouter, so only this single API key is needed.
+                    </p>
+
+                    <p className="mt-2 text-gray-600 italic">
+                      <strong>Temperature:</strong> Controls randomness (0.0 = deterministic, 1.0 = balanced, 2.0 = very creative). If not specified, the model uses its default temperature.
+                    </p>
+                  </div>
+
+                  <div className="border-t pt-4 text-xs text-gray-500">
+                    <p>💡 <strong>Tip:</strong> After changing environment variables, restart the application for changes to take effect. The current configuration values are displayed in the Configuration box on the left.</p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
