@@ -391,7 +391,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                     <div className="text-gray-600 mt-1">{config.emailFromAddress}</div>
                   </div>
                   <div className="border-t pt-3">
-                    <div className="font-medium text-gray-700">Prompt 1 LLM:</div>
+                    <div className="font-medium text-gray-700">{prompts.find(p => p.step_name === 'step3_analysis')?.display_name} LLM:</div>
                     <div className="text-gray-600 mt-1">
                       {config.prompt1.model}
                       {config.prompt1.temperature !== null && ` (temp: ${config.prompt1.temperature})`}
@@ -401,7 +401,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                     </div>
                   </div>
                   <div className="border-t pt-3">
-                    <div className="font-medium text-gray-700">Prompt 2 LLM:</div>
+                    <div className="font-medium text-gray-700">{prompts.find(p => p.step_name === 'step4_framework')?.display_name} LLM:</div>
                     <div className="text-gray-600 mt-1">
                       {config.prompt2.model}
                       {config.prompt2.temperature !== null && ` (temp: ${config.prompt2.temperature})`}
@@ -411,7 +411,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                     </div>
                   </div>
                   <div className="border-t pt-3">
-                    <div className="font-medium text-gray-700">Report Template LLM:</div>
+                    <div className="font-medium text-gray-700">{prompts.find(p => p.step_name === 'step5_plan')?.display_name} LLM:</div>
                     <div className="text-gray-600 mt-1">
                       {config.reportTemplate.model}
                       {config.reportTemplate.temperature !== null && ` (temp: ${config.reportTemplate.temperature})`}
@@ -489,7 +489,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                     </p>
                     <ol className="list-decimal ml-5 space-y-2">
                       <li>
-                        <strong>Select a prompt:</strong> Click on any prompt from the list on the left sidebar (Prompt 1, Prompt 2, Report Template, or Email Delivery Template).
+                        <strong>Select a prompt:</strong> Click on any prompt from the list on the left sidebar.
                       </li>
                       <li>
                         <strong>Edit the content:</strong> Use the markdown editor to modify the prompt text. You can use template variables like <code className="bg-gray-100 px-1 rounded">{'{{programName}}'}</code>, <code className="bg-gray-100 px-1 rounded">{'{{organizationName}}'}</code>, etc.
@@ -552,7 +552,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                         
                         <div className="space-y-4">
                           <div>
-                            <h4 className="font-medium mb-1">{prompts.find(p => p.step_name === 'step3_analysis')?.display_name || 'Prompt 1'}</h4>
+                            <h4 className="font-medium mb-1">{prompts.find(p => p.step_name === 'step3_analysis')?.display_name}</h4>
                             <p className="text-sm text-gray-600 mb-2">Controls the LLM used for this prompt.</p>
                             <ul className="list-disc ml-5 space-y-1 text-sm">
                               <li><code className="bg-gray-100 px-1 rounded">VITE_STEP3_MODEL</code> - Model identifier (e.g., <code className="bg-gray-100 px-1 rounded">openai/gpt-5</code>, <code className="bg-gray-100 px-1 rounded">anthropic/claude-3.5-sonnet</code>)</li>
@@ -561,7 +561,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                           </div>
 
                           <div>
-                            <h4 className="font-medium mb-1">{prompts.find(p => p.step_name === 'step4_framework')?.display_name || 'Prompt 2'}</h4>
+                            <h4 className="font-medium mb-1">{prompts.find(p => p.step_name === 'step4_framework')?.display_name}</h4>
                             <p className="text-sm text-gray-600 mb-2">Controls the LLM used for this prompt.</p>
                             <ul className="list-disc ml-5 space-y-1 text-sm">
                               <li><code className="bg-gray-100 px-1 rounded">VITE_STEP4_MODEL</code> - Model identifier</li>
@@ -570,7 +570,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                           </div>
 
                           <div>
-                            <h4 className="font-medium mb-1">{prompts.find(p => p.step_name === 'step5_plan')?.display_name || 'Report Template'}</h4>
+                            <h4 className="font-medium mb-1">{prompts.find(p => p.step_name === 'step5_plan')?.display_name}</h4>
                             <p className="text-sm text-gray-600 mb-2">Controls the LLM used for this prompt.</p>
                             <ul className="list-disc ml-5 space-y-1 text-sm">
                               <li><code className="bg-gray-100 px-1 rounded">VITE_STEP5_MODEL</code> - Model identifier</li>
@@ -581,7 +581,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
 
                         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
                           <p className="text-blue-900">
-                            <strong>Note:</strong> Environment variable names use legacy "STEP3/4/5" identifiers for backward compatibility. They correspond to "{prompts.find(p => p.step_name === 'step3_analysis')?.display_name || 'Prompt 1'}", "{prompts.find(p => p.step_name === 'step4_framework')?.display_name || 'Prompt 2'}", and "{prompts.find(p => p.step_name === 'step5_plan')?.display_name || 'Report Template'}" respectively.
+                            <strong>Note:</strong> Environment variable names use legacy "STEP3/4/5" identifiers for backward compatibility. They correspond to "{prompts.find(p => p.step_name === 'step3_analysis')?.display_name}", "{prompts.find(p => p.step_name === 'step4_framework')?.display_name}", and "{prompts.find(p => p.step_name === 'step5_plan')?.display_name}" respectively.
                           </p>
                         </div>
 
@@ -601,9 +601,9 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                         <div className="p-3 bg-gray-50 border border-gray-300 rounded-lg mb-3">
                           <h4 className="font-medium text-sm mb-2">Current settings:</h4>
                           <ul className="space-y-1 text-sm">
-                            <li>• <strong>{prompts.find(p => p.step_name === 'step3_analysis')?.display_name || 'Prompt 1'}</strong> - Web search <strong>{config?.prompt1.webSearch ? 'enabled' : 'disabled'}</strong></li>
-                            <li>• <strong>{prompts.find(p => p.step_name === 'step4_framework')?.display_name || 'Prompt 2'}</strong> - Web search <strong>{config?.prompt2.webSearch ? 'enabled' : 'disabled'}</strong></li>
-                            <li>• <strong>{prompts.find(p => p.step_name === 'step5_plan')?.display_name || 'Report Template'}</strong> - Web search <strong>{config?.reportTemplate.webSearch ? 'enabled' : 'disabled'}</strong></li>
+                            <li>• <strong>{prompts.find(p => p.step_name === 'step3_analysis')?.display_name}</strong> - Web search <strong>{config?.prompt1.webSearch ? 'enabled' : 'disabled'}</strong></li>
+                            <li>• <strong>{prompts.find(p => p.step_name === 'step4_framework')?.display_name}</strong> - Web search <strong>{config?.prompt2.webSearch ? 'enabled' : 'disabled'}</strong></li>
+                            <li>• <strong>{prompts.find(p => p.step_name === 'step5_plan')?.display_name}</strong> - Web search <strong>{config?.reportTemplate.webSearch ? 'enabled' : 'disabled'}</strong></li>
                           </ul>
                         </div>
 
@@ -613,23 +613,23 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                             <strong>Option 1: Ask Replit Agent in plain language</strong>
                           </p>
                           <div className="p-3 bg-gray-50 border border-gray-300 rounded-lg mb-3 font-mono text-sm space-y-1">
-                            <div>"Turn off web search for Prompt 1"</div>
-                            <div>"Enable web search for Prompt 2"</div>
-                            <div>"Disable web search for Report Template"</div>
+                            <div>"Turn off web search for {prompts.find(p => p.step_name === 'step3_analysis')?.display_name}"</div>
+                            <div>"Enable web search for {prompts.find(p => p.step_name === 'step4_framework')?.display_name}"</div>
+                            <div>"Disable web search for {prompts.find(p => p.step_name === 'step5_plan')?.display_name}"</div>
                           </div>
 
                           <p className="text-sm mb-2">
                             <strong>Option 2: Set environment variables directly</strong>
                           </p>
                           <ul className="list-disc ml-5 space-y-1 text-sm">
-                            <li><code className="bg-gray-100 px-1 rounded">VITE_STEP3_WEB_SEARCH</code> - Set to <code className="bg-gray-100 px-1 rounded">true</code> or <code className="bg-gray-100 px-1 rounded">false</code> for Prompt 1</li>
-                            <li><code className="bg-gray-100 px-1 rounded">VITE_STEP4_WEB_SEARCH</code> - Set to <code className="bg-gray-100 px-1 rounded">true</code> or <code className="bg-gray-100 px-1 rounded">false</code> for Prompt 2</li>
-                            <li><code className="bg-gray-100 px-1 rounded">VITE_STEP5_WEB_SEARCH</code> - Set to <code className="bg-gray-100 px-1 rounded">true</code> or <code className="bg-gray-100 px-1 rounded">false</code> for Report Template</li>
+                            <li><code className="bg-gray-100 px-1 rounded">VITE_STEP3_WEB_SEARCH</code> - Set to <code className="bg-gray-100 px-1 rounded">true</code> or <code className="bg-gray-100 px-1 rounded">false</code> for {prompts.find(p => p.step_name === 'step3_analysis')?.display_name}</li>
+                            <li><code className="bg-gray-100 px-1 rounded">VITE_STEP4_WEB_SEARCH</code> - Set to <code className="bg-gray-100 px-1 rounded">true</code> or <code className="bg-gray-100 px-1 rounded">false</code> for {prompts.find(p => p.step_name === 'step4_framework')?.display_name}</li>
+                            <li><code className="bg-gray-100 px-1 rounded">VITE_STEP5_WEB_SEARCH</code> - Set to <code className="bg-gray-100 px-1 rounded">true</code> or <code className="bg-gray-100 px-1 rounded">false</code> for {prompts.find(p => p.step_name === 'step5_plan')?.display_name}</li>
                           </ul>
                         </div>
 
                         <p className="mt-2 text-gray-600 italic text-sm">
-                          Note: Web search is enabled by default for Prompts 1 and 2, and disabled by default for Report Template.
+                          Note: Web search is enabled by default for the first two prompts, and disabled by default for the report template.
                         </p>
                       </div>
                     </div>
