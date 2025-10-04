@@ -543,7 +543,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                             <p className="text-sm text-gray-600 mb-2">Controls the LLM used for analyzing program models and identifying key terms, goals, and target populations.</p>
                             <ul className="list-disc ml-5 space-y-1 text-sm">
                               <li><code className="bg-gray-100 px-1 rounded">VITE_STEP3_MODEL</code> - Model identifier (e.g., <code className="bg-gray-100 px-1 rounded">openai/gpt-5</code>, <code className="bg-gray-100 px-1 rounded">anthropic/claude-3.5-sonnet</code>)</li>
-                              <li><code className="bg-gray-100 px-1 rounded">VITE_STEP3_TEMPERATURE</code> - Temperature value (0.0 to 2.0, optional)</li>
+                              <li><code className="bg-gray-100 px-1 rounded">VITE_STEP3_TEMPERATURE</code> - Temperature value (optional)</li>
                             </ul>
                           </div>
 
