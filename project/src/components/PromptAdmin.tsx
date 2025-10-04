@@ -579,22 +579,14 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                       How to change your admin password
                     </h2>
                     <p className="mb-3">
-                      To change the password for accessing this admin interface:
+                      To change the password for accessing this admin interface, give Replit Agent the following instructions:
                     </p>
-                    <ol className="list-decimal ml-5 space-y-2">
-                      <li>
-                        <strong>Open Replit Secrets:</strong> In the Replit sidebar, click on the lock icon (🔒) labeled "Secrets" or go to the Tools section.
-                      </li>
-                      <li>
-                        <strong>Update the password:</strong> Find the <code className="bg-gray-100 px-1 rounded">ADMIN_PASSWORD</code> secret and update it to your new password.
-                      </li>
-                      <li>
-                        <strong>Restart the server:</strong> Restart the "Email Server" workflow for the change to take effect.
-                      </li>
-                      <li>
-                        <strong>Re-login:</strong> You will need to log in again with your new password.
-                      </li>
-                    </ol>
+                    <div className="p-4 bg-gray-50 border border-gray-300 rounded-lg mb-3 font-mono text-sm">
+                      "Change the ADMIN_PASSWORD secret to [your new password] and restart the Email Server workflow"
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Replace <code className="bg-gray-100 px-1 rounded">[your new password]</code> with your desired password. Replit Agent will update the secret and restart the server for you.
+                    </p>
                     <p className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg text-green-900">
                       <strong>Security Note:</strong> Your admin session uses secure, time-limited tokens that expire after 24 hours. Each login generates a unique session token, and logging out immediately invalidates your session.
                     </p>
