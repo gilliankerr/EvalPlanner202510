@@ -458,15 +458,18 @@ app.get('/config', (req, res) => {
       emailFromAddress: FROM_EMAIL,
       prompt1: {
         model: process.env.VITE_STEP3_MODEL || 'openai/gpt-5',
-        temperature: process.env.VITE_STEP3_TEMPERATURE ? parseFloat(process.env.VITE_STEP3_TEMPERATURE) : null
+        temperature: process.env.VITE_STEP3_TEMPERATURE ? parseFloat(process.env.VITE_STEP3_TEMPERATURE) : null,
+        webSearch: process.env.VITE_STEP3_WEB_SEARCH === 'false' ? false : true
       },
       prompt2: {
         model: process.env.VITE_STEP4_MODEL || 'openai/gpt-5',
-        temperature: process.env.VITE_STEP4_TEMPERATURE ? parseFloat(process.env.VITE_STEP4_TEMPERATURE) : null
+        temperature: process.env.VITE_STEP4_TEMPERATURE ? parseFloat(process.env.VITE_STEP4_TEMPERATURE) : null,
+        webSearch: process.env.VITE_STEP4_WEB_SEARCH === 'false' ? false : true
       },
       reportTemplate: {
         model: process.env.VITE_STEP5_MODEL || 'openai/gpt-5',
-        temperature: process.env.VITE_STEP5_TEMPERATURE ? parseFloat(process.env.VITE_STEP5_TEMPERATURE) : null
+        temperature: process.env.VITE_STEP5_TEMPERATURE ? parseFloat(process.env.VITE_STEP5_TEMPERATURE) : null,
+        webSearch: process.env.VITE_STEP5_WEB_SEARCH === 'true' ? true : false
       }
     };
     
