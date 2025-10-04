@@ -576,6 +576,49 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                           <strong>API Key:</strong> The OpenRouter API key is managed via <code className="bg-gray-100 px-1 rounded">VITE_OPENROUTER_API_KEY</code> environment variable. All models route through OpenRouter, so only this single API key is needed. See <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">openrouter.ai/models</a> for complete list of available LLMs.
                         </p>
                       </div>
+
+                      <div className="border-t pt-6">
+                        <h3 className="font-semibold text-base mb-2" style={{ color: '#30302f' }}>
+                          Enabling or disabling web search for prompts
+                        </h3>
+                        <p className="mb-3">
+                          Some prompts can use web search to find additional information about similar programs and best practices. This helps create more informed evaluation plans.
+                        </p>
+
+                        <div className="p-3 bg-gray-50 border border-gray-300 rounded-lg mb-3">
+                          <h4 className="font-medium text-sm mb-2">Current settings:</h4>
+                          <ul className="space-y-1 text-sm">
+                            <li>• <strong>Prompt 1</strong> (Program Model Analysis) - Web search <strong>{config?.prompt1.webSearch ? 'enabled' : 'disabled'}</strong></li>
+                            <li>• <strong>Prompt 2</strong> (Evaluation Framework) - Web search <strong>{config?.prompt2.webSearch ? 'enabled' : 'disabled'}</strong></li>
+                            <li>• <strong>Report Template</strong> - Web search <strong>{config?.reportTemplate.webSearch ? 'enabled' : 'disabled'}</strong> (uses information already gathered)</li>
+                          </ul>
+                        </div>
+
+                        <div className="mb-3">
+                          <h4 className="font-medium text-sm mb-2">To change web search settings:</h4>
+                          <p className="text-sm mb-2">
+                            <strong>Option 1: Ask Replit Agent in plain language</strong>
+                          </p>
+                          <div className="p-3 bg-gray-50 border border-gray-300 rounded-lg mb-3 font-mono text-sm space-y-1">
+                            <div>"Turn off web search for Prompt 1"</div>
+                            <div>"Enable web search for Prompt 2"</div>
+                            <div>"Disable web search for Report Template"</div>
+                          </div>
+
+                          <p className="text-sm mb-2">
+                            <strong>Option 2: Set environment variables directly</strong>
+                          </p>
+                          <ul className="list-disc ml-5 space-y-1 text-sm">
+                            <li><code className="bg-gray-100 px-1 rounded">VITE_STEP3_WEB_SEARCH</code> - Set to <code className="bg-gray-100 px-1 rounded">true</code> or <code className="bg-gray-100 px-1 rounded">false</code> for Prompt 1</li>
+                            <li><code className="bg-gray-100 px-1 rounded">VITE_STEP4_WEB_SEARCH</code> - Set to <code className="bg-gray-100 px-1 rounded">true</code> or <code className="bg-gray-100 px-1 rounded">false</code> for Prompt 2</li>
+                            <li><code className="bg-gray-100 px-1 rounded">VITE_STEP5_WEB_SEARCH</code> - Set to <code className="bg-gray-100 px-1 rounded">true</code> or <code className="bg-gray-100 px-1 rounded">false</code> for Report Template</li>
+                          </ul>
+                        </div>
+
+                        <p className="mt-2 text-gray-600 italic text-sm">
+                          Note: Web search is enabled by default for Prompts 1 and 2, and disabled by default for Report Template.
+                        </p>
+                      </div>
                     </div>
                   </div>
 
