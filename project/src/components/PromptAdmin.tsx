@@ -327,6 +327,22 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                 Admin Options
               </h2>
               <div className="space-y-2">
+                {/* Instructions button */}
+                <button
+                  onClick={() => setSelectedPrompt(null)}
+                  className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                    !selectedPrompt
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="font-medium text-sm">📖 Instructions</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    View help and guides
+                  </div>
+                </button>
+                
+                {/* Prompts list */}
                 {prompts.map((prompt) => (
                   <button
                     key={prompt.id}
@@ -448,7 +464,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                         <strong>Add change notes (optional):</strong> Enter a brief description of your changes in the "Change Notes" field to track modifications.
                       </li>
                       <li>
-                        <strong>Save your changes:</strong> Click the "Save Changes" button at the bottom of the editor.
+                        <strong>Save your changes:</strong> Click the "Save Changes" button at the top of the editor.
                       </li>
                       <li>
                         <strong>Version history:</strong> Click "Show Versions" to view previous versions of the prompt. You can rollback to any previous version by clicking the rollback icon next to that version.
