@@ -43,6 +43,17 @@ The project is configured for the Replit environment:
 - **Fix Applied**: Switched from Autoscale to Reserved VM to support multiple processes and internal localhost connections
 
 ## Recent Changes (October 4, 2025)
+- **LLM Configuration via Environment Variables**: Added support for configuring LLM models and temperatures via environment variables
+  - Added `VITE_STEP3_MODEL`, `VITE_STEP3_TEMPERATURE` for Prompt 1 (Program Model Analysis)
+  - Added `VITE_STEP4_MODEL`, `VITE_STEP4_TEMPERATURE` for Prompt 2 (Evaluation Framework)
+  - Added `VITE_STEP5_MODEL`, `VITE_STEP5_TEMPERATURE` for Report Template (Evaluation Plan)
+  - All default to `openai/gpt-5` with no temperature if not specified
+  - Created `/api/config` endpoint to expose configuration to admin interface
+- **Admin Interface Improvements**: Enhanced admin page with configuration visibility
+  - Renamed "Available Prompts" to "Admin Options" for better clarity
+  - Added read-only "Configuration" section displaying system settings
+  - Shows: sent-from email address, LLM models and temperatures for all three prompts
+  - Configuration values are read from environment variables and displayed for developer reference
 - **Email From Address Configuration**: Hardcoded from email address to `ai@gkerr.com` in emailServer.js
   - Added FROM_EMAIL configuration constant with clear documentation
   - Supports environment variable override via RESEND_FROM_EMAIL
@@ -124,6 +135,30 @@ project/
 - **@uiw/react-md-editor**: Markdown editor component for admin interface
 - **External APIs**: Uses CORS proxy for web scraping functionality
 - **Lucide React**: Icon library for UI elements
+
+## Environment Variables
+
+### LLM Configuration
+These environment variables control which AI models and settings are used for each step of the evaluation process:
+
+- **`VITE_STEP3_MODEL`** - AI model for Prompt 1 (Program Model Analysis). Default: `openai/gpt-5`
+- **`VITE_STEP3_TEMPERATURE`** - Temperature setting for Prompt 1. Default: not set (uses model default)
+- **`VITE_STEP4_MODEL`** - AI model for Prompt 2 (Evaluation Framework). Default: `openai/gpt-5`
+- **`VITE_STEP4_TEMPERATURE`** - Temperature setting for Prompt 2. Default: not set (uses model default)
+- **`VITE_STEP5_MODEL`** - AI model for Report Template. Default: `openai/gpt-5`
+- **`VITE_STEP5_TEMPERATURE`** - Temperature setting for Report Template. Default: not set (uses model default)
+
+### Email Configuration
+- **`RESEND_FROM_EMAIL`** - From email address for outgoing emails. Default: `ai@gkerr.com`
+
+### Admin Access
+- **`ADMIN_PASSWORD`** - Password for accessing the admin interface
+
+### API Keys
+- **`VITE_OPENROUTER_API_KEY`** - API key for OpenRouter (required for AI functionality)
+
+### Configuration Visibility
+All LLM and email configuration values are visible in the admin interface under the "Configuration" section (read-only). This allows developers to verify settings without editing code or environment variables directly in the UI.
 
 ## User Preferences
 - None specified yet
