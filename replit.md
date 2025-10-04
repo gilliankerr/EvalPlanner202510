@@ -43,6 +43,11 @@ The project is configured for the Replit environment:
 - **Fix Applied**: Switched from Autoscale to Reserved VM to support multiple processes and internal localhost connections
 
 ## Recent Changes (October 4, 2025)
+- **Email From Address Configuration**: Hardcoded from email address to `ai@gkerr.com` in emailServer.js
+  - Added FROM_EMAIL configuration constant with clear documentation
+  - Supports environment variable override via RESEND_FROM_EMAIL
+  - Includes detailed comments for future maintainability
+  - Future improvement: Consider adding to Admin interface system settings
 - **Email Delivery Template Management**: Added email delivery template to admin interface with versioning support
   - Created new `email_delivery` prompt in database with template variables ({{programName}}, {{organizationName}}, {{currentDateTime}})
   - Refactored StepSix.tsx to fetch email template from database instead of hardcoded text
