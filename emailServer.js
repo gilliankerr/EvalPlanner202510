@@ -65,6 +65,8 @@ async function getResendClient() {
 // Email sending function using Resend
 async function sendEmail(message) {
   const { client, fromEmail } = await getResendClient();
+  
+  console.log('Using from email:', fromEmail);
 
   const emailData = {
     from: fromEmail,
