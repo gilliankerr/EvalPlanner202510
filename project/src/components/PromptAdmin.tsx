@@ -49,6 +49,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [editedContent, setEditedContent] = useState<string | undefined>('');
+  const [editedDisplayName, setEditedDisplayName] = useState<string>('');
   const [changeNotes, setChangeNotes] = useState<string>('');
   const [versions, setVersions] = useState<PromptVersion[]>([]);
   const [showVersions, setShowVersions] = useState(false);
@@ -103,6 +104,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
       const fullPromptData = await response.json();
       setSelectedPrompt(fullPromptData);
       setEditedContent(fullPromptData.content);
+      setEditedDisplayName(fullPromptData.display_name);
       
       // Fetch versions for this prompt
       const versionsResponse = await fetch(`${API_URL}/prompts/${prompt.step_name}/versions`);
@@ -126,6 +128,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
         },
         body: JSON.stringify({
           content: editedContent,
+          display_name: editedDisplayName,
           change_notes: changeNotes || 'Updated via admin interface'
         })
       });
@@ -138,6 +141,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
         const updatedPrompt = await fetch(`${API_URL}/prompts/${selectedPrompt.step_name}`);
         const updatedData = await updatedPrompt.json();
         setSelectedPrompt(updatedData);
+        setEditedDisplayName(updatedData.display_name);
         
         // Refresh versions
         const versionsResponse = await fetch(`${API_URL}/prompts/${selectedPrompt.step_name}/versions`);
@@ -174,6 +178,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
         const updatedData = await updatedPrompt.json();
         setSelectedPrompt(updatedData);
         setEditedContent(updatedData.content);
+        setEditedDisplayName(updatedData.display_name);
         
         // Refresh versions
         const versionsResponse = await fetch(`${API_URL}/prompts/${selectedPrompt.step_name}/versions`);
@@ -308,7 +313,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                   </button>
                   <button
                     onClick={savePrompt}
-                    disabled={saving || editedContent === selectedPrompt.content}
+                    disabled={saving || (editedContent === selectedPrompt.content && editedDisplayName === selectedPrompt.display_name)}
                     className="flex items-center space-x-2 px-4 py-2 rounded-lg text-white disabled:opacity-50"
                     style={{ backgroundColor: '#0085ca' }}
                   >
@@ -427,12 +432,20 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
             {selectedPrompt ? (
               <div className="bg-white rounded-lg border p-6">
                 <div className="mb-4">
-                  <h2 className="text-xl font-semibold" style={{ color: '#30302f' }}>
-                    {selectedPrompt.display_name}
-                  </h2>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-gray-500 mb-2">
                     Current Version: {selectedPrompt.current_version}
                   </p>
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">Display Name</label>
+                  <input
+                    type="text"
+                    value={editedDisplayName}
+                    onChange={(e) => setEditedDisplayName(e.target.value)}
+                    placeholder="Enter prompt display name..."
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
                 </div>
 
                 <div className="mb-4">
