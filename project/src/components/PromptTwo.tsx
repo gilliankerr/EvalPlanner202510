@@ -3,14 +3,14 @@ import { Brain, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import type { ProgramData } from '../App';
 import { getProcessedPrompt } from '../utils/promptApi';
 
-interface StepThreeProps {
+interface PromptTwoProps {
   programData: ProgramData;
   updateProgramData: (data: Partial<ProgramData>) => void;
   onComplete: () => void;
   setIsProcessing: (processing: boolean) => void;
 }
 
-const StepThree: React.FC<StepThreeProps> = ({ programData, updateProgramData, onComplete, setIsProcessing }) => {
+const PromptTwo: React.FC<PromptTwoProps> = ({ programData, updateProgramData, onComplete, setIsProcessing }) => {
   const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'complete' | 'error'>('idle');
   const [analysisResult, setAnalysisResult] = useState<string>('');
 
@@ -24,7 +24,8 @@ const StepThree: React.FC<StepThreeProps> = ({ programData, updateProgramData, o
 
     try {
       // Fetch and prepare the analysis prompt from database
-      const analysisPrompt = await getProcessedPrompt('step3_analysis', {
+      // Note: Uses 'step4_framework' as database identifier (mapped to "Prompt 2" in UI)
+      const analysisPrompt = await getProcessedPrompt('step4_framework', {
         programName: programData.programName,
         organizationName: programData.organizationName,
         aboutProgram: programData.aboutProgram,
@@ -32,8 +33,8 @@ const StepThree: React.FC<StepThreeProps> = ({ programData, updateProgramData, o
       });
 
       // Make API call to OpenRouter
-      const model = import.meta.env.VITE_STEP3_MODEL || 'openai/gpt-5';
-      const temperature = import.meta.env.VITE_STEP3_TEMPERATURE ? parseFloat(import.meta.env.VITE_STEP3_TEMPERATURE) : undefined;
+      const model = import.meta.env.VITE_STEP4_MODEL || 'openai/gpt-5';
+      const temperature = import.meta.env.VITE_STEP4_TEMPERATURE ? parseFloat(import.meta.env.VITE_STEP4_TEMPERATURE) : undefined;
       
       const requestBody: any = {
         model,
@@ -64,41 +65,10 @@ const StepThree: React.FC<StepThreeProps> = ({ programData, updateProgramData, o
       }
 
       const data = await response.json();
-      const analysis = data.choices[0].message.content;
+      const framework = data.choices[0].message.content;
 
-      // Extract structured JSON data from the analysis response
-      let programTypePlural = '';
-      let targetPopulation = '';
-      
-      try {
-        // Look for JSON block in the response
-        const jsonMatch = analysis.match(/```json\s*({[\s\S]*?})\s*```/);
-        if (jsonMatch) {
-          const extractedData = JSON.parse(jsonMatch[1]);
-          programTypePlural = extractedData.program_type_plural || '';
-          targetPopulation = extractedData.target_population || '';
-        } else {
-          // Fallback: look for JSON object anywhere in the text
-          const jsonObjectMatch = analysis.match(/{[\s\S]*?"program_type_plural"[\s\S]*?"target_population"[\s\S]*?}/);
-          if (jsonObjectMatch) {
-            const extractedData = JSON.parse(jsonObjectMatch[0]);
-            programTypePlural = extractedData.program_type_plural || '';
-            targetPopulation = extractedData.target_population || '';
-          }
-        }
-      } catch (error) {
-        console.warn('Could not extract structured data from analysis:', error);
-        // Use fallback values if extraction fails
-        programTypePlural = 'programs of this type';
-        targetPopulation = 'the target population described in this evaluation plan';
-      }
-
-      setAnalysisResult(analysis);
-      updateProgramData({ 
-        programAnalysis: analysis,
-        programTypePlural: programTypePlural,
-        targetPopulation: targetPopulation
-      });
+      setAnalysisResult(framework);
+      updateProgramData({ evaluationFramework: framework });
       setAnalysisStatus('complete');
 
       // Auto-advance after a brief delay
@@ -170,21 +140,19 @@ const StepThree: React.FC<StepThreeProps> = ({ programData, updateProgramData, o
           <div className="space-y-4">
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
               <p className="text-sm text-amber-800 mb-3">
-                The AI analysis encountered an issue. This could be due to API connectivity or rate limits. You can:
+                The evaluation framework generation encountered an issue. This could be due to API connectivity or rate limits. You can:
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={analyzeProgram}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Retry Analysis
+                  Retry Generation
                 </button>
                 <button
                   onClick={() => {
                     updateProgramData({ 
-                      programAnalysis: 'Analysis skipped by user due to error',
-                      programTypePlural: 'programs of this type',
-                      targetPopulation: 'the target population'
+                      evaluationFramework: 'Framework generation skipped by user due to error'
                     });
                     setIsProcessing(false);
                     onComplete();
@@ -202,20 +170,20 @@ const StepThree: React.FC<StepThreeProps> = ({ programData, updateProgramData, o
         {analysisStatus === 'analyzing' && (
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#0085ca'}}></div>
-              <span className="text-sm text-gray-600">Identifying target population and presenting issues</span>
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+              <span className="text-sm text-slate-600">Identifying target population and presenting issues</span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#0085ca', animationDelay: '0.5s'}}></div>
-              <span className="text-sm text-gray-600">Analyzing core intervention strategies</span>
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+              <span className="text-sm text-slate-600">Analyzing core intervention strategies</span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#0085ca', animationDelay: '1s'}}></div>
-              <span className="text-sm text-gray-600">Determining theoretical foundations</span>
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+              <span className="text-sm text-slate-600">Determining theoretical foundations</span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#0085ca', animationDelay: '1.5s'}}></div>
-              <span className="text-sm text-gray-600">Comparing with evidence-based models</span>
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
+              <span className="text-sm text-slate-600">Comparing with evidence-based models</span>
             </div>
           </div>
         )}
@@ -248,4 +216,4 @@ const StepThree: React.FC<StepThreeProps> = ({ programData, updateProgramData, o
   );
 };
 
-export default StepThree;
+export default PromptTwo;

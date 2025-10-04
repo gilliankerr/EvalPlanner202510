@@ -131,14 +131,14 @@ const ensureCanonicalLinks = (content: string): string => {
   return processedContent;
 };
 
-interface StepFiveProps {
+interface ReportTemplateProps {
   programData: ProgramData;
   updateProgramData: (data: Partial<ProgramData>) => void;
   onComplete: () => void;
   setIsProcessing: (processing: boolean) => void;
 }
 
-const StepFive: React.FC<StepFiveProps> = ({ programData, updateProgramData, onComplete, setIsProcessing }) => {
+const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProgramData, onComplete, setIsProcessing }) => {
   const [planStatus, setPlanStatus] = useState<'idle' | 'generating' | 'complete' | 'error'>('idle');
   const [planResult, setPlanResult] = useState<string>('');
 
@@ -158,6 +158,7 @@ const StepFive: React.FC<StepFiveProps> = ({ programData, updateProgramData, onC
       });
 
       // Fetch and prepare the evaluation plan generation prompt from database
+      // Note: Uses 'step5_plan' as database identifier (mapped to "Report Template" in UI)
       const planPrompt = await getProcessedPrompt('step5_plan', {
         organizationName: programData.organizationName,
         programName: programData.programName,
@@ -747,4 +748,4 @@ Now customize this entire template for the specific program described in the pro
   );
 };
 
-export default StepFive;
+export default ReportTemplate;

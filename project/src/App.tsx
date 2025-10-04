@@ -3,11 +3,22 @@ import { FileText, Globe, Brain, Clipboard, FileOutput, Download, Loader2, Chevr
 import logoIcon from './assets/logo.jpg';
 import StepOne from './components/StepOne';
 import StepTwo from './components/StepTwo';
-import StepThree from './components/StepThree';
-import StepFour from './components/StepFour';
-import StepFive from './components/StepFive';
+import PromptOne from './components/PromptOne';
+import PromptTwo from './components/PromptTwo';
+import ReportTemplate from './components/ReportTemplate';
 import StepSix from './components/StepSix';
 import PromptAdmin from './components/PromptAdmin';
+
+/*
+ * Component Naming Convention:
+ * UI Components use descriptive names aligned with the Admin interface:
+ *   - PromptOne (Step 3) → Database: step3_analysis
+ *   - PromptTwo (Step 4) → Database: step4_framework
+ *   - ReportTemplate (Step 5) → Database: step5_plan
+ * 
+ * Note: Database identifiers were kept unchanged to avoid migration complexity.
+ * Each component internally references the appropriate database step_name.
+ */
 
 export interface ProgramData {
   organizationName: string;
@@ -27,9 +38,9 @@ export interface ProgramData {
 const steps = [
   { id: 1, title: 'Program Information', icon: FileText, description: 'Collect program details' },
   { id: 2, title: 'Extract Content', icon: Globe, description: '' },
-  { id: 3, title: 'Program Analysis', icon: Brain, description: 'AI-powered program model analysis' },
-  { id: 4, title: 'Evaluation Framework', icon: Clipboard, description: 'Generate evaluation framework' },
-  { id: 5, title: 'Plan Generation', icon: FileOutput, description: 'Create comprehensive plan' },
+  { id: 3, title: 'Prompt 1', icon: Brain, description: 'AI-powered program model analysis' },
+  { id: 4, title: 'Prompt 2', icon: Clipboard, description: 'Generate evaluation framework' },
+  { id: 5, title: 'Report Template', icon: FileOutput, description: 'Create comprehensive plan' },
   { id: 6, title: 'Document Generation', icon: Download, description: 'Render final report' }
 ];
 
@@ -95,7 +106,7 @@ function App() {
         );
       case 3:
         return (
-          <StepThree 
+          <PromptOne 
             programData={programData}
             updateProgramData={updateProgramData}
             onComplete={() => {
@@ -107,7 +118,7 @@ function App() {
         );
       case 4:
         return (
-          <StepFour 
+          <PromptTwo 
             programData={programData}
             updateProgramData={updateProgramData}
             onComplete={() => {
@@ -119,7 +130,7 @@ function App() {
         );
       case 5:
         return (
-          <StepFive 
+          <ReportTemplate 
             programData={programData}
             updateProgramData={updateProgramData}
             onComplete={() => {
