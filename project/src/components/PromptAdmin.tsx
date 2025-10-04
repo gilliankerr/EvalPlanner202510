@@ -551,19 +551,8 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                           </div>
                         </div>
 
-                        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                          <h4 className="font-medium mb-2 text-blue-900">Available providers via OpenRouter:</h4>
-                          <ul className="list-disc ml-5 text-blue-800 text-xs space-y-1">
-                            <li><strong>OpenAI:</strong> openai/gpt-4, openai/gpt-5, openai/gpt-4-turbo</li>
-                            <li><strong>Anthropic:</strong> anthropic/claude-3.5-sonnet, anthropic/claude-3-opus</li>
-                            <li><strong>Google:</strong> google/gemini-pro, google/gemini-1.5-pro</li>
-                            <li><strong>Meta:</strong> meta-llama/llama-3.1-405b-instruct</li>
-                            <li>See <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">openrouter.ai/models</a> for complete list</li>
-                          </ul>
-                        </div>
-
                         <p className="mt-4 text-gray-600 italic">
-                          <strong>API Key:</strong> The OpenRouter API key is managed via <code className="bg-gray-100 px-1 rounded">VITE_OPENROUTER_API_KEY</code> environment variable. All models route through OpenRouter, so only this single API key is needed.
+                          <strong>API Key:</strong> The OpenRouter API key is managed via <code className="bg-gray-100 px-1 rounded">VITE_OPENROUTER_API_KEY</code> environment variable. All models route through OpenRouter, so only this single API key is needed. See openrouter.ai/models for complete list of available LLMs.
                         </p>
 
                         <p className="mt-2 text-gray-600 italic">
