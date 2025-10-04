@@ -4,6 +4,7 @@ import { marked, Tokens } from 'marked';
 import hljs from 'highlight.js';
 import DOMPurify from 'dompurify';
 import { sendEmail } from '../utils/email';
+import { getProcessedPrompt } from '../utils/promptApi';
 import type { ProgramData } from '../App';
 
 interface StepSixProps {
@@ -1173,15 +1174,12 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         timeZoneName: 'short'
       });
 
-      // Create email body with user's specified template
-      const emailBody = `Hello, attached is the evaluation plan you requested from the LogicalOutcomes Evaluation Planner at www.logicaloutcomes.net. 
-
-It is for ${programData.programName} delivered by ${programData.organizationName}. It was generated on ${currentDateTime}. 
-
-This is just a draft and should be reviewed carefully for accuracy. To improve its accuracy, feel free to re-try the Evaluation Planner app and add relevant information in the form. For example, paste additional web pages about the organization or information about the population served or the results of a literature review on effective program models. 
-
-Best regards,
-LogicalOutcomes`;
+      // Fetch email template from database and replace variables
+      const emailBody = await getProcessedPrompt('email_delivery', {
+        programName: programData.programName,
+        organizationName: programData.organizationName,
+        currentDateTime: currentDateTime
+      });
 
       // Create filename
       const filename = `${programData.organizationName}_${programData.programName}_Evaluation_Plan.html`.replace(/[^a-zA-Z0-9._-]/g, '_');

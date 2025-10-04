@@ -31,20 +31,20 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd project && npm run dev -- --host 0.0.0.0 --port 5000"
+args = "npm run dev"
 waitForPort = 5000
 
 [[workflows.workflow]]
 name = "Email Server"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node emailServer.js"
 waitForPort = 3001
-
-[workflows.workflow.metadata]
-outputType = "console"
 
 [[ports]]
 localPort = 3001
@@ -61,6 +61,10 @@ externalPort = 8000
 [[ports]]
 localPort = 34167
 externalPort = 3001
+
+[[ports]]
+localPort = 35759
+externalPort = 3003
 
 [[ports]]
 localPort = 39201

@@ -42,7 +42,14 @@ The project is configured for the Replit environment:
 - **Architecture**: Two-server setup with Vite proxy routing `/api/*` requests from frontend to email server
 - **Fix Applied**: Switched from Autoscale to Reserved VM to support multiple processes and internal localhost connections
 
-## Recent Changes (October 3, 2025)
+## Recent Changes (October 4, 2025)
+- **Email Delivery Template Management**: Added email delivery template to admin interface with versioning support
+  - Created new `email_delivery` prompt in database with template variables ({{programName}}, {{organizationName}}, {{currentDateTime}})
+  - Refactored StepSix.tsx to fetch email template from database instead of hardcoded text
+  - Email content now editable through admin interface like other prompts
+  - Supports version history and rollback functionality
+
+## Previous Changes (October 3, 2025)
 - **Email Service Migration**: Migrated from Replit Mail to Resend for transactional email delivery
   - Integrated Resend connector for API key management and rotation
   - Updated emailServer.js to use Resend SDK with proper authentication
@@ -130,6 +137,12 @@ Access via "Admin" button in the top-right corner of the main application:
 - Rollback to previous versions
 - Change notes for tracking modifications
 
+### Available Prompts
+- **Step 3: Program Model Analysis** - Analyzes program information and extracts key data
+- **Step 4: Evaluation Framework** - Generates evaluation framework based on analysis
+- **Step 5: Evaluation Plan Template** - Creates comprehensive evaluation plan document
+- **Email Delivery Template** - Email body sent to users when requesting email delivery
+
 ### API Endpoints
 - `GET /api/prompts` - List all prompts
 - `GET /api/prompts/:step` - Get specific prompt
@@ -146,6 +159,7 @@ Prompts support dynamic variable replacement:
 - `{{programAnalysis}}` - Step 3 analysis
 - `{{evaluationFramework}}` - Step 4 framework
 - `{{currentDate}}` - Current date
+- `{{currentDateTime}}` - Current date and time (used in email template)
 - `{{programTypePlural}}` - Program type (plural)
 - `{{targetPopulation}}` - Target population
 
