@@ -275,7 +275,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                 <ArrowLeft className="h-5 w-5" />
               </button>
               <h1 className="text-2xl font-bold" style={{ color: '#30302f' }}>
-                Prompt Management
+                Administration
               </h1>
             </div>
             <div className="flex items-center space-x-2">
