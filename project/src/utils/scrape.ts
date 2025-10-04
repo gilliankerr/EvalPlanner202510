@@ -46,7 +46,7 @@ const PROXIES: ProxyConfig[] = [
 /**
  * Fetch URL with timeout using AbortController
  */
-async function fetchWithTimeout(url: string, timeoutMs: number = 10000): Promise<Response> {
+async function fetchWithTimeout(url: string, timeoutMs: number = 7000): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   
@@ -276,7 +276,7 @@ function parseAndExtract(html: string): { content: string; truncated: boolean } 
 /**
  * Scrape a single URL with comprehensive error handling
  */
-export async function scrapeUrl(url: string, timeoutMs: number = 10000): Promise<ScrapeResult> {
+export async function scrapeUrl(url: string, timeoutMs: number = 7000): Promise<ScrapeResult> {
   const startTime = Date.now();
   
   try {
@@ -357,7 +357,7 @@ export async function scrapeUrls(
     onProgress?: (result: ScrapeResult) => void;
   } = {}
 ): Promise<ScrapeResult[]> {
-  const { concurrency = 3, timeoutMs = 10000, onProgress } = options;
+  const { concurrency = 5, timeoutMs = 7000, onProgress } = options;
   const results: ScrapeResult[] = [];
   
   // Process URLs in batches with controlled concurrency
