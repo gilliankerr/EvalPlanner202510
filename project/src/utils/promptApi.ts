@@ -6,7 +6,13 @@ interface PromptData {
 
 export async function fetchPrompt(stepName: string): Promise<string> {
   try {
-    const response = await fetch(`${API_URL}/prompts/${stepName}`);
+    const response = await fetch(`${API_URL}/prompts/${stepName}`, {
+      cache: 'no-cache',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
     if (!response.ok) {
       throw new Error(`Failed to fetch prompt: ${response.status}`);
     }
