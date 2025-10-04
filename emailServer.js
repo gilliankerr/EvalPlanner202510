@@ -9,6 +9,27 @@ const { Resend } = require('resend');
 const app = express();
 const PORT = 3001;
 
+// ============================================================================
+// EMAIL CONFIGURATION
+// ============================================================================
+// 
+// Configure the "from" email address used for all outgoing emails.
+// 
+// CURRENT METHOD (Hardcoded):
+// Change the FROM_EMAIL constant below to update the sender address.
+// Make sure the domain is verified in your Resend account (https://resend.com/domains)
+//
+// ALTERNATIVE METHOD (Environment Variable):
+// You can also set RESEND_FROM_EMAIL in your environment variables/secrets.
+// If set, it will override the hardcoded value below.
+//
+// FUTURE IMPROVEMENT:
+// Consider adding a "System Settings" section to the Admin interface where
+// the from email can be configured dynamically without code changes.
+// ============================================================================
+
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'ai@gkerr.com';
+
 // Database setup
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
