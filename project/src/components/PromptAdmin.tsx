@@ -27,14 +27,17 @@ interface Config {
   prompt1: {
     model: string;
     temperature: number | null;
+    webSearch: boolean;
   };
   prompt2: {
     model: string;
     temperature: number | null;
+    webSearch: boolean;
   };
   reportTemplate: {
     model: string;
     temperature: number | null;
+    webSearch: boolean;
   };
 }
 
@@ -388,6 +391,9 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                       {config.prompt1.model}
                       {config.prompt1.temperature !== null && ` (temp: ${config.prompt1.temperature})`}
                     </div>
+                    <div className="text-gray-600 text-sm mt-1">
+                      🌐 Web search: {config.prompt1.webSearch ? 'Enabled' : 'Disabled'}
+                    </div>
                   </div>
                   <div className="border-t pt-3">
                     <div className="font-medium text-gray-700">Prompt 2 LLM:</div>
@@ -395,12 +401,18 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                       {config.prompt2.model}
                       {config.prompt2.temperature !== null && ` (temp: ${config.prompt2.temperature})`}
                     </div>
+                    <div className="text-gray-600 text-sm mt-1">
+                      🌐 Web search: {config.prompt2.webSearch ? 'Enabled' : 'Disabled'}
+                    </div>
                   </div>
                   <div className="border-t pt-3">
                     <div className="font-medium text-gray-700">Report Template LLM:</div>
                     <div className="text-gray-600 mt-1">
                       {config.reportTemplate.model}
                       {config.reportTemplate.temperature !== null && ` (temp: ${config.reportTemplate.temperature})`}
+                    </div>
+                    <div className="text-gray-600 text-sm mt-1">
+                      🌐 Web search: {config.reportTemplate.webSearch ? 'Enabled' : 'Disabled'}
                     </div>
                   </div>
                 </div>
