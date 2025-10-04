@@ -171,8 +171,424 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
         currentDate: currentDate
       });
 
-      // Old template removed - now using dynamic prompt from database
-      const oldPromptRemoved = `# Primary Objective
+      // Note: Old hardcoded template has been replaced with dynamic prompt from database
+      // Template used to be stored here but is now fetched from 'step5_plan' prompt above
+
+      // Make API call to generate the evaluation plan using the exact template
+      const model = import.meta.env.VITE_STEP5_MODEL || 'openai/gpt-5';
+      const temperature = import.meta.env.VITE_STEP5_TEMPERATURE ? parseFloat(import.meta.env.VITE_STEP5_TEMPERATURE) : undefined;
+      
+      const requestBody: any = {
+        model,
+        messages: [
+          {
+            role: 'user',
+            content: planPrompt
+          }
+        ],
+        max_tokens: 12000
+      };
+      
+      if (temperature !== undefined) {
+        requestBody.temperature = temperature;
+      }
+      
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`API request failed: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      let evaluationPlan = data.choices[0].message.content;
+
+      // Clean up the response to remove any code fences if present
+      evaluationPlan = evaluationPlan
+        .replace(/^```markdown\s*/i, '')
+        .replace(/^```\s*/, '')
+        .replace(/\s*```\s*$/,  '')
+        .trim();
+
+      setPlanResult(evaluationPlan);
+      updateProgramData({ evaluationPlan });
+      setPlanStatus('complete');
+
+      // Auto-advance after a brief delay
+      setTimeout(() => {
+        setIsProcessing(false);
+        onComplete();
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error generating plan:', error);
+      setPlanStatus('error');
+      setIsProcessing(false);
+    }
+  };
+
+  const downloadMarkdown = () => {
+    const blob = new Blob([planResult], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${programData.programName.replace(/\s+/g, '_')}_Evaluation_Plan.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadHTML = async () => {
+    const htmlContent = await convertMarkdownToHtml(planResult);
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${programData.programName.replace(/\s+/g, '_')}_Evaluation_Plan.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  async function convertMarkdownToHtml(markdown: string): Promise<string> {
+    // Configure marked with custom renderer
+    const renderer = new marked.Renderer();
+    
+    // Override heading renderer to use sentence case
+    const originalHeading = renderer.heading.bind(renderer);
+    renderer.heading = function(text, level) {
+      return originalHeading(text, level);
+    };
+
+    // Configure marked options
+    marked.setOptions({
+      renderer: renderer,
+      gfm: true,
+      breaks: false,
+    });
+
+    // Convert markdown to HTML
+    const htmlBody = marked.parse(markdown);
+
+    // Create full HTML document with styling
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${programData.programName} Evaluation Plan</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+    
+    h1 {
+      color: #2c3e50;
+      border-bottom: 3px solid #3498db;
+      padding-bottom: 10px;
+      margin-top: 30px;
+    }
+    
+    h2 {
+      color: #34495e;
+      border-bottom: 2px solid #95a5a6;
+      padding-bottom: 8px;
+      margin-top: 25px;
+    }
+    
+    h3 {
+      color: #7f8c8d;
+      margin-top: 20px;
+    }
+    
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    
+    th {
+      background-color: #3498db;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+    
+    td {
+      border: 1px solid #ddd;
+      padding: 10px;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+    
+    tr:hover {
+      background-color: #e8f4f8;
+    }
+    
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', Courier, monospace;
+    }
+    
+    pre {
+      background-color: #f4f4f4;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    
+    ul, ol {
+      margin: 15px 0;
+      padding-left: 30px;
+    }
+    
+    li {
+      margin: 8px 0;
+    }
+    
+    blockquote {
+      border-left: 4px solid #3498db;
+      margin: 20px 0;
+      padding: 10px 20px;
+      background-color: #f8f9fa;
+    }
+    
+    a {
+      color: #3498db;
+      text-decoration: none;
+    }
+    
+    a:hover {
+      text-decoration: underline;
+    }
+    
+    @media print {
+      body {
+        max-width: none;
+      }
+      
+      tr {
+        page-break-inside: avoid;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      
+      table {
+        font-size: 12px;
+      }
+      
+      th, td {
+        padding: 8px 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  ${htmlBody}
+</body>
+</html>`;
+  }
+
+  const emailReport = async () => {
+    try {
+      setEmailStatus('sending');
+      
+      const htmlContent = await convertMarkdownToHtml(planResult);
+      
+      const response = await fetch('http://localhost:3001/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: emailAddress,
+          subject: `${programData.programName} - Evaluation Plan`,
+          html: htmlContent,
+          programName: programData.programName
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.details || 'Failed to send email');
+      }
+
+      setEmailStatus('sent');
+      setTimeout(() => setEmailStatus('idle'), 3000);
+    } catch (error) {
+      console.error('Error sending email:', error);
+      setEmailStatus('error');
+      setTimeout(() => setEmailStatus('idle'), 3000);
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-4">
+      {/* Status Display */}
+      {planStatus === 'generating' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <div>
+              <h3 className="font-semibold text-blue-900">Generating Evaluation Plan</h3>
+              <p className="text-sm text-blue-700">
+                Creating a comprehensive evaluation plan based on the program analysis and framework...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {planStatus === 'error' && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+          <h3 className="font-semibold text-red-900">Error Generating Plan</h3>
+          <p className="text-sm text-red-700 mt-2">
+            There was an error generating the evaluation plan. Please try again or contact support.
+          </p>
+        </div>
+      )}
+
+      {planStatus === 'complete' && planResult && (
+        <div className="space-y-6">
+          {/* Download/Email Actions */}
+          <div className="bg-white rounded-lg border p-6">
+            <h3 className="font-semibold mb-4" style={{ color: '#30302f' }}>Download or Email Report</h3>
+            
+            <div className="flex flex-wrap gap-3 mb-4">
+              <button
+                onClick={downloadMarkdown}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <FileDown size={18} />
+                <span>Download Markdown</span>
+              </button>
+              
+              <button
+                onClick={downloadHTML}
+                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <FileDown size={18} />
+                <span>Download HTML</span>
+              </button>
+            </div>
+
+            {/* Email Section */}
+            <div className="border-t pt-4">
+              <h4 className="font-medium mb-3">Email Report</h4>
+              <div className="flex gap-3">
+                <input
+                  type="email"
+                  value={emailAddress}
+                  onChange={(e) => setEmailAddress(e.target.value)}
+                  placeholder="Enter email address"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  onClick={emailReport}
+                  disabled={!emailAddress || emailStatus === 'sending'}
+                  className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {emailStatus === 'sending' ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Sending...</span>
+                    </>
+                  ) : emailStatus === 'sent' ? (
+                    <>
+                      <Check size={18} />
+                      <span>Sent!</span>
+                    </>
+                  ) : emailStatus === 'error' ? (
+                    <>
+                      <Mail size={18} />
+                      <span>Error - Retry</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mail size={18} />
+                      <span>Send Email</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              {emailStatus === 'error' && (
+                <p className="text-sm text-red-600 mt-2">Failed to send email. Please check the address and try again.</p>
+              )}
+              {emailStatus === 'sent' && (
+                <p className="text-sm text-green-600 mt-2">Email sent successfully to {emailAddress}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Preview */}
+          <div className="bg-white rounded-lg border p-6">
+            <h3 className="font-semibold mb-4" style={{ color: '#30302f' }}>Preview</h3>
+            <div className="prose max-w-none">
+              <div 
+                className="markdown-preview"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(planResult)) }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ReportTemplate;
+// ORIGINAL TEMPLATE CONTENT (now in database as 'step5_plan' prompt):
+// The large template that was here has been moved to the database.
+// It can be edited through the Admin interface.
+// Template includes sections for:
+// - Primary Objective
+// - Program Information
+// - Internal Instructions and General Rules
+// - Required Content & Structure with detailed markdown formatting
+// - Program summary, activities, desired impact, target population
+// - Community context, essential program processes, critical success factors
+// - Main interest groups, potential risks, evaluation focus areas
+// - Logic model tables
+// - Evaluation framework tables
+// - Evaluation phases, roles, and meeting agendas
+// - Implementation timeline and deliverables
+
+/*
+Old template removal note:
+The comprehensive evaluation plan template (~350 lines) that was previously hardcoded here
+has been migrated to the PostgreSQL database as the 'step5_plan' prompt.
+This allows for:
+- Easy editing through the Admin UI
+- Version control and rollback capabilities
+- Dynamic updates without code changes
+Template content is now fetched via getProcessedPrompt('step5_plan', variables)
+
+ORIGINAL FIRST LINE: `# Primary Objective
 
 Produce an accurate, detailed, and comprehensive evaluation plan that will guide a useful evaluation based on the previous analyses and by customizing the detailed document template below. The output should be one consolidated Markdown document that follows the exact structure and formatting rules specified below.
 

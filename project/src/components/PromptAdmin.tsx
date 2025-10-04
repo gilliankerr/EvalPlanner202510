@@ -527,31 +527,40 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                         
                         <div className="space-y-4">
                           <div>
-                            <h4 className="font-medium mb-1">Prompt 1 - Program Model Analysis</h4>
-                            <p className="text-sm text-gray-600 mb-2">Controls the LLM used for analyzing program models and identifying key terms, goals, and target populations.</p>
+                            <h4 className="font-medium mb-1">Prompt 1 - Program Model Analysis <span className="text-xs font-normal text-green-700 bg-green-100 px-2 py-0.5 rounded">Web Search Enabled</span></h4>
+                            <p className="text-sm text-gray-600 mb-2">Controls the LLM used for analyzing program models and identifying key terms, goals, and target populations. Web search is enabled to access current information.</p>
                             <ul className="list-disc ml-5 space-y-1 text-sm">
-                              <li><code className="bg-gray-100 px-1 rounded">VITE_STEP3_MODEL</code> - Model identifier (e.g., <code className="bg-gray-100 px-1 rounded">openai/gpt-5</code>, <code className="bg-gray-100 px-1 rounded">anthropic/claude-3.5-sonnet</code>)</li>
+                              <li><code className="bg-gray-100 px-1 rounded">VITE_STEP3_MODEL</code> - Model identifier with <code className="bg-gray-100 px-1 rounded">:online</code> suffix (e.g., <code className="bg-gray-100 px-1 rounded">openai/gpt-5:online</code>, <code className="bg-gray-100 px-1 rounded">anthropic/claude-3.5-sonnet:online</code>)</li>
                               <li><code className="bg-gray-100 px-1 rounded">VITE_STEP3_TEMPERATURE</code> - Temperature value (0.0 to 2.0, optional)</li>
                             </ul>
                           </div>
 
                           <div>
-                            <h4 className="font-medium mb-1">Prompt 2 - Evaluation Framework</h4>
-                            <p className="text-sm text-gray-600 mb-2">Controls the LLM used for generating the evaluation framework and methodology.</p>
+                            <h4 className="font-medium mb-1">Prompt 2 - Evaluation Framework <span className="text-xs font-normal text-green-700 bg-green-100 px-2 py-0.5 rounded">Web Search Enabled</span></h4>
+                            <p className="text-sm text-gray-600 mb-2">Controls the LLM used for generating the evaluation framework and methodology. Web search is enabled to access current best practices.</p>
                             <ul className="list-disc ml-5 space-y-1 text-sm">
-                              <li><code className="bg-gray-100 px-1 rounded">VITE_STEP4_MODEL</code> - Model identifier</li>
+                              <li><code className="bg-gray-100 px-1 rounded">VITE_STEP4_MODEL</code> - Model identifier with <code className="bg-gray-100 px-1 rounded">:online</code> suffix (e.g., <code className="bg-gray-100 px-1 rounded">openai/gpt-5:online</code>)</li>
                               <li><code className="bg-gray-100 px-1 rounded">VITE_STEP4_TEMPERATURE</code> - Temperature value (optional)</li>
                             </ul>
                           </div>
 
                           <div>
                             <h4 className="font-medium mb-1">Report Template - Evaluation Plan Generation</h4>
-                            <p className="text-sm text-gray-600 mb-2">Controls the LLM used for creating the comprehensive evaluation plan document.</p>
+                            <p className="text-sm text-gray-600 mb-2">Controls the LLM used for creating the comprehensive evaluation plan document. Web search is disabled for consistent report formatting.</p>
                             <ul className="list-disc ml-5 space-y-1 text-sm">
-                              <li><code className="bg-gray-100 px-1 rounded">VITE_STEP5_MODEL</code> - Model identifier</li>
+                              <li><code className="bg-gray-100 px-1 rounded">VITE_STEP5_MODEL</code> - Model identifier without <code className="bg-gray-100 px-1 rounded">:online</code> (e.g., <code className="bg-gray-100 px-1 rounded">openai/gpt-5</code>)</li>
                               <li><code className="bg-gray-100 px-1 rounded">VITE_STEP5_TEMPERATURE</code> - Temperature value (optional)</li>
                             </ul>
                           </div>
+                        </div>
+
+                        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm">
+                          <p className="text-green-900 mb-2">
+                            <strong>💡 Web Search Feature:</strong> Prompts 1 and 2 use the <code className="bg-gray-100 px-1 rounded">:online</code> suffix to enable real-time web search, allowing the AI to access current information, research, and best practices when analyzing programs and creating evaluation frameworks.
+                          </p>
+                          <p className="text-green-900">
+                            To enable/disable web search, add or remove the <code className="bg-gray-100 px-1 rounded">:online</code> suffix from the model identifier.
+                          </p>
                         </div>
 
                         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
