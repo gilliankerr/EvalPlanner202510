@@ -329,7 +329,7 @@ app.post('/prompts/:step', authenticateAdmin, async (req, res) => {
   
   try {
     const { step } = req.params;
-    const { content, change_notes } = req.body;
+    const { content, display_name, change_notes } = req.body;
     
     await client.query('BEGIN');
     
@@ -347,11 +347,18 @@ app.post('/prompts/:step', authenticateAdmin, async (req, res) => {
     const prompt = promptResult.rows[0];
     const newVersion = prompt.current_version + 1;
     
-    // Update prompt content and version
-    await client.query(
-      'UPDATE prompts SET content = $1, current_version = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
-      [content, newVersion, prompt.id]
-    );
+    // Update prompt content, display_name (if provided), and version
+    if (display_name !== undefined) {
+      await client.query(
+        'UPDATE prompts SET content = $1, display_name = $2, current_version = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4',
+        [content, display_name, newVersion, prompt.id]
+      );
+    } else {
+      await client.query(
+        'UPDATE prompts SET content = $1, current_version = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+        [content, newVersion, prompt.id]
+      );
+    }
     
     // Insert version history
     await client.query(
