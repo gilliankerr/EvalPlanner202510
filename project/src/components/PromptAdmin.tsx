@@ -22,6 +22,22 @@ interface PromptVersion {
   change_notes: string;
 }
 
+interface Config {
+  emailFromAddress: string;
+  prompt1: {
+    model: string;
+    temperature: number | null;
+  };
+  prompt2: {
+    model: string;
+    temperature: number | null;
+  };
+  reportTemplate: {
+    model: string;
+    temperature: number | null;
+  };
+}
+
 interface PromptAdminProps {
   onBack: () => void;
 }
@@ -38,6 +54,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [config, setConfig] = useState<Config | null>(null);
   const API_URL = '/api';
   const ADMIN_API_KEY = 'dev-admin-key-change-in-production';
 
@@ -46,12 +63,14 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
     if (authenticated === 'true') {
       setIsAuthenticated(true);
       fetchPrompts();
+      fetchConfig();
     }
   }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchPrompts();
+      fetchConfig();
     }
   }, [isAuthenticated]);
 
@@ -62,6 +81,16 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
       setPrompts(data);
     } catch (error) {
       console.error('Error fetching prompts:', error);
+    }
+  };
+
+  const fetchConfig = async () => {
+    try {
+      const response = await fetch(`${API_URL}/config`);
+      const data = await response.json();
+      setConfig(data);
+    } catch (error) {
+      console.error('Error fetching config:', error);
     }
   };
 
@@ -295,7 +324,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
           <div className="col-span-3">
             <div className="bg-white rounded-lg border p-4">
               <h2 className="font-semibold mb-4" style={{ color: '#30302f' }}>
-                Available Prompts
+                Admin Options
               </h2>
               <div className="space-y-2">
                 {prompts.map((prompt) => (
@@ -315,6 +344,44 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Configuration Section */}
+            <div className="bg-white rounded-lg border p-4 mt-4">
+              <h2 className="font-semibold mb-4" style={{ color: '#30302f' }}>
+                Configuration
+              </h2>
+              {config ? (
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <div className="font-medium text-gray-700">Sent-from email address:</div>
+                    <div className="text-gray-600 mt-1">{config.emailFromAddress}</div>
+                  </div>
+                  <div className="border-t pt-3">
+                    <div className="font-medium text-gray-700">Prompt 1 LLM:</div>
+                    <div className="text-gray-600 mt-1">
+                      {config.prompt1.model}
+                      {config.prompt1.temperature !== null && ` (temp: ${config.prompt1.temperature})`}
+                    </div>
+                  </div>
+                  <div className="border-t pt-3">
+                    <div className="font-medium text-gray-700">Prompt 2 LLM:</div>
+                    <div className="text-gray-600 mt-1">
+                      {config.prompt2.model}
+                      {config.prompt2.temperature !== null && ` (temp: ${config.prompt2.temperature})`}
+                    </div>
+                  </div>
+                  <div className="border-t pt-3">
+                    <div className="font-medium text-gray-700">Report Template LLM:</div>
+                    <div className="text-gray-600 mt-1">
+                      {config.reportTemplate.model}
+                      {config.reportTemplate.temperature !== null && ` (temp: ${config.reportTemplate.temperature})`}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">Loading configuration...</div>
+              )}
             </div>
           </div>
 
