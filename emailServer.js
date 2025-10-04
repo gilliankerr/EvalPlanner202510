@@ -348,7 +348,7 @@ app.post('/prompts/:step/rollback/:version', authenticateAdmin, async (req, res)
 });
 
 // Configuration endpoint - returns read-only system settings
-app.get('/api/config', (req, res) => {
+app.get('/config', (req, res) => {
   try {
     const config = {
       emailFromAddress: FROM_EMAIL,
