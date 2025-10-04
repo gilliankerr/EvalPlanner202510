@@ -521,22 +521,31 @@ Now customize this entire template for the specific program described in the pro
       `;
 
       // Make API call to generate the evaluation plan using the exact template
+      const model = import.meta.env.VITE_STEP5_MODEL || 'openai/gpt-5';
+      const temperature = import.meta.env.VITE_STEP5_TEMPERATURE ? parseFloat(import.meta.env.VITE_STEP5_TEMPERATURE) : undefined;
+      
+      const requestBody: any = {
+        model,
+        messages: [
+          {
+            role: 'user',
+            content: planPrompt
+          }
+        ],
+        max_tokens: 12000
+      };
+      
+      if (temperature !== undefined) {
+        requestBody.temperature = temperature;
+      }
+      
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          model: 'openai/gpt-5',
-          messages: [
-            {
-              role: 'user',
-              content: planPrompt
-            }
-          ],
-          max_tokens: 12000
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {

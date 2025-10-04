@@ -347,6 +347,32 @@ app.post('/prompts/:step/rollback/:version', authenticateAdmin, async (req, res)
   }
 });
 
+// Configuration endpoint - returns read-only system settings
+app.get('/api/config', (req, res) => {
+  try {
+    const config = {
+      emailFromAddress: FROM_EMAIL,
+      prompt1: {
+        model: process.env.VITE_STEP3_MODEL || 'openai/gpt-5',
+        temperature: process.env.VITE_STEP3_TEMPERATURE ? parseFloat(process.env.VITE_STEP3_TEMPERATURE) : null
+      },
+      prompt2: {
+        model: process.env.VITE_STEP4_MODEL || 'openai/gpt-5',
+        temperature: process.env.VITE_STEP4_TEMPERATURE ? parseFloat(process.env.VITE_STEP4_TEMPERATURE) : null
+      },
+      reportTemplate: {
+        model: process.env.VITE_STEP5_MODEL || 'openai/gpt-5',
+        temperature: process.env.VITE_STEP5_TEMPERATURE ? parseFloat(process.env.VITE_STEP5_TEMPERATURE) : null
+      }
+    };
+    
+    res.json(config);
+  } catch (error) {
+    console.error('Error fetching config:', error);
+    res.status(500).json({ error: 'Failed to fetch configuration' });
+  }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Email server running on port ${PORT}`);
 });
