@@ -554,10 +554,6 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                         <p className="mt-4 text-gray-600 italic">
                           <strong>API Key:</strong> The OpenRouter API key is managed via <code className="bg-gray-100 px-1 rounded">VITE_OPENROUTER_API_KEY</code> environment variable. All models route through OpenRouter, so only this single API key is needed. See openrouter.ai/models for complete list of available LLMs.
                         </p>
-
-                        <p className="mt-2 text-gray-600 italic">
-                          <strong>Temperature:</strong> Controls randomness (0.0 = deterministic, 1.0 = balanced, 2.0 = very creative). If not specified, the model uses its default temperature.
-                        </p>
                       </div>
                     </div>
                   </div>
