@@ -522,37 +522,46 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                           Changing LLM models and settings
                         </h3>
                         <p className="mb-3">
-                          Configure AI models for each processing step using environment variables. All models use OpenRouter for routing to different providers.
+                          Configure AI models for each prompt using environment variables. All models use OpenRouter for routing to different providers.
                         </p>
                         
                         <div className="space-y-4">
                           <div>
-                            <h4 className="font-medium mb-1">Prompt 1 (Program Model Analysis)</h4>
-                            <ul className="list-disc ml-5 space-y-1">
+                            <h4 className="font-medium mb-1">Prompt 1 - Program Model Analysis</h4>
+                            <p className="text-sm text-gray-600 mb-2">Controls the LLM used for analyzing program models and identifying key terms, goals, and target populations.</p>
+                            <ul className="list-disc ml-5 space-y-1 text-sm">
                               <li><code className="bg-gray-100 px-1 rounded">VITE_STEP3_MODEL</code> - Model identifier (e.g., <code className="bg-gray-100 px-1 rounded">openai/gpt-5</code>, <code className="bg-gray-100 px-1 rounded">anthropic/claude-3.5-sonnet</code>)</li>
                               <li><code className="bg-gray-100 px-1 rounded">VITE_STEP3_TEMPERATURE</code> - Temperature value (0.0 to 2.0, optional)</li>
                             </ul>
                           </div>
 
                           <div>
-                            <h4 className="font-medium mb-1">Prompt 2 (Evaluation Framework)</h4>
-                            <ul className="list-disc ml-5 space-y-1">
+                            <h4 className="font-medium mb-1">Prompt 2 - Evaluation Framework</h4>
+                            <p className="text-sm text-gray-600 mb-2">Controls the LLM used for generating the evaluation framework and methodology.</p>
+                            <ul className="list-disc ml-5 space-y-1 text-sm">
                               <li><code className="bg-gray-100 px-1 rounded">VITE_STEP4_MODEL</code> - Model identifier</li>
                               <li><code className="bg-gray-100 px-1 rounded">VITE_STEP4_TEMPERATURE</code> - Temperature value (optional)</li>
                             </ul>
                           </div>
 
                           <div>
-                            <h4 className="font-medium mb-1">Report Template (Evaluation Plan)</h4>
-                            <ul className="list-disc ml-5 space-y-1">
+                            <h4 className="font-medium mb-1">Report Template - Evaluation Plan Generation</h4>
+                            <p className="text-sm text-gray-600 mb-2">Controls the LLM used for creating the comprehensive evaluation plan document.</p>
+                            <ul className="list-disc ml-5 space-y-1 text-sm">
                               <li><code className="bg-gray-100 px-1 rounded">VITE_STEP5_MODEL</code> - Model identifier</li>
                               <li><code className="bg-gray-100 px-1 rounded">VITE_STEP5_TEMPERATURE</code> - Temperature value (optional)</li>
                             </ul>
                           </div>
                         </div>
 
-                        <p className="mt-4 text-gray-600 italic">
-                          <strong>API Key:</strong> The OpenRouter API key is managed via <code className="bg-gray-100 px-1 rounded">VITE_OPENROUTER_API_KEY</code> environment variable. All models route through OpenRouter, so only this single API key is needed. See openrouter.ai/models for complete list of available LLMs.
+                        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+                          <p className="text-blue-900">
+                            <strong>Note:</strong> Environment variable names use legacy "STEP3/4/5" identifiers for backward compatibility. They correspond to "Prompt 1", "Prompt 2", and "Report Template" respectively in the current UI.
+                          </p>
+                        </div>
+
+                        <p className="mt-4 text-gray-600 italic text-sm">
+                          <strong>API Key:</strong> The OpenRouter API key is managed via <code className="bg-gray-100 px-1 rounded">VITE_OPENROUTER_API_KEY</code> environment variable. All models route through OpenRouter, so only this single API key is needed. See <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">openrouter.ai/models</a> for complete list of available LLMs.
                         </p>
                       </div>
                     </div>
