@@ -23,13 +23,15 @@ const PromptTwo: React.FC<PromptTwoProps> = ({ programData, updateProgramData, o
     setAnalysisStatus('analyzing');
 
     try {
-      // Fetch and prepare the analysis prompt from database
+      // Fetch and prepare the evaluation framework prompt from database
       // Note: Uses 'step4_framework' as database identifier (mapped to "Prompt 2" in UI)
+      // This step builds upon the program analysis from Step 3
       const analysisPrompt = await getProcessedPrompt('step4_framework', {
         programName: programData.programName,
         organizationName: programData.organizationName,
         aboutProgram: programData.aboutProgram,
-        scrapedContent: programData.scrapedContent
+        scrapedContent: programData.scrapedContent,
+        programAnalysis: programData.programAnalysis
       });
 
       // Make API call to OpenRouter

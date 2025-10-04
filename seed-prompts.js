@@ -69,7 +69,7 @@ Example JSON format:
     display_name: 'Prompt 2',
     content: `# Primary Objective
 
-Analyze all available information and, using your expertise and web search as needed, define the program's key terms, goals, activities, target populations, and intended outcomes. Where details are missing, infer them based on best practices and analogous programs, clearly flagging any assumptions. Use the organization's own vocabulary when possible. Be sure you are focusing on {{programName}} and not on other programs delivered by the organization!
+Building upon the program analysis already completed, create a comprehensive evaluation framework for {{programName}}. Use your expertise and web search as needed to develop specific evaluation approaches, metrics, and methodologies that align with the program model and theory of change identified in the analysis.
 
 ---
 
@@ -84,28 +84,25 @@ Analyze all available information and, using your expertise and web search as ne
 **Web Content:**
 {{scrapedContent}}
 
+**Program Analysis (from Prompt 1):**
+{{programAnalysis}}
+
 ---
 
 ## Output Requirements
 
-Based on the provided information, do the following:
+Based on the program analysis provided above, develop an evaluation framework that includes:
 
-Identify and describe the underlying program model by analyzing:
+• Specific evaluation questions aligned with the program's theory of change
+• Appropriate evaluation methodologies (process, outcome, impact)
+• Key performance indicators and metrics for each program component
+• Data collection methods suited to the program context and population
+• Timeline and phases for evaluation implementation
+• Stakeholder engagement strategies for the evaluation
+• Considerations for equity, cultural appropriateness, and accessibility in evaluation design
 
-• Target population and presenting issues addressed 
-• Core intervention strategies and service delivery methods 
-• Theoretical foundations and logic model (implicit or explicit)
-• Program goals, intended outcomes, and theory of change
-• Service intensity, duration, and delivery setting
-• Staff roles and qualifications required
-
-Deliver a comprehensive program model description including:
-
-• Classification within established program typologies
-• Key assumptions about how change occurs
-• Primary mechanisms of action
-• Comparison to similar evidence-based models in the literature`,
-    change_notes: 'Initial version - extracted from StepFour.tsx'
+Your framework should directly reference and build upon the program model, target population, intervention strategies, and outcomes identified in the Program Analysis section above. Do not re-analyze the program model; instead, focus on HOW to evaluate it effectively.`,
+    change_notes: 'Updated to use programAnalysis from Step 3 as input - fixes dependency flow'
   },
   {
     step_name: 'step5_plan',
