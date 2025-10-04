@@ -85,12 +85,10 @@ async function getResendClient() {
 
 // Email sending function using Resend
 async function sendEmail(message) {
-  const { client, fromEmail } = await getResendClient();
-  
-  console.log('Using from email:', fromEmail);
+  const { client } = await getResendClient();
 
   const emailData = {
-    from: fromEmail,
+    from: FROM_EMAIL,
     to: Array.isArray(message.to) ? message.to : [message.to],
     subject: message.subject,
     html: message.html || undefined,
