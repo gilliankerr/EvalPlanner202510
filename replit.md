@@ -82,8 +82,10 @@ The project is configured for the Replit environment:
 The admin interface is protected by password authentication:
 - Access via "Admin" button in top-right corner of main application
 - Enter the ADMIN_PASSWORD (set in environment variables)
-- Session persists until logout or browser storage is cleared
+- Authentication is session-based (requires re-login after page refresh for security)
 - Logout button available in admin interface header
+
+**Security Note**: The ADMIN_API_KEY is now dynamically fetched from the backend after successful password authentication, improving security by removing the hardcoded API key from the frontend code.
 
 ## Previous Changes (September 14, 2025)
 - **Enhanced Web Scraping Error Handling**: Completely overhauled URL extraction and web scraping with robust error handling, timeout protection (10s), smart retry logic with exponential backoff, concurrent processing (3 URLs), individual retry buttons, and detailed error classification (timeout, rate limited, blocked, unsupported content)
@@ -152,7 +154,8 @@ These environment variables control which AI models and settings are used for ea
 - **`RESEND_FROM_EMAIL`** - From email address for outgoing emails. Default: `ai@gkerr.com`
 
 ### Admin Access
-- **`ADMIN_PASSWORD`** - Password for accessing the admin interface
+- **`ADMIN_PASSWORD`** - Password for accessing the admin interface (required)
+- **`ADMIN_API_KEY`** - API key for admin operations (optional, defaults to 'dev-admin-key-change-in-production' if not set)
 
 ### API Keys
 - **`VITE_OPENROUTER_API_KEY`** - API key for OpenRouter (required for AI functionality)

@@ -156,7 +156,11 @@ app.post('/verify-admin-password', (req, res) => {
     const adminPassword = process.env.ADMIN_PASSWORD;
     
     if (password === adminPassword) {
-      res.json({ success: true });
+      const adminApiKey = process.env.ADMIN_API_KEY || 'dev-admin-key-change-in-production';
+      res.json({ 
+        success: true,
+        apiKey: adminApiKey
+      });
     } else {
       res.status(401).json({ 
         success: false, 

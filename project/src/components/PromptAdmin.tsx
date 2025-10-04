@@ -55,16 +55,11 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [config, setConfig] = useState<Config | null>(null);
+  const [adminApiKey, setAdminApiKey] = useState<string>('');
   const API_URL = '/api';
-  const ADMIN_API_KEY = 'dev-admin-key-change-in-production';
 
   useEffect(() => {
-    const authenticated = sessionStorage.getItem('adminAuthenticated');
-    if (authenticated === 'true') {
-      setIsAuthenticated(true);
-      fetchPrompts();
-      fetchConfig();
-    }
+    sessionStorage.removeItem('adminAuthenticated');
   }, []);
 
   useEffect(() => {
@@ -124,7 +119,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ADMIN_API_KEY}`
+          'Authorization': `Bearer ${adminApiKey}`
         },
         body: JSON.stringify({
           content: editedContent,
@@ -166,7 +161,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
       const response = await fetch(`${API_URL}/prompts/${selectedPrompt.step_name}/rollback/${version}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${ADMIN_API_KEY}`
+          'Authorization': `Bearer ${adminApiKey}`
         }
       });
       
@@ -203,8 +198,9 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
       });
       
       if (response.ok) {
+        const data = await response.json();
+        setAdminApiKey(data.apiKey);
         setIsAuthenticated(true);
-        sessionStorage.setItem('adminAuthenticated', 'true');
         setPassword('');
       } else {
         setPasswordError('Incorrect password. Please try again.');
@@ -217,7 +213,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    sessionStorage.removeItem('adminAuthenticated');
+    setAdminApiKey('');
     setPassword('');
     setPasswordError('');
   };
