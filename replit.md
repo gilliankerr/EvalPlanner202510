@@ -12,13 +12,20 @@ This React/TypeScript application, built with Vite, assists nonprofit organizati
 The application is built with React 18.3.1 and TypeScript, utilizing Vite 5.4.2 for development and building. Tailwind CSS is used for styling, complemented by Lucide React for icons. The user interface is a multi-step wizard with progress tracking, designed to be modern and responsive.
 
 ### Backend and Core Functionality
-The application integrates with Supabase for backend services. Key features include URL extraction and robust web scraping with error handling, retry logic, and concurrent processing. AI-powered analysis and evaluation framework generation are central to the system, configurable via environment variables for LLM models and temperatures. Prompts for AI models are managed through a comprehensive admin interface, stored in a PostgreSQL database, and support versioning and template variables. Email delivery of reports is handled by Resend.
+The application integrates with Supabase for backend services. Key features include URL extraction and robust web scraping with error handling, retry logic, and concurrent processing. AI-powered analysis and evaluation framework generation are central to the system, configurable via environment variables for LLM models, temperatures, and web search capabilities. Prompts for AI models are managed through a comprehensive admin interface, stored in a PostgreSQL database, and support versioning and template variables. Email delivery of reports is handled by Resend.
+
+**Web Search Configuration**: Each prompt can independently enable or disable web search to find additional information about similar programs and best practices:
+- Prompt 1 (Program Model Analysis): Web search enabled by default
+- Prompt 2 (Evaluation Framework): Web search enabled by default  
+- Report Template: Web search disabled by default (uses already-gathered information)
+
+Environment variables control web search: `VITE_STEP3_WEB_SEARCH`, `VITE_STEP4_WEB_SEARCH`, `VITE_STEP5_WEB_SEARCH` (set to `true` or `false`).
 
 ### Deployment and Environment
 The project is configured for a Reserved VM deployment on Replit, running a two-server setup. The frontend serves on port 5000, and an internal Express.js server handles API requests and email functionality on port 3001, with Vite proxying `/api/*` requests.
 
 ### Admin Interface
-A secure, session-based authentication system protects the admin interface, which allows for managing AI prompts, viewing system configurations (LLM models, temperatures, email settings), and managing email delivery templates. Prompts can be edited using a markdown editor, with support for version history and rollbacks.
+A secure, session-based authentication system protects the admin interface, which allows for managing AI prompts, viewing system configurations (LLM models, temperatures, web search settings, email settings), and managing email delivery templates. Prompts can be edited using a markdown editor, with support for version history and rollbacks. The configuration panel displays web search status for each prompt with clear visual indicators (🌐 Enabled/Disabled).
 
 ### HTML Report Generation
 HTML reports are generated using the `marked` library, incorporating logic model SVG diagrams, enhanced table styling, and responsive design, with options for direct download or email delivery.
