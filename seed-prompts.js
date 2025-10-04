@@ -8,7 +8,7 @@ const pool = new Pool({
 const prompts = [
   {
     step_name: 'step3_analysis',
-    display_name: 'Step 3: Program Model Analysis',
+    display_name: 'Prompt 1',
     content: `# Primary Objective
 
 Analyze all available information and, using your expertise and web search as needed, define the program's key terms, goals, activities, target populations, and intended outcomes. Where details are missing, infer them based on best practices and analogous programs, clearly flagging any assumptions. Use the organization's own vocabulary when possible. Be sure you are focusing on {{programName}} and not on other programs delivered by the organization!
@@ -66,7 +66,7 @@ Example JSON format:
   },
   {
     step_name: 'step4_framework',
-    display_name: 'Step 4: Evaluation Framework',
+    display_name: 'Prompt 2',
     content: `# Primary Objective
 
 Analyze all available information and, using your expertise and web search as needed, define the program's key terms, goals, activities, target populations, and intended outcomes. Where details are missing, infer them based on best practices and analogous programs, clearly flagging any assumptions. Use the organization's own vocabulary when possible. Be sure you are focusing on {{programName}} and not on other programs delivered by the organization!
@@ -109,7 +109,7 @@ Deliver a comprehensive program model description including:
   },
   {
     step_name: 'step5_plan',
-    display_name: 'Step 5: Evaluation Plan Template',
+    display_name: 'Report Template',
     content: `# Primary Objective
 
 Produce an accurate, detailed, and comprehensive evaluation plan that will guide a useful evaluation based on the previous analyses and by customizing the detailed document template below. The output should be one consolidated Markdown document that follows the exact structure and formatting rules specified below.
