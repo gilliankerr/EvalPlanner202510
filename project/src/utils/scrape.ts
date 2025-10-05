@@ -288,8 +288,11 @@ export async function scrapeUrl(url: string, timeoutMs: number = 7000): Promise<
     console.log(`[Scraper] First 200 chars:`, html.substring(0, 200));
     
     // Detect content type
+    // Note: Don't use Content-Type header from JSON proxies since they return application/json
+    // but we've already extracted the actual HTML content from the JSON wrapper
     const contentTypeHeader = response.headers.get('content-type') || undefined;
-    const { type: contentType, isProcessable } = detectContentType(html, contentTypeHeader);
+    const shouldIgnoreHeader = contentTypeHeader?.includes('application/json') && proxy.includes('json');
+    const { type: contentType, isProcessable } = detectContentType(html, shouldIgnoreHeader ? undefined : contentTypeHeader);
     
     console.log(`[Scraper] Content-Type header: ${contentTypeHeader}`);
     console.log(`[Scraper] Detected type: ${contentType}, processable: ${isProcessable}`);
