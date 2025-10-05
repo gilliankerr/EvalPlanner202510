@@ -21,11 +21,15 @@ const StepTwo: React.FC<StepTwoProps> = ({ programData, updateProgramData, onCom
     const urlsFromField = programData.urls || [];
     const extractedUrls = extractAndNormalizeUrls(programData.aboutProgram, urlsFromField);
     
+    console.log('[URL Extraction] Raw input:', programData.aboutProgram);
+    console.log('[URL Extraction] Extracted URLs:', extractedUrls);
+    
     // Get valid URLs only
     const validUrlList = extractedUrls
       .filter(url => url.isValid)
       .map(url => url.normalized);
     
+    console.log('[URL Extraction] Valid URLs to scrape:', validUrlList);
     setValidUrls(validUrlList);
     
     if (validUrlList.length > 0) {

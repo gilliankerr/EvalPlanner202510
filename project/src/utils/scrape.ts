@@ -282,15 +282,24 @@ export async function scrapeUrl(url: string, timeoutMs: number = 7000): Promise<
   try {
     const { response, proxy, html } = await tryProxies(url, timeoutMs);
     
+    console.log(`[Scraper] URL: ${url}`);
+    console.log(`[Scraper] Proxy used: ${proxy}`);
+    console.log(`[Scraper] Response length: ${html.length}`);
+    console.log(`[Scraper] First 200 chars:`, html.substring(0, 200));
+    
     // Detect content type
     const contentTypeHeader = response.headers.get('content-type') || undefined;
     const { type: contentType, isProcessable } = detectContentType(html, contentTypeHeader);
     
+    console.log(`[Scraper] Content-Type header: ${contentTypeHeader}`);
+    console.log(`[Scraper] Detected type: ${contentType}, processable: ${isProcessable}`);
+    
     if (!isProcessable) {
+      console.warn(`[Scraper] Rejected as ${contentType} - not processable`);
       return {
         url,
         status: 'unsupported_content',
-        error: `Content type '${contentType}' is not supported for text extraction`,
+        error: `Content type '${contentType}' is not supported for text extraction. Response preview: ${html.substring(0, 100)}`,
         contentType,
         proxy,
         elapsedMs: Date.now() - startTime
