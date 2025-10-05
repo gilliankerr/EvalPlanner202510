@@ -336,7 +336,7 @@ app.get('/test', (req, res) => {
 });
 
 // Email endpoint
-app.post('/send-email', async (req, res) => {
+app.post('/api/send-email', async (req, res) => {
   console.log('Received email request:', req.body);
   try {
     const { to, subject, text, html, attachments } = req.body;
@@ -362,7 +362,7 @@ app.post('/send-email', async (req, res) => {
 });
 
 // Password verification endpoint
-app.post('/verify-admin-password', (req, res) => {
+app.post('/api/verify-admin-password', (req, res) => {
   try {
     const { password } = req.body;
     
@@ -400,7 +400,7 @@ app.post('/verify-admin-password', (req, res) => {
 });
 
 // Admin logout endpoint
-app.post('/admin-logout', (req, res) => {
+app.post('/api/admin-logout', (req, res) => {
   try {
     const authHeader = req.headers.authorization;
     
@@ -446,8 +446,8 @@ const authenticateAdmin = (req, res, next) => {
 
 // Prompt Management API Routes
 
-// GET /prompts - List all prompts (read-only, no auth required)
-app.get('/prompts', async (req, res) => {
+// GET /api/prompts - List all prompts (read-only, no auth required)
+app.get('/api/prompts', async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, step_name, display_name, current_version, is_active, updated_at FROM prompts ORDER BY step_name'
@@ -459,8 +459,8 @@ app.get('/prompts', async (req, res) => {
   }
 });
 
-// GET /prompts/:step - Get active prompt for a specific step (read-only, no auth required)
-app.get('/prompts/:step', async (req, res) => {
+// GET /api/prompts/:step - Get active prompt for a specific step (read-only, no auth required)
+app.get('/api/prompts/:step', async (req, res) => {
   try {
     const { step } = req.params;
     const result = await pool.query(
@@ -479,8 +479,8 @@ app.get('/prompts/:step', async (req, res) => {
   }
 });
 
-// POST /prompts/:step - Create new version of a prompt (ADMIN ONLY)
-app.post('/prompts/:step', authenticateAdmin, async (req, res) => {
+// POST /api/prompts/:step - Create new version of a prompt (ADMIN ONLY)
+app.post('/api/prompts/:step', authenticateAdmin, async (req, res) => {
   const client = await pool.connect();
   
   try {
@@ -538,8 +538,8 @@ app.post('/prompts/:step', authenticateAdmin, async (req, res) => {
   }
 });
 
-// GET /prompts/:step/versions - Get version history
-app.get('/prompts/:step/versions', async (req, res) => {
+// GET /api/prompts/:step/versions - Get version history
+app.get('/api/prompts/:step/versions', async (req, res) => {
   try {
     const { step } = req.params;
     
@@ -558,8 +558,8 @@ app.get('/prompts/:step/versions', async (req, res) => {
   }
 });
 
-// POST /prompts/:step/rollback/:version - Rollback to a specific version (ADMIN ONLY)
-app.post('/prompts/:step/rollback/:version', authenticateAdmin, async (req, res) => {
+// POST /api/prompts/:step/rollback/:version - Rollback to a specific version (ADMIN ONLY)
+app.post('/api/prompts/:step/rollback/:version', authenticateAdmin, async (req, res) => {
   const client = await pool.connect();
   
   try {
@@ -616,8 +616,8 @@ app.post('/prompts/:step/rollback/:version', authenticateAdmin, async (req, res)
 
 // Settings Management API Routes
 
-// GET /settings - Get all settings (ADMIN ONLY)
-app.get('/settings', authenticateAdmin, async (req, res) => {
+// GET /api/settings - Get all settings (ADMIN ONLY)
+app.get('/api/settings', authenticateAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT key, value, description FROM settings ORDER BY key'
@@ -629,8 +629,8 @@ app.get('/settings', authenticateAdmin, async (req, res) => {
   }
 });
 
-// GET /settings/:key - Get a specific setting (ADMIN ONLY)
-app.get('/settings/:key', authenticateAdmin, async (req, res) => {
+// GET /api/settings/:key - Get a specific setting (ADMIN ONLY)
+app.get('/api/settings/:key', authenticateAdmin, async (req, res) => {
   try {
     const { key } = req.params;
     const result = await pool.query(
@@ -649,8 +649,8 @@ app.get('/settings/:key', authenticateAdmin, async (req, res) => {
   }
 });
 
-// PUT /settings/:key - Update a setting (ADMIN ONLY)
-app.put('/settings/:key', authenticateAdmin, async (req, res) => {
+// PUT /api/settings/:key - Update a setting (ADMIN ONLY)
+app.put('/api/settings/:key', authenticateAdmin, async (req, res) => {
   try {
     const { key } = req.params;
     const { value } = req.body;
@@ -683,7 +683,7 @@ app.put('/settings/:key', authenticateAdmin, async (req, res) => {
 });
 
 // Configuration endpoint - returns read-only system settings
-app.get('/config', async (req, res) => {
+app.get('/api/config', async (req, res) => {
   try {
     // Get from email from Resend integration
     let emailFromAddress = 'Not configured';
