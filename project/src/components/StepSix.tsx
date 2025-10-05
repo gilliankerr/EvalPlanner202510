@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Download, Mail } from 'lucide-react';
 import { marked, Tokens } from 'marked';
 import hljs from 'highlight.js';
 import DOMPurify from 'dompurify';
@@ -1261,8 +1261,8 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
 
         {/* Complete State */}
         {renderStatus === 'complete' && (
-          <div className="text-center py-8">
-            <p className="text-lg text-slate-700 mb-8">
+          <div className="py-8">
+            <p className="text-lg text-slate-700 mb-8 text-center">
               {programData.deliveryMethod === 'email' ? (
                 <>Your evaluation plan has been sent to {programData.userEmail}.</>
               ) : (
@@ -1270,29 +1270,33 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
               )}
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              {programData.deliveryMethod === 'download' ? (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-2xl mx-auto">
+              <button
+                onClick={downloadHtml}
+                className="flex items-start space-x-4 p-4 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors text-left"
+              >
+                <div className="flex-shrink-0 mt-0.5">
+                  <Download className={`h-5 w-5 ${programData.deliveryMethod === 'download' ? 'text-blue-600' : 'text-slate-600'}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-900">Download Report</p>
+                  <p className="text-sm text-slate-500">Save as HTML file</p>
+                </div>
+              </button>
+              
+              {programData.deliveryMethod === 'email' && (
                 <button
-                  onClick={downloadHtml}
-                  className="px-6 py-2.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  onClick={sendEmailReport}
+                  className="flex items-start space-x-4 p-4 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors text-left"
                 >
-                  Download
+                  <div className="flex-shrink-0 mt-0.5">
+                    <Mail className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900">Resend Email</p>
+                    <p className="text-sm text-slate-500">Send to {programData.userEmail}</p>
+                  </div>
                 </button>
-              ) : (
-                <>
-                  <button
-                    onClick={downloadHtml}
-                    className="px-6 py-2.5 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors"
-                  >
-                    Download
-                  </button>
-                  <button
-                    onClick={sendEmailReport}
-                    className="px-6 py-2.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                  >
-                    Resend Email
-                  </button>
-                </>
               )}
             </div>
           </div>
