@@ -527,12 +527,6 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                           This is the email address that appears in the "From" field when evaluation reports are emailed to users.
                         </p>
                         
-                        <p className="mb-2 font-medium">Easiest method: Ask Replit Agent</p>
-                        <div className="p-3 bg-gray-50 border border-gray-300 rounded-lg mb-3 font-mono text-sm">
-                          "Change the email sender address to reports@myorganization.org"
-                        </div>
-                        
-                        <p className="mb-2 font-medium text-gray-600">Alternative: Change it in Replit Integrations</p>
                         <ol className="list-decimal ml-5 space-y-2 text-sm">
                           <li>
                             <strong>Go to Replit Integrations</strong>
