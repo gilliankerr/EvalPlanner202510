@@ -20,6 +20,13 @@ This simplified design reduces visual clutter while maintaining transparency thr
 
 **CSS Architecture**: All styling uses CSS Modules (`App.module.css`, `StepProgress.module.css`, `PromptAdmin.module.css`) for scoped, maintainable styles. The modules implement a mobile-first responsive design with breakpoints at 640px (mobile), 768px (tablets), and 1024px (desktop). Color variables are defined in CSS custom properties for easy theming.
 
+**⚠️ IMPORTANT - Styling Guidelines for Future Development**:
+- **DO NOT add Tailwind CSS** - This project intentionally uses pure CSS Modules with CSS custom properties
+- **DO use CSS custom properties** for theming - All colors and key values are defined as CSS variables (e.g., `--color-primary`, `--color-completed`)
+- **DO edit CSS Module files** directly for styling changes - This approach is simpler, more maintainable, and easier to remix
+- **Changing colors/theme**: Edit the CSS custom properties at the top of CSS Module files (particularly `App.module.css`)
+- **Why no Tailwind**: The project previously had Tailwind but removed it in October 2025 because all styles were already in CSS Modules. Keeping Tailwind would create duplicate color definitions and unnecessary build complexity.
+
 ### Backend and Core Functionality
 The application integrates with Supabase for backend services. Key features include URL extraction and robust web scraping with error handling, retry logic, and concurrent processing. AI-powered analysis and evaluation framework generation are central to the system, configurable via environment variables for LLM models, temperatures, and web search capabilities. Prompts for AI models are managed through a comprehensive admin interface, stored in a PostgreSQL database. Email delivery of reports is handled by Resend.
 
