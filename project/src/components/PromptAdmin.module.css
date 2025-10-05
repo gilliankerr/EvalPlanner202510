@@ -1,3 +1,8 @@
+/* Professional font stack */
+:root {
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
 /* Authentication Page */
 .authContainer {
   min-height: 100vh;
@@ -6,6 +11,7 @@
   justify-content: center;
   background-color: #f8fafc;
   padding: 1rem;
+  font-family: var(--font-family-base);
 }
 
 .authCard {
@@ -75,6 +81,7 @@
 .adminContainer {
   min-height: 100vh;
   background-color: #f8fafc;
+  font-family: var(--font-family-base);
 }
 
 /* Header */
