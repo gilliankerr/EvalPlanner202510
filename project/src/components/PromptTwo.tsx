@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Brain, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import type { ProgramData } from '../App';
-import { getProcessedPrompt } from '../utils/promptApi';
+import { fetchPrompt, buildPromptWithContext } from '../utils/promptApi';
 
 interface PromptTwoProps {
   programData: ProgramData;
@@ -23,12 +23,14 @@ const PromptTwo: React.FC<PromptTwoProps> = ({ programData, updateProgramData, o
     setAnalysisStatus('analyzing');
 
     try {
-      // Fetch and prepare the evaluation framework prompt from database
+      // Fetch admin template from database
       // Note: Uses 'step4_framework' as database identifier (mapped to "Prompt 2" in UI)
-      // This step builds upon the program analysis from Step 3
-      const analysisPrompt = await getProcessedPrompt('step4_framework', {
-        programName: programData.programName,
+      const adminTemplate = await fetchPrompt('step4_framework');
+      
+      // Automatically inject all program data + Step 3 analysis before admin template
+      const analysisPrompt = buildPromptWithContext(adminTemplate, {
         organizationName: programData.organizationName,
+        programName: programData.programName,
         aboutProgram: programData.aboutProgram,
         scrapedContent: programData.scrapedContent,
         programAnalysis: programData.programAnalysis
