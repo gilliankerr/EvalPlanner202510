@@ -131,15 +131,36 @@ const StepTwo: React.FC<StepTwoProps> = ({ programData, updateProgramData, onCom
       
       const result = results[0];
       if (result.status === 'success' && result.content) {
+        // Re-extract labeled URLs to get fresh labels
+        const labeledUrlList = extractLabeledUrls(programData.aboutProgram);
+        
         // Update combined content using latest state
         setUrlResults(prev => {
           const next = prev.map(r => r.url === url ? result : r);
+          
+          // Rebuild labeled results with updated content
+          const labeledResults: LabeledScrapeResult[] = next
+            .filter(r => r.status === 'success' && r.content)
+            .map(r => {
+              const labeledUrl = labeledUrlList.find(lu => lu.normalized === r.url);
+              return {
+                label: labeledUrl?.label || 'Reference',
+                url: r.url,
+                status: r.status,
+                content: r.content,
+                error: r.error
+              };
+            });
+          
           const successfulContent = next
             .filter(r => r.status === 'success' && r.content)
             .map(r => r.content)
             .join('\n\n---\n\n');
           
-          updateProgramData({ scrapedContent: successfulContent });
+          updateProgramData({ 
+            scrapedContent: successfulContent,
+            labeledScrapedContent: labeledResults
+          });
           return next;
         });
       }

@@ -33,6 +33,7 @@ const PromptTwo: React.FC<PromptTwoProps> = ({ programData, updateProgramData, o
         programName: programData.programName,
         aboutProgram: programData.aboutProgram,
         scrapedContent: programData.scrapedContent,
+        labeledScrapedContent: programData.labeledScrapedContent,
         programAnalysis: programData.programAnalysis
       });
 

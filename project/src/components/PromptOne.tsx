@@ -32,7 +32,8 @@ const PromptOne: React.FC<PromptOneProps> = ({ programData, updateProgramData, o
         organizationName: programData.organizationName,
         programName: programData.programName,
         aboutProgram: programData.aboutProgram,
-        scrapedContent: programData.scrapedContent
+        scrapedContent: programData.scrapedContent,
+        labeledScrapedContent: programData.labeledScrapedContent
       });
 
       // Make API call to OpenRouter

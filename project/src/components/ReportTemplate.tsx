@@ -161,6 +161,7 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
         programName: programData.programName,
         aboutProgram: programData.aboutProgram,
         scrapedContent: programData.scrapedContent,
+        labeledScrapedContent: programData.labeledScrapedContent,
         programAnalysis: programData.programAnalysis,
         evaluationFramework: programData.evaluationFramework
       });
