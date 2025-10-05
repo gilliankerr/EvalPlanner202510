@@ -166,9 +166,99 @@ async function sendEmail(message) {
   return result.data;
 }
 
+// ============================================================================
+// SETTINGS MANAGEMENT
+// ============================================================================
+// Get setting from database with environment variable fallback
+async function getSetting(key, envVarName = null) {
+  try {
+    const result = await pool.query(
+      'SELECT value FROM settings WHERE key = $1',
+      [key]
+    );
+    
+    if (result.rows.length > 0 && result.rows[0].value !== null) {
+      return result.rows[0].value;
+    }
+    
+    // Fallback to environment variable if provided
+    if (envVarName && process.env[envVarName]) {
+      return process.env[envVarName];
+    }
+    
+    return null;
+  } catch (error) {
+    console.error(`Error getting setting ${key}:`, error);
+    // Fallback to environment variable on database error
+    if (envVarName && process.env[envVarName]) {
+      return process.env[envVarName];
+    }
+    return null;
+  }
+}
+
+// ============================================================================
+// OPENROUTER PROXY
+// ============================================================================
+// Proxy endpoint for OpenRouter API calls
+// This keeps the API key secure on the backend
+app.post('/openrouter-proxy', async (req, res) => {
+  try {
+    const { model, messages, max_tokens, temperature } = req.body;
+    
+    // Get API key from database, fallback to environment variable
+    const apiKey = await getSetting('openrouter_api_key', 'OPENROUTER_API_KEY');
+    
+    if (!apiKey) {
+      return res.status(500).json({ 
+        error: 'OpenRouter API key not configured. Please set it in the admin settings or as an environment variable.' 
+      });
+    }
+    
+    // Build request body
+    const requestBody = {
+      model,
+      messages,
+      max_tokens: max_tokens || 4000
+    };
+    
+    // Add temperature if provided
+    if (temperature !== undefined) {
+      requestBody.temperature = temperature;
+    }
+    
+    // Make request to OpenRouter
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OpenRouter API Error:', errorText);
+      return res.status(response.status).json({ 
+        error: `OpenRouter API error: ${response.status} - ${errorText}` 
+      });
+    }
+    
+    const data = await response.json();
+    res.json(data);
+    
+  } catch (error) {
+    console.error('OpenRouter proxy error:', error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to proxy request to OpenRouter' 
+    });
+  }
+});
+
 // Test endpoint
 app.get('/test', (req, res) => {
-  res.json({ status: 'Email server is running' });
+  res.json({ status: 'Backend API server is running' });
 });
 
 // Email endpoint
