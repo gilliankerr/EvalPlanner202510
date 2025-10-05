@@ -40,3 +40,54 @@ export async function getProcessedPrompt(stepName: string, data: PromptData): Pr
   const template = await fetchPrompt(stepName);
   return replacePromptVariables(template, data);
 }
+
+export interface ContextData {
+  organizationName?: string;
+  programName?: string;
+  aboutProgram?: string;
+  scrapedContent?: string;
+  programAnalysis?: string;
+  evaluationFramework?: string;
+  [key: string]: string | undefined;
+}
+
+export function buildPromptWithContext(adminTemplate: string, context: ContextData): string {
+  const sections: string[] = [];
+  
+  if (context.organizationName || context.programName || context.aboutProgram) {
+    sections.push('=== PROGRAM INFORMATION ===');
+    if (context.organizationName) {
+      sections.push(`Organization: ${context.organizationName}`);
+    }
+    if (context.programName) {
+      sections.push(`Program: ${context.programName}`);
+    }
+    if (context.aboutProgram) {
+      sections.push(`Description: ${context.aboutProgram}`);
+    }
+    sections.push('');
+  }
+  
+  if (context.scrapedContent && context.scrapedContent.trim()) {
+    sections.push('=== CONTENT FROM WEBSITE ===');
+    sections.push(context.scrapedContent);
+    sections.push('');
+  }
+  
+  if (context.programAnalysis && context.programAnalysis.trim()) {
+    sections.push('=== PREVIOUS ANALYSIS (STEP 3) ===');
+    sections.push(context.programAnalysis);
+    sections.push('');
+  }
+  
+  if (context.evaluationFramework && context.evaluationFramework.trim()) {
+    sections.push('=== EVALUATION FRAMEWORK (STEP 4) ===');
+    sections.push(context.evaluationFramework);
+    sections.push('');
+  }
+  
+  sections.push('=== YOUR TASK ===');
+  sections.push(adminTemplate);
+  
+  return sections.join('\n');
+}
