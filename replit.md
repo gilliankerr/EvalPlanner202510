@@ -18,12 +18,20 @@ The application integrates with Supabase for backend services. Key features incl
 
 **Contextual Label Preservation**: When users provide URLs with descriptive labels (e.g., "Program info: https://example.com" or "About organization: https://example2.com"), the system preserves this contextual information throughout the scraping and AI analysis pipeline. The `extractLabeledUrls()` function in `url.ts` captures both the label and URL, scraped content is stored with its associated label in `labeledScrapedContent[]`, and `buildPromptWithContext()` formats this data with clear section headers (e.g., "--- PROGRAM INFO ---") so the AI can properly contextualize information from each source. This ensures the AI understands the purpose and context of each scraped webpage, leading to more accurate analysis.
 
+**Naming Convention**: The application uses a consistent naming scheme across components, database identifiers, and environment variables:
+- **Components**: `Prompt1.tsx`, `Prompt2.tsx`, `ReportTemplate.tsx`
+- **Database identifiers**: `prompt1`, `prompt2`, `report_template`
+- **Environment variables**: 
+  - `VITE_PROMPT1_MODEL`, `VITE_PROMPT1_TEMPERATURE`, `VITE_PROMPT1_WEB_SEARCH`
+  - `VITE_PROMPT2_MODEL`, `VITE_PROMPT2_TEMPERATURE`, `VITE_PROMPT2_WEB_SEARCH`
+  - `VITE_REPORT_TEMPLATE_MODEL`, `VITE_REPORT_TEMPLATE_TEMPERATURE`, `VITE_REPORT_TEMPLATE_WEB_SEARCH`
+
 **Web Search Configuration**: Each prompt can independently enable or disable web search to find additional information about similar programs and best practices:
 - Prompt 1 (Program Model Analysis): Web search enabled by default
 - Prompt 2 (Evaluation Framework): Web search enabled by default  
 - Report Template: Web search disabled by default (uses already-gathered information)
 
-Environment variables control web search: `VITE_STEP3_WEB_SEARCH`, `VITE_STEP4_WEB_SEARCH`, `VITE_STEP5_WEB_SEARCH` (set to `true` or `false`).
+Environment variables control web search: `VITE_PROMPT1_WEB_SEARCH`, `VITE_PROMPT2_WEB_SEARCH`, `VITE_REPORT_TEMPLATE_WEB_SEARCH` (set to `true` or `false`).
 
 ### Deployment and Environment
 The project is configured for a Reserved VM deployment on Replit, running a two-server setup. The frontend serves on port 5000, and an internal Express.js server handles API requests and email functionality on port 3001, with Vite proxying `/api/*` requests.
