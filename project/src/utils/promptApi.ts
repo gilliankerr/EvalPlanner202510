@@ -1,3 +1,5 @@
+import type { LabeledScrapeResult } from './scrape';
+
 const API_URL = '/api';
 
 interface PromptData {
@@ -46,9 +48,10 @@ export interface ContextData {
   programName?: string;
   aboutProgram?: string;
   scrapedContent?: string;
+  labeledScrapedContent?: LabeledScrapeResult[];
   programAnalysis?: string;
   evaluationFramework?: string;
-  [key: string]: string | undefined;
+  [key: string]: string | undefined | LabeledScrapeResult[];
 }
 
 export function buildPromptWithContext(adminTemplate: string, context: ContextData): string {
@@ -68,7 +71,23 @@ export function buildPromptWithContext(adminTemplate: string, context: ContextDa
     sections.push('');
   }
   
-  if (context.scrapedContent && context.scrapedContent.trim()) {
+  // Use labeled content if available, otherwise fall back to regular scraped content
+  if (context.labeledScrapedContent && context.labeledScrapedContent.length > 0) {
+    sections.push('=== CONTENT FROM WEBSITES (WITH CONTEXT) ===');
+    context.labeledScrapedContent.forEach((item, index) => {
+      sections.push(`\n--- ${item.label.toUpperCase()} ---`);
+      sections.push(`URL: ${item.url}`);
+      if (item.content) {
+        sections.push(item.content);
+      } else if (item.error) {
+        sections.push(`Error: ${item.error}`);
+      }
+      if (index < context.labeledScrapedContent!.length - 1) {
+        sections.push('');
+      }
+    });
+    sections.push('');
+  } else if (context.scrapedContent && context.scrapedContent.trim()) {
     sections.push('=== CONTENT FROM WEBSITE ===');
     sections.push(context.scrapedContent);
     sections.push('');
