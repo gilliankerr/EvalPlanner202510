@@ -8,6 +8,7 @@ import Prompt2 from './components/Prompt2';
 import ReportTemplate from './components/ReportTemplate';
 import StepSix from './components/StepSix';
 import PromptAdmin from './components/PromptAdmin';
+import PrivacyPolicy from './components/PrivacyPolicy';
 import StepProgress from './components/StepProgress';
 import { TOTAL_STEPS } from './config/workflow';
 import styles from './App.module.css';
@@ -49,6 +50,7 @@ export interface ProgramData {
 
 function App() {
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -208,14 +210,60 @@ function App() {
 
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
+          <details className={styles.aboutSection}>
+            <summary className={styles.aboutSummary}>About this app</summary>
+            <div className={styles.aboutContent}>
+              <p className={styles.aboutParagraph}>
+                This tool guides users through creating evaluation plans for nonprofit programs. 
+                It's based on the{' '}
+                <a 
+                  href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4815131" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className={styles.aboutLink}
+                >
+                  LogicalOutcomes Evaluation Planning Handbook
+                </a>
+                , a simplified evaluation framework designed for nonprofit programs.
+              </p>
+              <p className={styles.aboutSubheading}>Process:</p>
+              <ol className={styles.aboutList}>
+                <li>Users enter program information and relevant URLs</li>
+                <li>The system extracts content from provided websites</li>
+                <li>AI analyzes the program model and identifies key components</li>
+                <li>An evaluation framework is generated based on the analysis</li>
+                <li>A formatted HTML report is produced for download or email delivery</li>
+              </ol>
+            </div>
+          </details>
+          
           <p className={styles.footerText}>
             Powered by LogicalOutcomes Evaluation Planning Framework
           </p>
-          <p className={styles.footerSubtext}>
-            AI-enhanced evaluation planning for nonprofit organizations
-          </p>
+          
+          <div className={styles.footerLinks}>
+            <a 
+              href="https://logicaloutcomes.net" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={styles.footerLink}
+            >
+              Visit LogicalOutcomes
+            </a>
+            <span className={styles.footerLinkSeparator}>•</span>
+            <button 
+              onClick={() => setShowPrivacyPolicy(true)}
+              className={styles.footerLinkButton}
+            >
+              Privacy Policy
+            </button>
+          </div>
         </div>
       </footer>
+      
+      {showPrivacyPolicy && (
+        <PrivacyPolicy onClose={() => setShowPrivacyPolicy(false)} />
+      )}
     </div>
   );
 }
