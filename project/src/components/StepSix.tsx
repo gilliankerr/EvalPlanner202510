@@ -875,7 +875,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         }
         
         .max-w-6xl {
-            max-width: 72rem;
+            max-width: 1200px;
         }
         
         .report-container {
@@ -908,6 +908,8 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         
         .flex-1 {
             flex: 1 1 0%;
+            max-width: 900px;
+            margin: 0 auto;
         }
         
         .no-print {
@@ -917,6 +919,17 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         @media print {
             .no-print {
                 display: none !important;
+            }
+            
+            /* Expand content to use full landscape width when printing */
+            .report-container {
+                max-width: 100%;
+                padding: 0;
+            }
+            
+            .flex-1 {
+                max-width: 100%;
+                margin: 0;
             }
         }
         
