@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FileOutput, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import type { ProgramData } from '../App';
-import { getProcessedPrompt } from '../utils/promptApi';
+import { fetchPrompt, buildPromptWithContext } from '../utils/promptApi';
 
 // Utility functions for handling code fences in AI responses
 const stripCodeFences = (content: string): string => {
@@ -151,24 +151,18 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
     setPlanStatus('generating');
 
     try {
-      const currentDate = new Date().toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      });
-
-      // Fetch and prepare the evaluation plan generation prompt from database
+      // Fetch admin template from database
       // Note: Uses 'step5_plan' as database identifier (mapped to "Report Template" in UI)
-      const planPrompt = await getProcessedPrompt('step5_plan', {
+      const adminTemplate = await fetchPrompt('step5_plan');
+      
+      // Automatically inject all program data + previous steps before admin template
+      const planPrompt = buildPromptWithContext(adminTemplate, {
         organizationName: programData.organizationName,
         programName: programData.programName,
         aboutProgram: programData.aboutProgram,
         scrapedContent: programData.scrapedContent,
         programAnalysis: programData.programAnalysis,
-        evaluationFramework: programData.evaluationFramework,
-        programTypePlural: programData.programTypePlural || 'programs of this type',
-        targetPopulation: programData.targetPopulation || 'the target population described in this evaluation plan',
-        currentDate: currentDate
+        evaluationFramework: programData.evaluationFramework
       });
 
       // Make API call to generate the evaluation plan using the prompt from database
