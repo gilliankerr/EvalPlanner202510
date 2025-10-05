@@ -80,6 +80,21 @@
   font-weight: 500;
 }
 
+.processingIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .adminButton {
   display: flex;
   align-items: center;
@@ -99,6 +114,11 @@
 .adminButtonText {
   font-size: 0.875rem;
   font-weight: 500;
+}
+
+.adminIcon {
+  width: 1rem;
+  height: 1rem;
 }
 
 .mainContent {

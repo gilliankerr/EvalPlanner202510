@@ -62,3 +62,5 @@ export function isPhaseActive(phaseId: string, currentStep: number): boolean {
   if (!phase) return false;
   return phase.steps.includes(currentStep);
 }
+
+export const TOTAL_STEPS = WORKFLOW_PHASES.reduce((total, phase) => total + phase.steps.length, 0);
