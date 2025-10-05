@@ -9,9 +9,16 @@ This React/TypeScript application, built with Vite, assists nonprofit organizati
 ## System Architecture
 
 ### Frontend
-The application is built with React 18.3.1 and TypeScript, utilizing Vite 5.4.2 for development and building. Styling uses a combination of Tailwind CSS (for main application) and CSS Modules (for admin interface mobile responsiveness), complemented by Lucide React for icons. The user interface is a multi-step wizard with progress tracking, designed to be modern and responsive.
+The application is built with React 18.3.1 and TypeScript, utilizing Vite 5.4.2 for development and building. Styling uses CSS Modules exclusively (no Tailwind), complemented by Lucide React for icons. The user interface is a multi-step wizard with progress tracking, designed to be modern and responsive.
 
-**Admin Interface Mobile Responsiveness** (October 2025): The PromptAdmin component uses CSS Modules (`PromptAdmin.module.css`) for responsive design, implementing a mobile-first approach with breakpoints at 768px (tablets) and 1024px (desktop). On mobile devices, the layout stacks vertically with smaller padding and icon-only buttons. On desktop, it displays a side-by-side layout with a 300px sidebar and full button text labels.
+**UI Design (October 2025)**: The application uses a clean 3-phase progress indicator instead of showing all 6 backend steps. The phases are configured in `config/workflow.ts`:
+- **Phase 1: Program Setup** (steps 1-2) - User input and content extraction
+- **Phase 2: AI Analysis** (steps 3-5) - AI processing and framework generation  
+- **Phase 3: Your Report** (step 6) - Final report generation
+
+This simplified design reduces visual clutter while maintaining transparency through status messages that show what the AI is currently doing (e.g., "Analyzing program model...", "Building evaluation framework..."). The workflow configuration is flexible and remix-friendly - future implementations can easily customize phase labels, groupings, and status messages by editing `config/workflow.ts`.
+
+**CSS Architecture**: All styling uses CSS Modules (`App.module.css`, `StepProgress.module.css`, `PromptAdmin.module.css`) for scoped, maintainable styles. The modules implement a mobile-first responsive design with breakpoints at 640px (mobile), 768px (tablets), and 1024px (desktop). Color variables are defined in CSS custom properties for easy theming.
 
 ### Backend and Core Functionality
 The application integrates with Supabase for backend services. Key features include URL extraction and robust web scraping with error handling, retry logic, and concurrent processing. AI-powered analysis and evaluation framework generation are central to the system, configurable via environment variables for LLM models, temperatures, and web search capabilities. Prompts for AI models are managed through a comprehensive admin interface, stored in a PostgreSQL database. Email delivery of reports is handled by Resend.
