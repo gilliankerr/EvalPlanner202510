@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, History, RotateCcw, Check, LogOut } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
+import styles from './PromptAdmin.module.css';
 
 interface Prompt {
   id: number;
@@ -241,14 +242,14 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#f8fafc' }}>
-        <div className="bg-white rounded-lg border p-8 w-full max-w-md">
-          <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: '#30302f' }}>
+      <div className={styles.authContainer}>
+        <div className={styles.authCard}>
+          <h2 className={styles.authTitle}>
             Admin Authentication Required
           </h2>
-          <form onSubmit={verifyPassword} className="space-y-4">
+          <form onSubmit={verifyPassword} className={styles.authForm}>
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: '#30302f' }}>
+              <label className={styles.authLabel}>
                 Password
               </label>
               <input
@@ -256,19 +257,18 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter admin password"
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={styles.authInput}
                 autoFocus
               />
             </div>
             {passwordError && (
-              <div className="text-red-600 text-sm">
+              <div className={styles.authError}>
                 {passwordError}
               </div>
             )}
             <button
               type="submit"
-              className="w-full px-4 py-2 rounded-lg text-white font-medium"
-              style={{ backgroundColor: '#0085ca' }}
+              className={styles.authButton}
             >
               Access Admin Panel
             </button>
@@ -279,99 +279,86 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#f8fafc' }}>
-      {/* Header */}
-      <div className="border-b" style={{ backgroundColor: 'white' }}>
-        <div className="max-w-7xl mx-auto px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+    <div className={styles.adminContainer}>
+      <div className={styles.header}>
+        <div className={styles.headerContent}>
+          <div className={styles.headerTop}>
+            <div className={styles.headerLeft}>
               <button
                 onClick={onBack}
-                className="p-2 rounded-lg hover:bg-gray-100"
+                className={styles.backButton}
               >
                 <ArrowLeft className="h-5 w-5" />
               </button>
-              <h1 className="text-2xl font-bold" style={{ color: '#30302f' }}>
+              <h1 className={styles.title}>
                 Administration
               </h1>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className={styles.headerRight}>
               {selectedPrompt && (
                 <>
                   {saveSuccess && (
-                    <div className="flex items-center space-x-2 text-green-600">
+                    <div className={styles.saveSuccess}>
                       <Check className="h-5 w-5" />
-                      <span>Saved successfully!</span>
+                      <span className={styles.buttonText}>Saved successfully!</span>
                     </div>
                   )}
                   <button
                     onClick={() => setShowVersions(!showVersions)}
-                    className="flex items-center space-x-2 px-4 py-2 rounded-lg border hover:bg-gray-50"
+                    className={styles.headerButton}
                   >
                     <History className="h-4 w-4" />
-                    <span>Version History</span>
+                    <span className={styles.buttonText}>Version History</span>
                   </button>
                   <button
                     onClick={savePrompt}
                     disabled={saving || (editedContent === selectedPrompt.content && editedDisplayName === selectedPrompt.display_name)}
-                    className="flex items-center space-x-2 px-4 py-2 rounded-lg text-white disabled:opacity-50"
-                    style={{ backgroundColor: '#0085ca' }}
+                    className={`${styles.headerButton} ${styles.saveButton}`}
                   >
                     <Save className="h-4 w-4" />
-                    <span>{saving ? 'Saving...' : 'Save Changes'}</span>
+                    <span className={styles.buttonText}>{saving ? 'Saving...' : 'Save Changes'}</span>
                   </button>
                 </>
               )}
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-2 px-4 py-2 rounded-lg border hover:bg-gray-50"
+                className={styles.headerButton}
                 title="Logout"
               >
                 <LogOut className="h-4 w-4" />
-                <span>Logout</span>
+                <span className={styles.buttonText}>Logout</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-8 py-8">
-        <div className="grid grid-cols-12 gap-6">
-          {/* Prompt List */}
-          <div className="col-span-3">
-            <div className="bg-white rounded-lg border p-4">
-              <h2 className="font-semibold mb-4" style={{ color: '#30302f' }}>
+      <div className={styles.mainContent}>
+        <div className={styles.contentGrid}>
+          <div className={styles.sidebar}>
+            <div className={styles.sidebarCard}>
+              <h2 className={styles.sidebarTitle}>
                 Admin Options
               </h2>
-              <div className="space-y-2">
-                {/* Instructions button */}
+              <div className={styles.optionsList}>
                 <button
                   onClick={() => setSelectedPrompt(null)}
-                  className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                    !selectedPrompt
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:bg-gray-50'
-                  }`}
+                  className={`${styles.optionButton} ${!selectedPrompt ? styles.optionButtonActive : ''}`}
                 >
-                  <div className="font-medium text-sm">📖 Instructions</div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className={styles.optionTitle}>📖 Instructions</div>
+                  <div className={styles.optionSubtitle}>
                     View help and guides
                   </div>
                 </button>
                 
-                {/* Prompts list */}
                 {prompts.map((prompt) => (
                   <button
                     key={prompt.id}
                     onClick={() => selectPrompt(prompt)}
-                    className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                      selectedPrompt?.id === prompt.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:bg-gray-50'
-                    }`}
+                    className={`${styles.optionButton} ${selectedPrompt?.id === prompt.id ? styles.optionButtonActive : ''}`}
                   >
-                    <div className="font-medium text-sm">{prompt.display_name}</div>
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className={styles.optionTitle}>{prompt.display_name}</div>
+                    <div className={styles.optionSubtitle}>
                       Version {prompt.current_version}
                     </div>
                   </button>
@@ -379,88 +366,86 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
               </div>
             </div>
 
-            {/* Configuration Section */}
-            <div className="bg-white rounded-lg border p-4 mt-4">
-              <h2 className="font-semibold mb-4" style={{ color: '#30302f' }}>
+            <div className={styles.sidebarCard}>
+              <h2 className={styles.sidebarTitle}>
                 Configuration
               </h2>
               {config ? (
-                <div className="space-y-3 text-sm">
+                <div className={styles.configList}>
                   <div>
-                    <div className="font-medium text-gray-700">Sent-from email address:</div>
-                    <div className="text-gray-600 mt-1">{config.emailFromAddress}</div>
+                    <div className={styles.configLabel}>Sent-from email address:</div>
+                    <div className={styles.configValue}>{config.emailFromAddress}</div>
                   </div>
-                  <div className="border-t pt-3">
-                    <div className="font-medium text-gray-700">{prompts.find(p => p.step_name === 'prompt1')?.display_name} LLM:</div>
-                    <div className="text-gray-600 mt-1">
+                  <div className={styles.configItem}>
+                    <div className={styles.configLabel}>{prompts.find(p => p.step_name === 'prompt1')?.display_name} LLM:</div>
+                    <div className={styles.configValue}>
                       {config.prompt1.model}
                       {config.prompt1.temperature !== null && ` (temp: ${config.prompt1.temperature})`}
                     </div>
-                    <div className="text-gray-600 text-sm mt-1">
+                    <div className={styles.configValue}>
                       🌐 Web search: {config.prompt1.webSearch ? 'Enabled' : 'Disabled'}
                     </div>
                   </div>
-                  <div className="border-t pt-3">
-                    <div className="font-medium text-gray-700">{prompts.find(p => p.step_name === 'prompt2')?.display_name} LLM:</div>
-                    <div className="text-gray-600 mt-1">
+                  <div className={styles.configItem}>
+                    <div className={styles.configLabel}>{prompts.find(p => p.step_name === 'prompt2')?.display_name} LLM:</div>
+                    <div className={styles.configValue}>
                       {config.prompt2.model}
                       {config.prompt2.temperature !== null && ` (temp: ${config.prompt2.temperature})`}
                     </div>
-                    <div className="text-gray-600 text-sm mt-1">
+                    <div className={styles.configValue}>
                       🌐 Web search: {config.prompt2.webSearch ? 'Enabled' : 'Disabled'}
                     </div>
                   </div>
-                  <div className="border-t pt-3">
-                    <div className="font-medium text-gray-700">{prompts.find(p => p.step_name === 'report_template')?.display_name} LLM:</div>
-                    <div className="text-gray-600 mt-1">
+                  <div className={styles.configItem}>
+                    <div className={styles.configLabel}>{prompts.find(p => p.step_name === 'report_template')?.display_name} LLM:</div>
+                    <div className={styles.configValue}>
                       {config.reportTemplate.model}
                       {config.reportTemplate.temperature !== null && ` (temp: ${config.reportTemplate.temperature})`}
                     </div>
-                    <div className="text-gray-600 text-sm mt-1">
+                    <div className={styles.configValue}>
                       🌐 Web search: {config.reportTemplate.webSearch ? 'Enabled' : 'Disabled'}
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-sm text-gray-500">Loading configuration...</div>
+                <div className={styles.configValue}>Loading configuration...</div>
               )}
             </div>
           </div>
 
-          {/* Editor */}
-          <div className={showVersions ? 'col-span-6' : 'col-span-9'}>
+          <div className={styles.editorArea}>
             {selectedPrompt ? (
-              <div className="bg-white rounded-lg border p-6">
-                <div className="mb-4">
-                  <p className="text-sm text-gray-500 mb-2">
+              <div className={styles.editorCard}>
+                <div className={styles.versionInfo}>
+                  <p className={styles.versionText}>
                     Current Version: {selectedPrompt.current_version}
                   </p>
                 </div>
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Display Name</label>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Display Name</label>
                   <input
                     type="text"
                     value={editedDisplayName}
                     onChange={(e) => setEditedDisplayName(e.target.value)}
                     placeholder="Enter prompt display name..."
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className={styles.formInput}
                   />
                 </div>
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Change Notes (Optional)</label>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Change Notes (Optional)</label>
                   <input
                     type="text"
                     value={changeNotes}
                     onChange={(e) => setChangeNotes(e.target.value)}
                     placeholder="Describe what you changed..."
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className={styles.formInput}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Prompt Content (Markdown)</label>
+                  <label className={styles.formLabel}>Prompt Content (Markdown)</label>
                   <div data-color-mode="light">
                     {/* @ts-ignore - MDEditor type incompatibility with React types */}
                     <MDEditor
@@ -473,15 +458,14 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-lg border p-6">
-                <h1 className="text-2xl font-bold mb-6" style={{ color: '#30302f' }}>
+              <div className={styles.instructionsCard}>
+                <h1 className={styles.instructionsTitle}>
                   Instructions
                 </h1>
                 
-                <div className="space-y-8 text-sm text-gray-700">
-                  {/* How to edit prompts section */}
+                <div className={styles.instructionsContent}>
                   <div>
-                    <h2 className="text-lg font-semibold mb-3" style={{ color: '#30302f' }}>
+                    <h2 className={styles.sectionTitle}>
                       How to edit AI prompts
                     </h2>
                     <p className="mb-4">
@@ -489,7 +473,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                     </p>
                     
                     <p className="mb-2 font-medium">Step-by-step guide:</p>
-                    <ol className="list-decimal ml-5 space-y-2 mb-4 text-sm">
+                    <ol className={styles.instructionsList}>
                       <li>
                         <strong>Pick a prompt</strong> - Click on one from the left sidebar (they're named like "Analyze program model")
                       </li>
@@ -507,27 +491,26 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                       </li>
                     </ol>
                     
-                    <p className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg text-green-900 text-sm">
+                    <p className={styles.noteBox}>
                       ✅ <strong>Don't worry about breaking things:</strong> Every time you save, a complete backup is created automatically. You can always restore any previous version.
                     </p>
                   </div>
 
-                  {/* How to change configuration section */}
-                  <div className="border-t pt-6">
-                    <h2 className="text-lg font-semibold mb-3" style={{ color: '#30302f' }}>
+                  <div className={styles.instructionSection}>
+                    <h2 className={styles.sectionTitle}>
                       How to change system settings
                     </h2>
                     
                     <div className="space-y-6">
                       <div>
-                        <h3 className="font-semibold text-base mb-2" style={{ color: '#30302f' }}>
+                        <h3 className={styles.subsectionTitle}>
                           How to change the email sender address
                         </h3>
                         <p className="mb-3">
                           This is the email address that appears in the "From" field when evaluation reports are emailed to users.
                         </p>
                         
-                        <ol className="list-decimal ml-5 space-y-2 text-sm">
+                        <ol className={styles.instructionsList}>
                           <li>
                             <strong>Go to Replit Integrations</strong>
                             <p className="mt-1">Find and click on the Resend integration in your Replit project</p>
@@ -542,12 +525,12 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                           </li>
                         </ol>
                         <p className="mt-3 text-sm text-gray-600">
-                          <strong>Note:</strong> If using a custom domain, make sure it's verified in your <a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Resend account</a> first.
+                          <strong>Note:</strong> If using a custom domain, make sure it's verified in your <a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer" className={styles.link}>Resend account</a> first.
                         </p>
                       </div>
 
                       <div className="border-t pt-6">
-                        <h3 className="font-semibold text-base mb-2" style={{ color: '#30302f' }}>
+                        <h3 className={styles.subsectionTitle}>
                           How to change AI models
                         </h3>
                         <p className="mb-3">
@@ -555,13 +538,13 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                         </p>
                         
                         <p className="mb-2 font-medium">Easiest method: Ask Replit Agent</p>
-                        <div className="p-3 bg-gray-50 border border-gray-300 rounded-lg mb-4 font-mono text-sm space-y-1">
+                        <div className={styles.codeBlock}>
                           <div>"Use GPT-5 for all prompts"</div>
                           <div>"Switch {prompts.find(p => p.step_name === 'prompt1')?.display_name} to Claude 3.5 Sonnet"</div>
                           <div>"Change {prompts.find(p => p.step_name === 'report_template')?.display_name} to use GPT-4"</div>
                         </div>
                         
-                        <p className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-900 text-sm">
+                        <p className={`${styles.noteBox} ${styles.blueNoteBox}`}>
                           <strong>What is "temperature"?</strong> This controls how creative vs. predictable the AI is. Lower values (like 0.3) make it more focused and consistent. Higher values (like 0.9) make it more creative and varied. Most prompts work well with the default setting.
                         </p>
 
@@ -598,19 +581,19 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                         </details>
 
                         <p className="mt-4 text-gray-600 text-sm">
-                          <strong>Note:</strong> All AI models are accessed through a service called OpenRouter. See the <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">full list of available models</a> if you want to explore options.
+                          <strong>Note:</strong> All AI models are accessed through a service called OpenRouter. See the <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className={styles.link}>full list of available models</a> if you want to explore options.
                         </p>
                       </div>
 
                       <div className="border-t pt-6">
-                        <h3 className="font-semibold text-base mb-2" style={{ color: '#30302f' }}>
+                        <h3 className={styles.subsectionTitle}>
                           How to turn web search on or off
                         </h3>
                         <p className="mb-3">
                           Web search allows the AI to look up information about similar programs and best practices from across the internet. This can make evaluation plans more informed and comprehensive, but it also makes processing slower and slightly more expensive.
                         </p>
 
-                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+                        <div className={`${styles.noteBox} ${styles.blueNoteBox}`}>
                           <h4 className="font-medium text-sm mb-2">Your current settings:</h4>
                           <ul className="space-y-1 text-sm">
                             <li>• <strong>{prompts.find(p => p.step_name === 'prompt1')?.display_name}:</strong> Web search is <strong className={config?.prompt1.webSearch ? 'text-green-700' : 'text-gray-600'}>{config?.prompt1.webSearch ? 'ON' : 'OFF'}</strong></li>
@@ -620,7 +603,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                         </div>
 
                         <p className="mb-2 font-medium">Easiest method: Ask Replit Agent</p>
-                        <div className="p-3 bg-gray-50 border border-gray-300 rounded-lg mb-4 font-mono text-sm space-y-1">
+                        <div className={styles.codeBlock}>
                           <div>"Turn off web search for {prompts.find(p => p.step_name === 'prompt1')?.display_name}"</div>
                           <div>"Enable web search for {prompts.find(p => p.step_name === 'prompt2')?.display_name}"</div>
                           <div>"Turn on web search for all prompts"</div>
@@ -646,27 +629,26 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                     </div>
                   </div>
 
-                  {/* How to change your admin password section */}
-                  <div className="border-t pt-6">
-                    <h2 className="text-lg font-semibold mb-3" style={{ color: '#30302f' }}>
+                  <div className={styles.instructionSection}>
+                    <h2 className={styles.sectionTitle}>
                       How to change your admin password
                     </h2>
                     <p className="mb-3">
                       To change the password for accessing this admin interface, give Replit Agent the following instructions:
                     </p>
-                    <div className="p-4 bg-gray-50 border border-gray-300 rounded-lg mb-3 font-mono text-sm">
+                    <div className={styles.codeBlock}>
                       "Change the ADMIN_PASSWORD secret to [your new password] and restart the Email Server workflow"
                     </div>
                     <p className="text-sm text-gray-600 mb-3">
                       Replace <code className="bg-gray-100 px-1 rounded">[your new password]</code> with your desired password. Replit Agent will update the secret and restart the server for you.
                     </p>
-                    <p className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg text-green-900">
+                    <p className={styles.noteBox}>
                       <strong>Security Note:</strong> Your admin session uses secure, time-limited tokens that expire after 24 hours. Each login generates a unique session token, and logging out immediately invalidates your session.
                     </p>
                   </div>
 
-                  <div className="border-t pt-6">
-                    <h2 className="text-lg font-semibold mb-3" style={{ color: '#30302f' }}>
+                  <div className={styles.instructionSection}>
+                    <h2 className={styles.sectionTitle}>
                       How to apply your changes
                     </h2>
                     <div className="space-y-3 text-sm text-gray-700">
@@ -686,27 +668,26 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
             )}
           </div>
 
-          {/* Version History */}
           {showVersions && selectedPrompt && (
-            <div className="col-span-3">
-              <div className="bg-white rounded-lg border p-4">
-                <h3 className="font-semibold mb-4">Version History</h3>
-                <div className="space-y-3 max-h-[600px] overflow-y-auto">
+            <div className={styles.versionHistory}>
+              <div className={styles.versionHistoryCard}>
+                <h3 className={styles.versionHistoryTitle}>Version History</h3>
+                <div className={styles.versionList}>
                   {versions.map((version) => (
                     <div
                       key={version.id}
-                      className="p-3 border rounded-lg"
+                      className={`${styles.versionItem} ${version.version_number === selectedPrompt.current_version ? styles.currentVersion : ''}`}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="font-medium text-sm">
+                      <div className={styles.versionHeader}>
+                        <div>
+                          <div className={styles.versionNumber}>
                             Version {version.version_number}
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className={styles.versionMeta}>
                             {new Date(version.created_at).toLocaleDateString()}
                           </div>
                           {version.change_notes && (
-                            <div className="text-xs text-gray-600 mt-2">
+                            <div className={styles.versionNotes}>
                               {version.change_notes}
                             </div>
                           )}
@@ -714,10 +695,10 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                         {version.version_number !== selectedPrompt.current_version && (
                           <button
                             onClick={() => rollbackToVersion(version.version_number)}
-                            className="ml-2 p-1 rounded hover:bg-gray-100"
+                            className={styles.rollbackButton}
                             title="Rollback to this version"
                           >
-                            <RotateCcw className="h-4 w-4 text-gray-600" />
+                            <RotateCcw className="h-4 w-4" />
                           </button>
                         )}
                       </div>
