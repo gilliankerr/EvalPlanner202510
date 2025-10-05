@@ -1,4 +1,4 @@
-import { FileText, Brain, FileOutput } from 'lucide-react';
+import { FileText, Sparkles, FileCheck } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 export interface WorkflowPhase {
@@ -12,7 +12,7 @@ export interface WorkflowPhase {
 export const WORKFLOW_PHASES: WorkflowPhase[] = [
   {
     id: 'input',
-    label: 'Program Setup',
+    label: 'Provide information',
     icon: FileText,
     steps: [1, 2],
     statusMessages: {
@@ -22,8 +22,8 @@ export const WORKFLOW_PHASES: WorkflowPhase[] = [
   },
   {
     id: 'analysis',
-    label: 'AI Analysis',
-    icon: Brain,
+    label: 'AI analysis',
+    icon: Sparkles,
     steps: [3, 4, 5],
     statusMessages: {
       3: 'Analyzing program model...',
@@ -33,8 +33,8 @@ export const WORKFLOW_PHASES: WorkflowPhase[] = [
   },
   {
     id: 'output',
-    label: 'Your Report',
-    icon: FileOutput,
+    label: 'Your report',
+    icon: FileCheck,
     steps: [6],
     statusMessages: {
       6: 'Generating final report...'
