@@ -540,6 +540,74 @@ app.post('/prompts/:step/rollback/:version', authenticateAdmin, async (req, res)
   }
 });
 
+// Settings Management API Routes
+
+// GET /settings - Get all settings (ADMIN ONLY)
+app.get('/settings', authenticateAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT key, value, description FROM settings ORDER BY key'
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching settings:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /settings/:key - Get a specific setting (ADMIN ONLY)
+app.get('/settings/:key', authenticateAdmin, async (req, res) => {
+  try {
+    const { key } = req.params;
+    const result = await pool.query(
+      'SELECT key, value, description FROM settings WHERE key = $1',
+      [key]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Setting not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching setting:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PUT /settings/:key - Update a setting (ADMIN ONLY)
+app.put('/settings/:key', authenticateAdmin, async (req, res) => {
+  try {
+    const { key } = req.params;
+    const { value } = req.body;
+    
+    // Check if setting exists
+    const checkResult = await pool.query(
+      'SELECT key FROM settings WHERE key = $1',
+      [key]
+    );
+    
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Setting not found' });
+    }
+    
+    // Update the setting
+    const result = await pool.query(
+      'UPDATE settings SET value = $1, updated_at = CURRENT_TIMESTAMP WHERE key = $2 RETURNING *',
+      [value, key]
+    );
+    
+    res.json({ 
+      success: true, 
+      setting: result.rows[0],
+      message: `Setting '${key}' updated successfully` 
+    });
+  } catch (error) {
+    console.error('Error updating setting:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Configuration endpoint - returns read-only system settings
 app.get('/config', async (req, res) => {
   try {
@@ -552,22 +620,35 @@ app.get('/config', async (req, res) => {
       console.error('Could not fetch from email:', error.message);
     }
 
+    // Get settings from database (with env var fallbacks)
+    const prompt1Model = await getSetting('prompt1_model', 'VITE_PROMPT1_MODEL') || 'openai/gpt-4o';
+    const prompt1Temp = await getSetting('prompt1_temperature', 'VITE_PROMPT1_TEMPERATURE');
+    const prompt1WebSearch = await getSetting('prompt1_web_search', 'VITE_PROMPT1_WEB_SEARCH');
+    
+    const prompt2Model = await getSetting('prompt2_model', 'VITE_PROMPT2_MODEL') || 'openai/gpt-4o';
+    const prompt2Temp = await getSetting('prompt2_temperature', 'VITE_PROMPT2_TEMPERATURE');
+    const prompt2WebSearch = await getSetting('prompt2_web_search', 'VITE_PROMPT2_WEB_SEARCH');
+    
+    const reportModel = await getSetting('report_template_model', 'VITE_REPORT_TEMPLATE_MODEL') || 'openai/gpt-4o';
+    const reportTemp = await getSetting('report_template_temperature', 'VITE_REPORT_TEMPLATE_TEMPERATURE');
+    const reportWebSearch = await getSetting('report_template_web_search', 'VITE_REPORT_TEMPLATE_WEB_SEARCH');
+
     const config = {
       emailFromAddress,
       prompt1: {
-        model: process.env.VITE_PROMPT1_MODEL || 'openai/gpt-5',
-        temperature: process.env.VITE_PROMPT1_TEMPERATURE ? parseFloat(process.env.VITE_PROMPT1_TEMPERATURE) : null,
-        webSearch: process.env.VITE_PROMPT1_WEB_SEARCH === 'false' ? false : true
+        model: prompt1Model,
+        temperature: prompt1Temp ? parseFloat(prompt1Temp) : 0.7,
+        webSearch: prompt1WebSearch === 'false' ? false : true
       },
       prompt2: {
-        model: process.env.VITE_PROMPT2_MODEL || 'openai/gpt-5',
-        temperature: process.env.VITE_PROMPT2_TEMPERATURE ? parseFloat(process.env.VITE_PROMPT2_TEMPERATURE) : null,
-        webSearch: process.env.VITE_PROMPT2_WEB_SEARCH === 'false' ? false : true
+        model: prompt2Model,
+        temperature: prompt2Temp ? parseFloat(prompt2Temp) : 0.7,
+        webSearch: prompt2WebSearch === 'false' ? false : true
       },
       reportTemplate: {
-        model: process.env.VITE_REPORT_TEMPLATE_MODEL || 'openai/gpt-5',
-        temperature: process.env.VITE_REPORT_TEMPLATE_TEMPERATURE ? parseFloat(process.env.VITE_REPORT_TEMPLATE_TEMPERATURE) : null,
-        webSearch: process.env.VITE_REPORT_TEMPLATE_WEB_SEARCH === 'true' ? true : false
+        model: reportModel,
+        temperature: reportTemp ? parseFloat(reportTemp) : 0.7,
+        webSearch: reportWebSearch === 'true' ? true : false
       }
     };
     
