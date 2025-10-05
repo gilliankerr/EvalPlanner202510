@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Brain, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import type { ProgramData } from '../App';
-import { getProcessedPrompt } from '../utils/promptApi';
+import { fetchPrompt, buildPromptWithContext } from '../utils/promptApi';
 
 interface PromptOneProps {
   programData: ProgramData;
@@ -23,11 +23,14 @@ const PromptOne: React.FC<PromptOneProps> = ({ programData, updateProgramData, o
     setAnalysisStatus('analyzing');
 
     try {
-      // Fetch and prepare the analysis prompt from database
+      // Fetch admin template from database
       // Note: Uses 'step3_analysis' as database identifier (mapped to "Prompt 1" in UI)
-      const analysisPrompt = await getProcessedPrompt('step3_analysis', {
-        programName: programData.programName,
+      const adminTemplate = await fetchPrompt('step3_analysis');
+      
+      // Automatically inject all program data before admin template
+      const analysisPrompt = buildPromptWithContext(adminTemplate, {
         organizationName: programData.organizationName,
+        programName: programData.programName,
         aboutProgram: programData.aboutProgram,
         scrapedContent: programData.scrapedContent
       });
