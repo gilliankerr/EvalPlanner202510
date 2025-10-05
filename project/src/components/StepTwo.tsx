@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Globe, CheckCircle, AlertTriangle, Loader2, RotateCcw, Clock, Shield, XCircle } from 'lucide-react';
 import type { ProgramData } from '../App';
-import { extractAndNormalizeUrls } from '../utils/url';
-import { scrapeUrls, type ScrapeResult } from '../utils/scrape';
+import { extractAndNormalizeUrls, extractLabeledUrls } from '../utils/url';
+import { scrapeUrls, type ScrapeResult, type LabeledScrapeResult } from '../utils/scrape';
 
 interface StepTwoProps {
   programData: ProgramData;
@@ -17,23 +17,30 @@ const StepTwo: React.FC<StepTwoProps> = ({ programData, updateProgramData, onCom
   const [validUrls, setValidUrls] = useState<string[]>([]);
 
   useEffect(() => {
-    // Extract and normalize URLs from both sources
+    // Extract labeled URLs from program description
+    const labeledUrlList = extractLabeledUrls(programData.aboutProgram);
+    
+    // Also extract from URL field for backward compatibility
     const urlsFromField = programData.urls || [];
-    const extractedUrls = extractAndNormalizeUrls(programData.aboutProgram, urlsFromField);
-    
-    console.log('[URL Extraction] Raw input:', programData.aboutProgram);
-    console.log('[URL Extraction] Extracted URLs:', extractedUrls);
-    
-    // Get valid URLs only
-    const validUrlList = extractedUrls
+    const additionalUrls = extractAndNormalizeUrls('', urlsFromField)
       .filter(url => url.isValid)
       .map(url => url.normalized);
+    
+    console.log('[URL Extraction] Raw input:', programData.aboutProgram);
+    console.log('[URL Extraction] Labeled URLs:', labeledUrlList);
+    console.log('[URL Extraction] Additional URLs from field:', additionalUrls);
+    
+    // Combine both sources (labeled URLs take priority)
+    const validUrlList = [
+      ...labeledUrlList.map(lu => lu.normalized),
+      ...additionalUrls.filter(url => !labeledUrlList.some(lu => lu.normalized === url))
+    ];
     
     console.log('[URL Extraction] Valid URLs to scrape:', validUrlList);
     setValidUrls(validUrlList);
     
     if (validUrlList.length > 0) {
-      startScraping(validUrlList);
+      startScraping(validUrlList, labeledUrlList);
     } else {
       // If no valid URLs, skip this step
       setTimeout(() => {
@@ -42,7 +49,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ programData, updateProgramData, onCom
     }
   }, []);
 
-  const startScraping = async (urls: string[]) => {
+  const startScraping = async (urls: string[], labeledUrls: ReturnType<typeof extractLabeledUrls>) => {
     setIsLocalProcessing(true);
     setIsProcessing(true);
     
@@ -67,13 +74,31 @@ const StepTwo: React.FC<StepTwoProps> = ({ programData, updateProgramData, onCom
       
       setUrlResults(results);
       
-      // Combine successful content for program data
+      // Create labeled scrape results by matching URLs to their labels
+      const labeledResults: LabeledScrapeResult[] = results
+        .filter(r => r.status === 'success' && r.content)
+        .map(r => {
+          // Find the label for this URL
+          const labeledUrl = labeledUrls.find(lu => lu.normalized === r.url);
+          return {
+            label: labeledUrl?.label || 'Reference',
+            url: r.url,
+            status: r.status,
+            content: r.content,
+            error: r.error
+          };
+        });
+      
+      // Combine successful content for backward compatibility
       const successfulContent = results
         .filter(r => r.status === 'success' && r.content)
         .map(r => r.content)
         .join('\n\n---\n\n');
       
-      updateProgramData({ scrapedContent: successfulContent });
+      updateProgramData({ 
+        scrapedContent: successfulContent,
+        labeledScrapedContent: labeledResults
+      });
       
     } catch (error) {
       console.error('Scraping error:', error);
