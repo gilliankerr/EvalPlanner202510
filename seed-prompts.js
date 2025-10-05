@@ -7,7 +7,7 @@ const pool = new Pool({
 
 const prompts = [
   {
-    step_name: 'step3_analysis',
+    step_name: 'prompt1',
     display_name: 'Prompt 1',
     content: `# Primary Objective
 
@@ -65,7 +65,7 @@ Example JSON format:
     change_notes: 'Initial version - extracted from StepThree.tsx'
   },
   {
-    step_name: 'step4_framework',
+    step_name: 'prompt2',
     display_name: 'Prompt 2',
     content: `# Primary Objective
 
@@ -105,7 +105,7 @@ Your framework should directly reference and build upon the program model, targe
     change_notes: 'Updated to use programAnalysis from Step 3 as input - fixes dependency flow'
   },
   {
-    step_name: 'step5_plan',
+    step_name: 'report_template',
     display_name: 'Report Template',
     content: `# Primary Objective
 
