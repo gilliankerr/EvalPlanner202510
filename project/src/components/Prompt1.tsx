@@ -3,14 +3,14 @@ import { Brain, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import type { ProgramData } from '../App';
 import { fetchPrompt, buildPromptWithContext } from '../utils/promptApi';
 
-interface PromptOneProps {
+interface Prompt1Props {
   programData: ProgramData;
   updateProgramData: (data: Partial<ProgramData>) => void;
   onComplete: () => void;
   setIsProcessing: (processing: boolean) => void;
 }
 
-const PromptOne: React.FC<PromptOneProps> = ({ programData, updateProgramData, onComplete, setIsProcessing }) => {
+const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onComplete, setIsProcessing }) => {
   const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'complete' | 'error'>('idle');
   const [analysisResult, setAnalysisResult] = useState<string>('');
 
@@ -24,8 +24,8 @@ const PromptOne: React.FC<PromptOneProps> = ({ programData, updateProgramData, o
 
     try {
       // Fetch admin template from database
-      // Note: Uses 'step3_analysis' as database identifier (mapped to "Prompt 1" in UI)
-      const adminTemplate = await fetchPrompt('step3_analysis');
+      // Note: Uses 'prompt1' as database identifier
+      const adminTemplate = await fetchPrompt('prompt1');
       
       // Automatically inject all program data before admin template
       const analysisPrompt = buildPromptWithContext(adminTemplate, {
@@ -37,8 +37,8 @@ const PromptOne: React.FC<PromptOneProps> = ({ programData, updateProgramData, o
       });
 
       // Make API call to OpenRouter
-      const model = import.meta.env.VITE_STEP3_MODEL || 'openai/gpt-5';
-      const temperature = import.meta.env.VITE_STEP3_TEMPERATURE ? parseFloat(import.meta.env.VITE_STEP3_TEMPERATURE) : undefined;
+      const model = import.meta.env.VITE_PROMPT1_MODEL || 'openai/gpt-5';
+      const temperature = import.meta.env.VITE_PROMPT1_TEMPERATURE ? parseFloat(import.meta.env.VITE_PROMPT1_TEMPERATURE) : undefined;
       
       const requestBody: any = {
         model,
@@ -253,4 +253,4 @@ const PromptOne: React.FC<PromptOneProps> = ({ programData, updateProgramData, o
   );
 };
 
-export default PromptOne;
+export default Prompt1;
