@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Download, Loader2, CheckCircle, Mail } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { marked, Tokens } from 'marked';
 import hljs from 'highlight.js';
 import DOMPurify from 'dompurify';
@@ -1250,92 +1250,52 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="p-2 bg-indigo-100 rounded-lg">
-            <Download className="h-6 w-6 text-indigo-600" />
+      <div className="max-w-2xl mx-auto">
+        {/* Rendering State */}
+        {renderStatus === 'rendering' && (
+          <div className="text-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+            <p className="text-slate-600">Preparing your evaluation plan...</p>
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900">Document Generation</h2>
-          </div>
-        </div>
-      </div>
+        )}
 
-      <div className="space-y-6">
-        {/* Status Card */}
-        <div className={`p-6 rounded-lg border ${
-          renderStatus === 'rendering' ? 'bg-blue-50 border-blue-200' :
-          renderStatus === 'complete' ? 'bg-green-50 border-green-200' :
-          'bg-slate-50 border-slate-200'
-        }`}>
-          <div className="flex items-center space-x-3">
-            {renderStatus === 'rendering' && <Loader2 className="h-6 w-6 animate-spin text-blue-600" />}
-            {renderStatus === 'complete' && <CheckCircle className="h-6 w-6 text-green-600" />}
-            
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">
-                {renderStatus === 'rendering' && 'Rendering HTML Report...'}
-                {renderStatus === 'complete' && 'HTML Report Ready'}
-                {renderStatus === 'idle' && 'Preparing HTML Render...'}
-              </h3>
-              <p className="text-slate-600">
-                {renderStatus === 'rendering' && 'Converting evaluation plan to formatted HTML document'}
-                {renderStatus === 'complete' && 'Your evaluation plan has been formatted as a professional HTML report'}
-                {renderStatus === 'idle' && 'Setting up HTML rendering process'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Success Actions */}
+        {/* Complete State */}
         {renderStatus === 'complete' && (
-          <>
-            <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 border border-green-200">
-              <div className="text-center">
-                <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                  Evaluation Plan Complete!
-                </h3>
-                <p className="text-slate-600 mb-6">
-                  Your comprehensive evaluation plan for {programData.programName} has been successfully generated 
-                  and formatted as a professional HTML document.
-                  {programData.deliveryMethod === 'email' && (
-                    <span> It has been sent to {programData.userEmail}.</span>
-                  )}
-                </p>
-                
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  {programData.deliveryMethod === 'download' ? (
-                    <button
-                      onClick={downloadHtml}
-                      className="flex items-center justify-center space-x-2 px-8 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200"
-                    >
-                      <Download className="h-5 w-5" />
-                      <span>Download Evaluation Plan</span>
-                    </button>
-                  ) : (
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      <button
-                        onClick={downloadHtml}
-                        className="flex items-center justify-center space-x-2 px-6 py-3 bg-slate-600 text-white font-medium rounded-lg hover:bg-slate-700 focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-all duration-200"
-                      >
-                        <Download className="h-5 w-5" />
-                        <span>Download Copy</span>
-                      </button>
-                      <button
-                        onClick={sendEmailReport}
-                        className="flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
-                      >
-                        <Mail className="h-5 w-5" />
-                        <span>Resend Email</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
+          <div className="text-center py-8">
+            <p className="text-lg text-slate-700 mb-8">
+              {programData.deliveryMethod === 'email' ? (
+                <>Your evaluation plan has been sent to {programData.userEmail}.</>
+              ) : (
+                <>Your evaluation plan is ready to download.</>
+              )}
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              {programData.deliveryMethod === 'download' ? (
+                <button
+                  onClick={downloadHtml}
+                  className="px-6 py-2.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  Download
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={downloadHtml}
+                    className="px-6 py-2.5 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors"
+                  >
+                    Download
+                  </button>
+                  <button
+                    onClick={sendEmailReport}
+                    className="px-6 py-2.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  >
+                    Resend Email
+                  </button>
+                </>
+              )}
             </div>
-
-          </>
+          </div>
         )}
       </div>
     </div>
