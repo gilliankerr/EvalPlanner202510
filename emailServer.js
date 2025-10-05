@@ -487,6 +487,44 @@ app.get('/config', (req, res) => {
   }
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Email server running on port ${PORT}`);
-});
+async function startServer() {
+  try {
+    console.log('=== Email Server Startup ===');
+    console.log('Environment checks:');
+    console.log(`- DATABASE_URL: ${process.env.DATABASE_URL ? '✓ Set' : '✗ Missing'}`);
+    console.log(`- REPLIT_CONNECTORS_HOSTNAME: ${process.env.REPLIT_CONNECTORS_HOSTNAME ? '✓ Set' : '✗ Missing'}`);
+    console.log(`- REPL_IDENTITY or WEB_REPL_RENEWAL: ${(process.env.REPL_IDENTITY || process.env.WEB_REPL_RENEWAL) ? '✓ Set' : '✗ Missing'}`);
+    console.log(`- ADMIN_PASSWORD: ${process.env.ADMIN_PASSWORD ? '✓ Set' : '✗ Missing'}`);
+
+    console.log('\nTesting database connection...');
+    const dbTest = await pool.query('SELECT NOW()');
+    console.log('✓ Database connection successful');
+
+    console.log('\nTesting Resend connection...');
+    try {
+      const credentials = await getCredentials();
+      console.log('✓ Resend connection successful');
+      console.log(`  From email: ${credentials.fromEmail || FROM_EMAIL}`);
+    } catch (error) {
+      console.error('✗ Resend connection failed:', error.message);
+      console.error('  This may work in development but will cause issues when sending emails');
+    }
+
+    console.log('\nChecking prompts table...');
+    const promptsCheck = await pool.query('SELECT COUNT(*) FROM prompts');
+    console.log(`✓ Prompts table accessible (${promptsCheck.rows[0].count} prompts found)`);
+
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`\n✓ Email server running on port ${PORT}`);
+      console.log('=========================\n');
+    });
+  } catch (error) {
+    console.error('\n✗ FATAL ERROR during server startup:');
+    console.error('Error:', error.message);
+    console.error('Stack:', error.stack);
+    console.error('\nServer cannot start. Please check the errors above.');
+    process.exit(1);
+  }
+}
+
+startServer();
