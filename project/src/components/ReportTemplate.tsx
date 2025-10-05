@@ -152,8 +152,8 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
 
     try {
       // Fetch admin template from database
-      // Note: Uses 'step5_plan' as database identifier (mapped to "Report Template" in UI)
-      const adminTemplate = await fetchPrompt('step5_plan');
+      // Note: Uses 'report_template' as database identifier
+      const adminTemplate = await fetchPrompt('report_template');
       
       // Automatically inject all program data + previous steps before admin template
       const planPrompt = buildPromptWithContext(adminTemplate, {
@@ -167,8 +167,8 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
       });
 
       // Make API call to generate the evaluation plan using the prompt from database
-      const model = import.meta.env.VITE_STEP5_MODEL || 'openai/gpt-5';
-      const temperature = import.meta.env.VITE_STEP5_TEMPERATURE ? parseFloat(import.meta.env.VITE_STEP5_TEMPERATURE) : undefined;
+      const model = import.meta.env.VITE_REPORT_TEMPLATE_MODEL || 'openai/gpt-5';
+      const temperature = import.meta.env.VITE_REPORT_TEMPLATE_TEMPERATURE ? parseFloat(import.meta.env.VITE_REPORT_TEMPLATE_TEMPERATURE) : undefined;
       
       const requestBody: any = {
         model,
