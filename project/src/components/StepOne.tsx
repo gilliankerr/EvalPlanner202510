@@ -84,11 +84,6 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
         <p className={styles.formSubtitle}>Enter details about the program you want to evaluate</p>
       </div>
 
-      {/* Simple processing note without icon */}
-      <p className={styles.processingNote}>
-        Report generation takes 5-10 minutes depending on program complexity. You can choose to download immediately or receive by email.
-      </p>
-
       <div className={styles.formFields}>
         {/* Organization Name */}
         <div className={styles.fieldGroup}>
@@ -175,6 +170,9 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
           <label className={styles.staticLabel}>
             How would you like to receive your evaluation plan?
           </label>
+          <p className={styles.processingNote}>
+            Report generation takes 5-10 minutes depending on program complexity. You can choose to download immediately or receive by email.
+          </p>
           <div className={styles.radioGroup}>
             <label className={styles.radioOption}>
               <input
