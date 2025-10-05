@@ -206,7 +206,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         
         return `<div class="logic-model-container">
           <h4 style="margin: 0 0 1rem 0; color: #1e40af; text-align: center;">${programData.programName} Logic Model</h4>
-          <table class="standard-table">
+          <table class="logic-model-table">
             <thead><tr>${header}</tr></thead>
             <tbody>${enhancedBody}</tbody>
           </table>
