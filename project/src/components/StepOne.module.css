@@ -1,0 +1,310 @@
+/* Form Container */
+.formContainer {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.formHeader {
+  margin-bottom: 32px;
+}
+
+.formTitle {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #111827;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin: 0 0 8px 0;
+}
+
+.formSubtitle {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Remove processing time section - replaced with simple text */
+.processingNote {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 32px;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+/* Form Fields Container */
+.formFields {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Modern Field Group */
+.fieldGroup {
+  position: relative;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+/* Modern Input Field */
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  font-size: 16px;
+  line-height: 1;
+  color: #111827;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 150ms ease;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.input:hover {
+  border-color: #d1d5db;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #0085ca;
+  box-shadow: 0 0 0 2px rgba(0, 133, 202, 0.1), inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.input::placeholder {
+  color: #9ca3af;
+  font-size: 15px;
+}
+
+/* Floating Label Effect */
+.label {
+  position: absolute;
+  left: 16px;
+  top: 14px;
+  font-size: 16px;
+  color: #6b7280;
+  pointer-events: none;
+  transition: all 150ms ease;
+  background: white;
+  padding: 0 4px;
+  line-height: 1;
+  font-weight: 400;
+}
+
+.input:focus + .label,
+.input:not(:placeholder-shown) + .label {
+  top: -9px;
+  left: 12px;
+  font-size: 12px;
+  color: #0085ca;
+  font-weight: 500;
+}
+
+/* Static Label (alternative for required fields) */
+.staticLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+  letter-spacing: 0.01em;
+}
+
+.requiredStar {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+/* Helper Text */
+.helperText {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* Textarea */
+.textarea {
+  width: 100%;
+  min-height: 160px;
+  padding: 12px 16px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #111827;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 150ms ease;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  resize: vertical;
+  font-family: inherit;
+}
+
+.textarea:hover {
+  border-color: #d1d5db;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #0085ca;
+  box-shadow: 0 0 0 2px rgba(0, 133, 202, 0.1), inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.textarea::placeholder {
+  color: #9ca3af;
+  font-size: 15px;
+}
+
+/* Error States */
+.inputError {
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.inputError:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1), inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #dc2626;
+  margin-top: 6px;
+}
+
+.errorIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* URL Detection Box */
+.urlBox {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+}
+
+.urlTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0369a1;
+  margin-bottom: 6px;
+}
+
+.urlList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.urlItem {
+  font-size: 12px;
+  color: #0c4a6e;
+  line-height: 1.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Radio Group */
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.radioOption {
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 150ms ease;
+  background: white;
+}
+
+.radioOption:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.radioInput {
+  margin-right: 12px;
+  margin-top: 2px;
+  width: 20px;
+  height: 20px;
+  accent-color: #0085ca;
+  cursor: pointer;
+}
+
+.radioContent {
+  flex: 1;
+}
+
+.radioLabel {
+  font-size: 15px;
+  font-weight: 500;
+  color: #111827;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.radioDescription {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* Submit Button */
+.submitButton {
+  margin-top: 32px;
+  width: 100%;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+  background: #0085ca;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.submitButton:hover {
+  background: #006ba3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.submitButton:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .formContainer {
+    padding: 20px;
+  }
+
+  .formTitle {
+    font-size: 1.5rem;
+  }
+
+  .input, .textarea {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+}

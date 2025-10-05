@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { FileText, AlertCircle, Clock } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import type { ProgramData } from '../App';
+import styles from './StepOne.module.css';
 
 interface StepOneProps {
   programData: ProgramData;
@@ -77,183 +78,131 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="p-2 rounded-lg" style={{backgroundColor: '#e6f3ff'}}>
-            <FileText className="h-6 w-6" style={{color: '#0085ca'}} />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold" style={{color: '#30302f'}}>Program Information Collection</h2>
-            <p className="text-gray-600">Please provide information about the program you want to evaluate</p>
-          </div>
-        </div>
+    <div className={styles.formContainer}>
+      <div className={styles.formHeader}>
+        <h2 className={styles.formTitle}>Provide information</h2>
+        <p className={styles.formSubtitle}>Enter details about the program you want to evaluate</p>
       </div>
 
-      {/* Processing Time Warning */}
-      <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-        <div className="flex items-start space-x-3">
-          <Clock className="h-5 w-5 text-amber-600 mt-0.5" />
-          <div>
-            <h4 className="font-medium text-amber-800">Processing Time</h4>
-            <p className="text-sm text-amber-700">
-              Report generation may take up to 10 minutes depending on program complexity. 
-              Choose your preferred delivery method below.
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Simple processing note without icon */}
+      <p className={styles.processingNote}>
+        Report generation takes 5-10 minutes depending on program complexity. You can choose to download immediately or receive by email.
+      </p>
 
-      <div className="space-y-6">
+      <div className={styles.formFields}>
         {/* Organization Name */}
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{color: '#30302f'}}>
-            Organization Name *
+        <div className={styles.fieldGroup}>
+          <label className={styles.staticLabel}>
+            Organization name<span className={styles.requiredStar}>*</span>
           </label>
           <input
             type="text"
             value={programData.organizationName}
             onChange={(e) => updateProgramData({ organizationName: e.target.value })}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors ${
-              errors.organizationName ? 'border-red-300 bg-red-50' : 'border-gray-300'
-            }`}
-            style={{'--tw-ring-color': '#0085ca'} as React.CSSProperties}
-            placeholder="Organization or partnership name"
+            className={`${styles.input} ${errors.organizationName ? styles.inputError : ''}`}
+            placeholder="Enter organization or partnership name"
           />
-          <p className="text-gray-500 text-sm mt-1">
-            Enter the organization or partnership name
+          <p className={styles.helperText}>
+            The name of your organization or partnership
           </p>
           {errors.organizationName && (
-            <p className="text-red-600 text-sm mt-1 flex items-center">
-              <AlertCircle className="h-4 w-4 mr-1" />
+            <p className={styles.errorMessage}>
+              <AlertCircle className={styles.errorIcon} />
               {errors.organizationName}
             </p>
           )}
         </div>
 
         {/* Program Name */}
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{color: '#30302f'}}>
-            Program Name *
+        <div className={styles.fieldGroup}>
+          <label className={styles.staticLabel}>
+            Program name<span className={styles.requiredStar}>*</span>
           </label>
           <input
             type="text"
             value={programData.programName}
             onChange={(e) => updateProgramData({ programName: e.target.value })}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors ${
-              errors.programName ? 'border-red-300 bg-red-50' : 'border-gray-300'
-            }`}
-            style={{'--tw-ring-color': '#0085ca'} as React.CSSProperties}
-            placeholder="Program name or All Programs"
+            className={`${styles.input} ${errors.programName ? styles.inputError : ''}`}
+            placeholder="Program name or 'All Programs'"
           />
-          <p className="text-gray-500 text-sm mt-1">
+          <p className={styles.helperText}>
             Enter the program name. To evaluate the entire organization, write 'All Programs'
           </p>
           {errors.programName && (
-            <p className="text-red-600 text-sm mt-1 flex items-center">
-              <AlertCircle className="h-4 w-4 mr-1" />
+            <p className={styles.errorMessage}>
+              <AlertCircle className={styles.errorIcon} />
               {errors.programName}
             </p>
           )}
         </div>
 
         {/* About the Program */}
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{color: '#30302f'}}>
-            About the Program * 
-            <span className="text-sm font-normal text-gray-500">(Include URLs or paste program information)</span>
+        <div className={styles.fieldGroup}>
+          <label className={styles.staticLabel}>
+            About the program<span className={styles.requiredStar}>*</span>
           </label>
           <textarea
             value={programData.aboutProgram}
             onChange={(e) => updateProgramData({ aboutProgram: e.target.value })}
-            rows={8}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors ${
-              errors.aboutProgram ? 'border-red-300 bg-red-50' : 'border-gray-300'
-            }`}
-            style={{'--tw-ring-color': '#0085ca'} as React.CSSProperties}
-            placeholder="https://example.org/about-program.html"
+            className={`${styles.textarea} ${errors.aboutProgram ? styles.inputError : ''}`}
+            placeholder="Enter URLs or paste program information here&#10;&#10;Example: https://example.org/about-program.html"
           />
-          <p className="text-gray-500 text-sm mt-1">
-            Enter a web page URL describing the program (not an entire web site). It is a good idea to also include a web page URL describing the organization, e.g., the About Us page. You can also write or paste text about the program from a funding proposal, report or your own knowledge.
+          <p className={styles.helperText}>
+            Include web page URLs describing the program and organization. You can also paste text from funding proposals, reports, or your own knowledge.
           </p>
           {errors.aboutProgram && (
-            <p className="text-red-600 text-sm mt-1 flex items-center">
-              <AlertCircle className="h-4 w-4 mr-1" />
+            <p className={styles.errorMessage}>
+              <AlertCircle className={styles.errorIcon} />
               {errors.aboutProgram}
             </p>
           )}
           {programData.aboutProgram && extractUrlsFromText(programData.aboutProgram).length > 0 && (
-            <div className="mt-2 p-3 rounded-lg border" style={{backgroundColor: '#e6f3ff', borderColor: '#0085ca'}}>
-              <p className="text-sm font-medium mb-1" style={{color: '#0085ca'}}>
-                URLs detected ({extractUrlsFromText(programData.aboutProgram).length}):
+            <div className={styles.urlBox}>
+              <p className={styles.urlTitle}>
+                URLs detected ({extractUrlsFromText(programData.aboutProgram).length})
               </p>
-              <ul className="text-xs space-y-1" style={{color: '#006b9f'}}>
+              <ul className={styles.urlList}>
                 {extractUrlsFromText(programData.aboutProgram).map((url, index) => (
-                  <li key={index} className="truncate">• {url}</li>
+                  <li key={index} className={styles.urlItem}>• {url}</li>
                 ))}
               </ul>
             </div>
           )}
         </div>
 
-        {/* Email Address - Only show when email delivery is selected */}
-        {programData.deliveryMethod === 'email' && (
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{color: '#30302f'}}>
-              Email Address *
-            </label>
-            <input
-              type="email"
-              value={programData.userEmail}
-              onChange={(e) => updateProgramData({ userEmail: e.target.value })}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors ${
-                errors.userEmail ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
-              style={{'--tw-ring-color': '#0085ca'} as React.CSSProperties}
-              placeholder="Enter your email address"
-            />
-            {errors.userEmail && (
-              <p className="text-red-600 text-sm mt-1 flex items-center">
-                <AlertCircle className="h-4 w-4 mr-1" />
-                {errors.userEmail}
-              </p>
-            )}
-          </div>
-        )}
-
         {/* Delivery Method */}
-        <div>
-          <label className="block text-sm font-medium mb-3" style={{color: '#30302f'}}>
+        <div className={styles.fieldGroup}>
+          <label className={styles.staticLabel}>
             How would you like to receive your evaluation plan?
           </label>
-          <div className="space-y-3">
-            <label className="flex items-start cursor-pointer">
+          <div className={styles.radioGroup}>
+            <label className={styles.radioOption}>
               <input
                 type="radio"
                 value="download"
                 checked={programData.deliveryMethod === 'download'}
                 onChange={(e) => updateProgramData({ deliveryMethod: e.target.value })}
-                className="mr-3 mt-1"
+                className={styles.radioInput}
               />
-              <div>
-                <span className="font-medium" style={{color: '#30302f'}}>Download when ready</span>
-                <p className="text-sm text-gray-600">
-                  Keep your browser open for up to 10 minutes while the report generates
+              <div className={styles.radioContent}>
+                <span className={styles.radioLabel}>Download when ready</span>
+                <p className={styles.radioDescription}>
+                  Keep your browser open while the report generates
                 </p>
               </div>
             </label>
             
-            <label className="flex items-start cursor-pointer">
+            <label className={styles.radioOption}>
               <input
                 type="radio"
                 value="email"
                 checked={programData.deliveryMethod === 'email'}
                 onChange={(e) => updateProgramData({ deliveryMethod: e.target.value })}
-                className="mr-3 mt-1"
+                className={styles.radioInput}
               />
-              <div>
-                <span className="font-medium" style={{color: '#30302f'}}>Email me when complete</span>
-                <p className="text-sm text-gray-600">
+              <div className={styles.radioContent}>
+                <span className={styles.radioLabel}>Email me when complete</span>
+                <p className={styles.radioDescription}>
                   Close your browser anytime - you'll receive the report via email within 10 minutes
                 </p>
               </div>
@@ -261,18 +210,35 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
           </div>
         </div>
 
+        {/* Email Address - Only show when email delivery is selected */}
+        {programData.deliveryMethod === 'email' && (
+          <div className={styles.fieldGroup}>
+            <label className={styles.staticLabel}>
+              Email address<span className={styles.requiredStar}>*</span>
+            </label>
+            <input
+              type="email"
+              value={programData.userEmail}
+              onChange={(e) => updateProgramData({ userEmail: e.target.value })}
+              className={`${styles.input} ${errors.userEmail ? styles.inputError : ''}`}
+              placeholder="your@email.com"
+            />
+            {errors.userEmail && (
+              <p className={styles.errorMessage}>
+                <AlertCircle className={styles.errorIcon} />
+                {errors.userEmail}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Submit Button */}
-        <div className="flex justify-end pt-6">
-          <button
-            onClick={handleSubmit}
-            className="px-8 py-3 text-white font-medium rounded-lg focus:ring-2 focus:ring-offset-2 transition-all duration-200 shadow-sm"
-            style={{backgroundColor: '#0085ca'}}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#006b9f'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0085ca'}
-          >
-            Submit
-          </button>
-        </div>
+        <button
+          onClick={handleSubmit}
+          className={styles.submitButton}
+        >
+          Continue to next step
+        </button>
       </div>
     </div>
   );
