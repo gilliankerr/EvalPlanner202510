@@ -192,81 +192,6 @@
   text-align: center;
 }
 
-.aboutSection {
-  margin-bottom: 1.5rem;
-  background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 0.5rem;
-  padding: 1rem;
-  text-align: left;
-}
-
-.aboutSummary {
-  cursor: pointer;
-  font-weight: 500;
-  color: #d1d5db;
-  list-style: none;
-  user-select: none;
-  transition: color 0.2s;
-}
-
-.aboutSummary::-webkit-details-marker {
-  display: none;
-}
-
-.aboutSummary::before {
-  content: '▶ ';
-  display: inline-block;
-  transition: transform 0.2s;
-  margin-right: 0.5rem;
-}
-
-.aboutSection[open] .aboutSummary::before {
-  transform: rotate(90deg);
-}
-
-.aboutSummary:hover {
-  color: white;
-}
-
-.aboutContent {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.aboutParagraph {
-  color: #d1d5db;
-  margin: 0 0 1rem 0;
-  line-height: 1.6;
-}
-
-.aboutSubheading {
-  color: #e5e7eb;
-  font-weight: 500;
-  margin: 1rem 0 0.5rem 0;
-}
-
-.aboutList {
-  color: #d1d5db;
-  margin: 0;
-  padding-left: 1.5rem;
-  line-height: 1.6;
-}
-
-.aboutList li {
-  margin-bottom: 0.5rem;
-}
-
-.aboutLink {
-  color: var(--color-primary);
-  text-decoration: underline;
-  transition: color 0.2s;
-}
-
-.aboutLink:hover {
-  color: #5db8e5;
-}
-
 .footerText {
   color: #d1d5db;
   margin: 0 0 1rem 0;
@@ -277,7 +202,7 @@
   justify-content: center;
   align-items: center;
   gap: 0.75rem;
-  margin-top: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .footerLink {
