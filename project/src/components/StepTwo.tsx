@@ -310,19 +310,6 @@ const StepTwo: React.FC<StepTwoProps> = ({ programData, updateProgramData, onCom
             );
           })}
 
-          {isLocalProcessing && (
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="flex items-start space-x-3">
-                <Loader2 className="h-5 w-5 animate-spin text-blue-600 mt-0.5" />
-                <div>
-                  <h4 className="text-sm font-medium text-blue-900">Processing URLs</h4>
-                  <p className="text-sm text-blue-700 mt-1">
-                    Extracting content from web pages with timeout protection and automatic retries. Processing up to 3 URLs concurrently.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
