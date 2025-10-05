@@ -3,21 +3,23 @@ import { FileText, Globe, Brain, Clipboard, FileOutput, Download, Loader2, Chevr
 import logoIcon from './assets/logo.jpg';
 import StepOne from './components/StepOne';
 import StepTwo from './components/StepTwo';
-import PromptOne from './components/PromptOne';
-import PromptTwo from './components/PromptTwo';
+import Prompt1 from './components/Prompt1';
+import Prompt2 from './components/Prompt2';
 import ReportTemplate from './components/ReportTemplate';
 import StepSix from './components/StepSix';
 import PromptAdmin from './components/PromptAdmin';
 
 /*
  * Component Naming Convention:
- * UI Components use descriptive names aligned with the Admin interface:
- *   - PromptOne (Step 3) → Database: step3_analysis
- *   - PromptTwo (Step 4) → Database: step4_framework
- *   - ReportTemplate (Step 5) → Database: step5_plan
+ * UI Components use names aligned with the Admin interface:
+ *   - Prompt1 (Step 3) → Database: prompt1
+ *   - Prompt2 (Step 4) → Database: prompt2
+ *   - ReportTemplate (Step 5) → Database: report_template
  * 
- * Note: Database identifiers were kept unchanged to avoid migration complexity.
- * Each component internally references the appropriate database step_name.
+ * Environment Variables:
+ *   - VITE_PROMPT1_MODEL, VITE_PROMPT1_TEMPERATURE
+ *   - VITE_PROMPT2_MODEL, VITE_PROMPT2_TEMPERATURE
+ *   - VITE_REPORT_TEMPLATE_MODEL, VITE_REPORT_TEMPLATE_TEMPERATURE
  */
 
 import type { LabeledScrapeResult } from './utils/scrape';
@@ -109,7 +111,7 @@ function App() {
         );
       case 3:
         return (
-          <PromptOne 
+          <Prompt1 
             programData={programData}
             updateProgramData={updateProgramData}
             onComplete={() => {
@@ -121,7 +123,7 @@ function App() {
         );
       case 4:
         return (
-          <PromptTwo 
+          <Prompt2 
             programData={programData}
             updateProgramData={updateProgramData}
             onComplete={() => {
