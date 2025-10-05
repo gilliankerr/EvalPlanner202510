@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// Production startup script that runs both frontend and email server
+// Production startup script that runs both frontend and backend API server
 const { spawn, execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -20,9 +20,9 @@ if (!fs.existsSync(distPath)) {
 
 console.log('✓ Frontend build detected\n');
 
-// Start the email server
-console.log('📧 Starting email server on port 3001...');
-const emailServer = spawn('node', ['emailServer.js'], {
+// Start the backend API server
+console.log('🔧 Starting backend API server on port 3001...');
+const backendServer = spawn('node', ['server.js'], {
   stdio: 'inherit',
   env: { ...process.env }
 });
@@ -38,22 +38,22 @@ const frontendServer = spawn('npm', ['start'], {
 // Handle process cleanup
 process.on('SIGINT', () => {
   console.log('\n🛑 Shutting down servers...');
-  emailServer.kill('SIGINT');
+  backendServer.kill('SIGINT');
   frontendServer.kill('SIGINT');
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
   console.log('\n🛑 Shutting down servers...');
-  emailServer.kill('SIGTERM');
+  backendServer.kill('SIGTERM');
   frontendServer.kill('SIGTERM');
   process.exit(0);
 });
 
 // Handle server crashes
-emailServer.on('exit', (code) => {
+backendServer.on('exit', (code) => {
   if (code !== 0) {
-    console.error(`❌ Email server crashed with code ${code}`);
+    console.error(`❌ Backend API server crashed with code ${code}`);
     process.exit(1);
   }
 });
