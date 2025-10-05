@@ -477,6 +477,199 @@
   border-color: #0085ca;
 }
 
+/* Utility classes */
+.icon {
+  height: 1rem;
+  width: 1rem;
+}
+
+.iconMd {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.mb2 {
+  margin-bottom: 0.5rem;
+}
+
+.mb3 {
+  margin-bottom: 0.75rem;
+}
+
+.mb4 {
+  margin-bottom: 1rem;
+}
+
+.mt1 {
+  margin-top: 0.25rem;
+}
+
+.mt2 {
+  margin-top: 0.5rem;
+}
+
+.mt3 {
+  margin-top: 0.75rem;
+}
+
+.mt4 {
+  margin-top: 1rem;
+}
+
+.textXs {
+  font-size: 0.75rem;
+}
+
+.textSm {
+  font-size: 0.875rem;
+}
+
+.textBase {
+  font-size: 1rem;
+}
+
+.fontMedium {
+  font-weight: 500;
+}
+
+.fontSemibold {
+  font-weight: 600;
+}
+
+.textGray600 {
+  color: #6b7280;
+}
+
+.textGray700 {
+  color: #374151;
+}
+
+.textGray900 {
+  color: #111827;
+}
+
+.textGreen700 {
+  color: #15803d;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.spaceY1 > * + * {
+  margin-top: 0.25rem;
+}
+
+.spaceY2 > * + * {
+  margin-top: 0.5rem;
+}
+
+.spaceY3 > * + * {
+  margin-top: 0.75rem;
+}
+
+.spaceY6 > * + * {
+  margin-top: 1.5rem;
+}
+
+.listDisc {
+  list-style-type: disc;
+}
+
+.ml4 {
+  margin-left: 1rem;
+}
+
+.ml5 {
+  margin-left: 1.25rem;
+}
+
+.ml8 {
+  margin-left: 2rem;
+}
+
+.p3 {
+  padding: 0.75rem;
+}
+
+.p4 {
+  padding: 1rem;
+}
+
+.px1 {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+.rounded {
+  border-radius: 0.25rem;
+}
+
+.roundedLg {
+  border-radius: 0.5rem;
+}
+
+.bgGray50 {
+  background-color: #f9fafb;
+}
+
+.bgGray100 {
+  background-color: #f3f4f6;
+}
+
+.bgYellow50 {
+  background-color: #fefce8;
+}
+
+.bgBlue50 {
+  background-color: #eff6ff;
+}
+
+.bgGreen50 {
+  background-color: #f0fdf4;
+}
+
+.borderGray300 {
+  border-color: #d1d5db;
+}
+
+.borderYellow400 {
+  border-color: #fbbf24;
+}
+
+.borderBlue400 {
+  border-color: #60a5fa;
+}
+
+.borderGreen400 {
+  border-color: #4ade80;
+}
+
+.borderL4 {
+  border-left-width: 4px;
+}
+
+.borderT {
+  border-top-width: 1px;
+  border-top-color: #e5e7eb;
+}
+
+.pt6 {
+  padding-top: 1.5rem;
+}
+
+.cursorPointer {
+  cursor: pointer;
+}
+
+.code {
+  background-color: #f3f4f6;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
 /* Responsive Design */
 @media (min-width: 768px) {
   .headerContent {

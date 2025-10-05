@@ -288,7 +288,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                 onClick={onBack}
                 className={styles.backButton}
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className={styles.iconMd} />
               </button>
               <h1 className={styles.title}>
                 Administration
@@ -299,7 +299,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                 <>
                   {saveSuccess && (
                     <div className={styles.saveSuccess}>
-                      <Check className="h-5 w-5" />
+                      <Check className={styles.iconMd} />
                       <span className={styles.buttonText}>Saved successfully!</span>
                     </div>
                   )}
@@ -307,7 +307,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                     onClick={() => setShowVersions(!showVersions)}
                     className={styles.headerButton}
                   >
-                    <History className="h-4 w-4" />
+                    <History className={styles.icon} />
                     <span className={styles.buttonText}>Version History</span>
                   </button>
                   <button
@@ -315,7 +315,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                     disabled={saving || (editedContent === selectedPrompt.content && editedDisplayName === selectedPrompt.display_name)}
                     className={`${styles.headerButton} ${styles.saveButton}`}
                   >
-                    <Save className="h-4 w-4" />
+                    <Save className={styles.icon} />
                     <span className={styles.buttonText}>{saving ? 'Saving...' : 'Save Changes'}</span>
                   </button>
                 </>
@@ -325,7 +325,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                 className={styles.headerButton}
                 title="Logout"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className={styles.icon} />
                 <span className={styles.buttonText}>Logout</span>
               </button>
             </div>
@@ -468,11 +468,11 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                     <h2 className={styles.sectionTitle}>
                       How to edit AI prompts
                     </h2>
-                    <p className="mb-4">
+                    <p className={styles.mb4}>
                       Prompts are the instructions that tell the AI what to do when analyzing programs. You can customize these instructions to match your organization's evaluation approach.
                     </p>
                     
-                    <p className="mb-2 font-medium">Step-by-step guide:</p>
+                    <p className={`${styles.mb2} ${styles.fontMedium}`}>Step-by-step guide:</p>
                     <ol className={styles.instructionsList}>
                       <li>
                         <strong>Pick a prompt</strong> - Click on one from the left sidebar (they're named like "Analyze program model")
@@ -501,43 +501,43 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                       How to change system settings
                     </h2>
                     
-                    <div className="space-y-6">
+                    <div className={styles.spaceY6}>
                       <div>
                         <h3 className={styles.subsectionTitle}>
                           How to change the email sender address
                         </h3>
-                        <p className="mb-3">
+                        <p className={styles.mb3}>
                           This is the email address that appears in the "From" field when evaluation reports are emailed to users.
                         </p>
                         
                         <ol className={styles.instructionsList}>
                           <li>
                             <strong>Go to Replit Integrations</strong>
-                            <p className="mt-1">Find and click on the Resend integration in your Replit project</p>
+                            <p className={styles.mt1}>Find and click on the Resend integration in your Replit project</p>
                           </li>
                           <li>
                             <strong>Update the "From Email" field</strong>
-                            <p className="mt-1">Enter your desired email sender address</p>
+                            <p className={styles.mt1}>Enter your desired email sender address</p>
                           </li>
                           <li>
                             <strong>Restart the email server</strong>
-                            <p className="mt-1">The changes will take effect after restarting</p>
+                            <p className={styles.mt1}>The changes will take effect after restarting</p>
                           </li>
                         </ol>
-                        <p className="mt-3 text-sm text-gray-600">
+                        <p className={`${styles.mt3} ${styles.textSm} ${styles.textGray600}`}>
                           <strong>Note:</strong> If using a custom domain, make sure it's verified in your <a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer" className={styles.link}>Resend account</a> first.
                         </p>
                       </div>
 
-                      <div className="border-t pt-6">
+                      <div className={`${styles.borderT} ${styles.pt6}`}>
                         <h3 className={styles.subsectionTitle}>
                           How to change AI models
                         </h3>
-                        <p className="mb-3">
+                        <p className={styles.mb3}>
                           Each prompt uses an AI model (like GPT-5 or Claude) to generate text. Different models have different strengths - some are better at analysis, others at creative writing. You might want to change models to improve quality or reduce costs.
                         </p>
                         
-                        <p className="mb-2 font-medium">Easiest method: Ask Replit Agent</p>
+                        <p className={`${styles.mb2} ${styles.fontMedium}`}>Easiest method: Ask Replit Agent</p>
                         <div className={styles.codeBlock}>
                           <div>"Use GPT-5 for all prompts"</div>
                           <div>"Switch {prompts.find(p => p.step_name === 'prompt1')?.display_name} to Claude 3.5 Sonnet"</div>
@@ -548,81 +548,81 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                           <strong>What is "temperature"?</strong> This controls how creative vs. predictable the AI is. Lower values (like 0.3) make it more focused and consistent. Higher values (like 0.9) make it more creative and varied. Most prompts work well with the default setting.
                         </p>
 
-                        <details className="text-sm">
-                          <summary className="font-medium cursor-pointer text-gray-700 mb-2">Advanced: Technical details for each prompt</summary>
-                          <div className="space-y-3 mt-3 ml-4 text-gray-600">
+                        <details className={styles.textSm}>
+                          <summary className={`${styles.fontMedium} ${styles.cursorPointer} ${styles.textGray700} ${styles.mb2}`}>Advanced: Technical details for each prompt</summary>
+                          <div className={`${styles.spaceY3} ${styles.mt3} ${styles.ml4} ${styles.textGray600}`}>
                             <div>
-                              <h4 className="font-medium text-gray-900">{prompts.find(p => p.step_name === 'prompt1')?.display_name}</h4>
-                              <p className="text-xs mt-1">Configuration settings:</p>
-                              <ul className="list-disc ml-5 space-y-1 text-xs mt-1">
-                                <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT1_MODEL</code> - Which AI model to use (examples: openai/gpt-5, anthropic/claude-3.5-sonnet)</li>
-                                <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT1_TEMPERATURE</code> - Creativity level, 0.0 to 1.0 (optional)</li>
+                              <h4 className={`${styles.fontMedium} ${styles.textGray900}`}>{prompts.find(p => p.step_name === 'prompt1')?.display_name}</h4>
+                              <p className={`${styles.textXs} ${styles.mt1}`}>Configuration settings:</p>
+                              <ul className={`${styles.listDisc} ${styles.ml5} ${styles.spaceY1} ${styles.textXs} ${styles.mt1}`}>
+                                <li><code className={styles.code}>VITE_PROMPT1_MODEL</code> - Which AI model to use (examples: openai/gpt-5, anthropic/claude-3.5-sonnet)</li>
+                                <li><code className={styles.code}>VITE_PROMPT1_TEMPERATURE</code> - Creativity level, 0.0 to 1.0 (optional)</li>
                               </ul>
                             </div>
 
                             <div>
-                              <h4 className="font-medium text-gray-900">{prompts.find(p => p.step_name === 'prompt2')?.display_name}</h4>
-                              <p className="text-xs mt-1">Configuration settings:</p>
-                              <ul className="list-disc ml-5 space-y-1 text-xs mt-1">
-                                <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT2_MODEL</code> - Which AI model to use</li>
-                                <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT2_TEMPERATURE</code> - Creativity level (optional)</li>
+                              <h4 className={`${styles.fontMedium} ${styles.textGray900}`}>{prompts.find(p => p.step_name === 'prompt2')?.display_name}</h4>
+                              <p className={`${styles.textXs} ${styles.mt1}`}>Configuration settings:</p>
+                              <ul className={`${styles.listDisc} ${styles.ml5} ${styles.spaceY1} ${styles.textXs} ${styles.mt1}`}>
+                                <li><code className={styles.code}>VITE_PROMPT2_MODEL</code> - Which AI model to use</li>
+                                <li><code className={styles.code}>VITE_PROMPT2_TEMPERATURE</code> - Creativity level (optional)</li>
                               </ul>
                             </div>
 
                             <div>
-                              <h4 className="font-medium text-gray-900">{prompts.find(p => p.step_name === 'report_template')?.display_name}</h4>
-                              <p className="text-xs mt-1">Configuration settings:</p>
-                              <ul className="list-disc ml-5 space-y-1 text-xs mt-1">
-                                <li><code className="bg-gray-100 px-1 rounded">VITE_REPORT_TEMPLATE_MODEL</code> - Which AI model to use</li>
-                                <li><code className="bg-gray-100 px-1 rounded">VITE_REPORT_TEMPLATE_TEMPERATURE</code> - Creativity level (optional)</li>
+                              <h4 className={`${styles.fontMedium} ${styles.textGray900}`}>{prompts.find(p => p.step_name === 'report_template')?.display_name}</h4>
+                              <p className={`${styles.textXs} ${styles.mt1}`}>Configuration settings:</p>
+                              <ul className={`${styles.listDisc} ${styles.ml5} ${styles.spaceY1} ${styles.textXs} ${styles.mt1}`}>
+                                <li><code className={styles.code}>VITE_REPORT_TEMPLATE_MODEL</code> - Which AI model to use</li>
+                                <li><code className={styles.code}>VITE_REPORT_TEMPLATE_TEMPERATURE</code> - Creativity level (optional)</li>
                               </ul>
                             </div>
                           </div>
                         </details>
 
-                        <p className="mt-4 text-gray-600 text-sm">
+                        <p className={`${styles.mt4} ${styles.textGray600} ${styles.textSm}`}>
                           <strong>Note:</strong> All AI models are accessed through a service called OpenRouter. See the <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className={styles.link}>full list of available models</a> if you want to explore options.
                         </p>
                       </div>
 
-                      <div className="border-t pt-6">
+                      <div className={`${styles.borderT} ${styles.pt6}`}>
                         <h3 className={styles.subsectionTitle}>
                           How to turn web search on or off
                         </h3>
-                        <p className="mb-3">
+                        <p className={styles.mb3}>
                           Web search allows the AI to look up information about similar programs and best practices from across the internet. This can make evaluation plans more informed and comprehensive, but it also makes processing slower and slightly more expensive.
                         </p>
 
                         <div className={`${styles.noteBox} ${styles.blueNoteBox}`}>
-                          <h4 className="font-medium text-sm mb-2">Your current settings:</h4>
-                          <ul className="space-y-1 text-sm">
-                            <li>• <strong>{prompts.find(p => p.step_name === 'prompt1')?.display_name}:</strong> Web search is <strong className={config?.prompt1.webSearch ? 'text-green-700' : 'text-gray-600'}>{config?.prompt1.webSearch ? 'ON' : 'OFF'}</strong></li>
-                            <li>• <strong>{prompts.find(p => p.step_name === 'prompt2')?.display_name}:</strong> Web search is <strong className={config?.prompt2.webSearch ? 'text-green-700' : 'text-gray-600'}>{config?.prompt2.webSearch ? 'ON' : 'OFF'}</strong></li>
-                            <li>• <strong>{prompts.find(p => p.step_name === 'report_template')?.display_name}:</strong> Web search is <strong className={config?.reportTemplate.webSearch ? 'text-green-700' : 'text-gray-600'}>{config?.reportTemplate.webSearch ? 'ON' : 'OFF'}</strong></li>
+                          <h4 className={`${styles.fontMedium} ${styles.textSm} ${styles.mb2}`}>Your current settings:</h4>
+                          <ul className={`${styles.spaceY1} ${styles.textSm}`}>
+                            <li>• <strong>{prompts.find(p => p.step_name === 'prompt1')?.display_name}:</strong> Web search is <strong className={config?.prompt1.webSearch ? styles.textGreen700 : styles.textGray600}>{config?.prompt1.webSearch ? 'ON' : 'OFF'}</strong></li>
+                            <li>• <strong>{prompts.find(p => p.step_name === 'prompt2')?.display_name}:</strong> Web search is <strong className={config?.prompt2.webSearch ? styles.textGreen700 : styles.textGray600}>{config?.prompt2.webSearch ? 'ON' : 'OFF'}</strong></li>
+                            <li>• <strong>{prompts.find(p => p.step_name === 'report_template')?.display_name}:</strong> Web search is <strong className={config?.reportTemplate.webSearch ? styles.textGreen700 : styles.textGray600}>{config?.reportTemplate.webSearch ? 'ON' : 'OFF'}</strong></li>
                           </ul>
                         </div>
 
-                        <p className="mb-2 font-medium">Easiest method: Ask Replit Agent</p>
+                        <p className={`${styles.mb2} ${styles.fontMedium}`}>Easiest method: Ask Replit Agent</p>
                         <div className={styles.codeBlock}>
                           <div>"Turn off web search for {prompts.find(p => p.step_name === 'prompt1')?.display_name}"</div>
                           <div>"Enable web search for {prompts.find(p => p.step_name === 'prompt2')?.display_name}"</div>
                           <div>"Turn on web search for all prompts"</div>
                         </div>
 
-                        <details className="text-sm mb-3">
-                          <summary className="font-medium cursor-pointer text-gray-700 mb-2">Advanced: Change settings manually</summary>
-                          <p className="text-xs text-gray-600 mt-2 ml-4">
+                        <details className={`${styles.textSm} ${styles.mb3}`}>
+                          <summary className={`${styles.fontMedium} ${styles.cursorPointer} ${styles.textGray700} ${styles.mb2}`}>Advanced: Change settings manually</summary>
+                          <p className={`${styles.textXs} ${styles.textGray600} ${styles.mt2} ${styles.ml4}`}>
                             If you prefer to change settings yourself, ask Replit Agent to update these configuration variables:
                           </p>
-                          <ul className="list-disc ml-8 space-y-1 text-xs text-gray-600 mt-2">
-                            <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT1_WEB_SEARCH</code> for {prompts.find(p => p.step_name === 'prompt1')?.display_name}</li>
-                            <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT2_WEB_SEARCH</code> for {prompts.find(p => p.step_name === 'prompt2')?.display_name}</li>
-                            <li><code className="bg-gray-100 px-1 rounded">VITE_REPORT_TEMPLATE_WEB_SEARCH</code> for {prompts.find(p => p.step_name === 'report_template')?.display_name}</li>
+                          <ul className={`${styles.listDisc} ${styles.ml8} ${styles.spaceY1} ${styles.textXs} ${styles.textGray600} ${styles.mt2}`}>
+                            <li><code className={styles.code}>VITE_PROMPT1_WEB_SEARCH</code> for {prompts.find(p => p.step_name === 'prompt1')?.display_name}</li>
+                            <li><code className={styles.code}>VITE_PROMPT2_WEB_SEARCH</code> for {prompts.find(p => p.step_name === 'prompt2')?.display_name}</li>
+                            <li><code className={styles.code}>VITE_REPORT_TEMPLATE_WEB_SEARCH</code> for {prompts.find(p => p.step_name === 'report_template')?.display_name}</li>
                           </ul>
-                          <p className="text-xs text-gray-600 mt-2 ml-4">Set each to either <code className="bg-gray-100 px-1 rounded">true</code> (on) or <code className="bg-gray-100 px-1 rounded">false</code> (off).</p>
+                          <p className={`${styles.textXs} ${styles.textGray600} ${styles.mt2} ${styles.ml4}`}>Set each to either <code className={styles.code}>true</code> (on) or <code className={styles.code}>false</code> (off).</p>
                         </details>
 
-                        <p className="text-gray-600 italic text-sm">
+                        <p className={`${styles.textGray600} ${styles.italic} ${styles.textSm}`}>
                           💡 <strong>Default settings:</strong> Web search is turned on for the first two prompts (to gather context) and off for the report template (which uses already-gathered information).
                         </p>
                       </div>
@@ -633,14 +633,14 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                     <h2 className={styles.sectionTitle}>
                       How to change your admin password
                     </h2>
-                    <p className="mb-3">
+                    <p className={styles.mb3}>
                       To change the password for accessing this admin interface, give Replit Agent the following instructions:
                     </p>
                     <div className={styles.codeBlock}>
                       "Change the ADMIN_PASSWORD secret to [your new password] and restart the Email Server workflow"
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">
-                      Replace <code className="bg-gray-100 px-1 rounded">[your new password]</code> with your desired password. Replit Agent will update the secret and restart the server for you.
+                    <p className={`${styles.textSm} ${styles.textGray600} ${styles.mb3}`}>
+                      Replace <code className={styles.code}>[your new password]</code> with your desired password. Replit Agent will update the secret and restart the server for you.
                     </p>
                     <p className={styles.noteBox}>
                       <strong>Security Note:</strong> Your admin session uses secure, time-limited tokens that expire after 24 hours. Each login generates a unique session token, and logging out immediately invalidates your session.
@@ -651,14 +651,14 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                     <h2 className={styles.sectionTitle}>
                       How to apply your changes
                     </h2>
-                    <div className="space-y-3 text-sm text-gray-700">
-                      <div className="p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                    <div className={`${styles.spaceY3} ${styles.textSm} ${styles.textGray700}`}>
+                      <div className={`${styles.p3} ${styles.bgYellow50} ${styles.borderL4} ${styles.borderYellow400} ${styles.rounded}`}>
                         <p><strong>⚠️ Restart required:</strong> After changing any settings, ask Replit Agent to restart the application. Your changes won't work until the restart is complete.</p>
                       </div>
-                      <div className="p-3 bg-blue-50 border-l-4 border-blue-400 rounded">
+                      <div className={`${styles.p3} ${styles.bgBlue50} ${styles.borderL4} ${styles.borderBlue400} ${styles.rounded}`}>
                         <p><strong>📊 Check current settings:</strong> The Configuration panel on the left shows what's currently active - AI models, web search status, and email settings.</p>
                       </div>
-                      <div className="p-3 bg-green-50 border-l-4 border-green-400 rounded">
+                      <div className={`${styles.p3} ${styles.bgGreen50} ${styles.borderL4} ${styles.borderGreen400} ${styles.rounded}`}>
                         <p><strong>✨ Easiest method:</strong> For any change in these instructions, just ask Replit Agent in plain English. Example: "Turn off web search" or "Switch to Claude for all prompts"</p>
                       </div>
                     </div>
@@ -698,7 +698,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                             className={styles.rollbackButton}
                             title="Rollback to this version"
                           >
-                            <RotateCcw className="h-4 w-4" />
+                            <RotateCcw className={styles.icon} />
                           </button>
                         )}
                       </div>
