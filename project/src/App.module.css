@@ -1,32 +1,55 @@
 :root {
+  /* Professional font stack */
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  
+  /* Enhanced color palette */
   --color-primary: #0085ca;
+  --color-primary-dark: #006ba3;
   --color-completed: #ed8b00;
-  --color-text-dark: #30302f;
+  --color-success: #10b981;
+  --color-text-dark: #1a1a1a;
   --color-text-gray: #666;
   --color-text-light: #64748b;
-  --color-border: #e2e8f0;
-  --color-bg-gradient-start: #f8fafc;
-  --color-bg-gradient-end: #eff6ff;
+  --color-border: #f1f5f9;
+  --color-border-light: #f8fafc;
+  --color-bg-gradient-start: #ffffff;
+  --color-bg-gradient-end: #f0f7ff;
+  
+  /* Spacing system */
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+}
+
+/* Global font application */
+* {
+  font-family: var(--font-family-base);
 }
 
 .appContainer {
   min-height: 100vh;
-  background: linear-gradient(to bottom right, var(--color-bg-gradient-start), var(--color-bg-gradient-end));
+  background: linear-gradient(135deg, var(--color-bg-gradient-start), var(--color-bg-gradient-end));
+  font-family: var(--font-family-base);
+  color: var(--color-text-dark);
+  line-height: 1.6;
 }
 
 .header {
   background-color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;
   z-index: 50;
+  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.95);
 }
 
 .headerContent {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 1rem 1rem;
+  padding: 1.25rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -35,31 +58,41 @@
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .logoContainer {
-  border-radius: 0.5rem;
+  border-radius: 0.625rem;
   overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease;
+}
+
+.logoContainer:hover {
+  transform: scale(1.05);
 }
 
 .logo {
-  height: 2.5rem;
-  width: 2.5rem;
+  height: 2.75rem;
+  width: 2.75rem;
   object-fit: contain;
 }
 
 .headerTitle {
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: 1.875rem;
+  font-weight: 700;
   color: var(--color-text-dark);
   margin: 0;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
 }
 
 .headerSubtitle {
-  font-size: 0.875rem;
+  font-size: 0.938rem;
   color: var(--color-text-gray);
   margin: 0;
+  line-height: 1.4;
+  font-weight: 400;
 }
 
 .headerRight {
@@ -99,40 +132,57 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid #d1d5db;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--color-border);
   background-color: white;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .adminButton:hover {
-  background-color: #f9fafb;
+  background-color: var(--color-border-light);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.adminButton:active {
+  transform: translateY(0);
 }
 
 .adminButtonText {
-  font-size: 0.875rem;
+  font-size: 0.938rem;
   font-weight: 500;
+  color: var(--color-text-dark);
 }
 
 .adminIcon {
-  width: 1rem;
-  height: 1rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--color-primary);
 }
 
 .mainContent {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: var(--space-xl) var(--space-md);
 }
 
 .contentCard {
   background-color: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--color-border);
   overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: var(--space-lg);
+}
+
+.contentCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .footer {
