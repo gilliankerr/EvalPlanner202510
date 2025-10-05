@@ -97,7 +97,7 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
           <div>
             <h4 className="font-medium text-amber-800">Processing Time</h4>
             <p className="text-sm text-amber-700">
-              Report generation may take up to 20 minutes depending on program complexity. 
+              Report generation may take up to 10 minutes depending on program complexity. 
               Choose your preferred delivery method below.
             </p>
           </div>
@@ -238,7 +238,7 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
               <div>
                 <span className="font-medium" style={{color: '#30302f'}}>Download when ready</span>
                 <p className="text-sm text-gray-600">
-                  Keep your browser open for up to 20 minutes while the report generates
+                  Keep your browser open for up to 10 minutes while the report generates
                 </p>
               </div>
             </label>
@@ -254,7 +254,7 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
               <div>
                 <span className="font-medium" style={{color: '#30302f'}}>Email me when complete</span>
                 <p className="text-sm text-gray-600">
-                  Close your browser anytime - you'll receive the report via email within 20 minutes
+                  Close your browser anytime - you'll receive the report via email within 10 minutes
                 </p>
               </div>
             </label>
