@@ -1,0 +1,135 @@
+:root {
+  --color-primary: #0085ca;
+  --color-completed: #ed8b00;
+  --color-text-dark: #30302f;
+  --color-text-gray: #64748b;
+  --color-text-light: #94a3b8;
+  --color-border: #e2e8f0;
+  --color-bg-light: #f8fafc;
+}
+
+.progressContainer {
+  background-color: white;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.progressWrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.phaseList {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.phaseItem {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.phase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.phaseIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background-color: white;
+  color: var(--color-text-light);
+  transition: all 0.3s ease;
+}
+
+.phaseIcon[data-state="completed"] {
+  background-color: var(--color-completed);
+  border-color: var(--color-completed);
+  color: white;
+}
+
+.phaseIcon[data-state="active"] {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 133, 202, 0.3);
+}
+
+.phaseLabel {
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--color-text-gray);
+  transition: color 0.3s ease;
+}
+
+.phaseLabel[data-state="completed"] {
+  color: var(--color-completed);
+}
+
+.phaseLabel[data-state="active"] {
+  color: var(--color-primary);
+}
+
+.phaseSeparator {
+  width: 2rem;
+  height: 2px;
+  background-color: var(--color-border);
+  margin: 0 1rem;
+  flex-shrink: 0;
+}
+
+.phaseSeparator[data-completed="true"] {
+  background-color: var(--color-completed);
+}
+
+.statusContainer {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0.75rem 1rem 0;
+  text-align: center;
+}
+
+.statusText {
+  font-size: 0.875rem;
+  color: var(--color-text-gray);
+  font-style: italic;
+}
+
+@media (max-width: 640px) {
+  .phaseList {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .phaseItem {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .phaseSeparator {
+    width: 2px;
+    height: 2rem;
+    margin: 0.5rem 0;
+  }
+
+  .phaseIcon {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .phaseLabel {
+    font-size: 0.875rem;
+  }
+}
