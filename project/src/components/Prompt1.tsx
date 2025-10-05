@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Brain, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Sparkles, Loader2, CheckCircle } from 'lucide-react';
 import type { ProgramData } from '../App';
 import { fetchPrompt, buildPromptWithContext } from '../utils/promptApi';
+import styles from './Prompt.module.css';
 
 interface Prompt1Props {
   programData: ProgramData;
@@ -23,11 +24,8 @@ const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onCom
     setAnalysisStatus('analyzing');
 
     try {
-      // Fetch admin template from database
-      // Note: Uses 'prompt1' as database identifier
       const adminTemplate = await fetchPrompt('prompt1');
       
-      // Automatically inject all program data before admin template
       const analysisPrompt = buildPromptWithContext(adminTemplate, {
         organizationName: programData.organizationName,
         programName: programData.programName,
@@ -36,7 +34,6 @@ const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onCom
         labeledScrapedContent: programData.labeledScrapedContent
       });
 
-      // Make API call through backend proxy (secure - API key never exposed to frontend)
       const requestBody: any = {
         messages: [
           {
@@ -45,7 +42,7 @@ const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onCom
           }
         ],
         max_tokens: 4000,
-        step: 'prompt1'  // Backend uses this to determine model/temperature from config
+        step: 'prompt1'
       };
       
       const response = await fetch('/api/openrouter/chat/completions', {
@@ -63,19 +60,16 @@ const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onCom
       const data = await response.json();
       const analysis = data.choices[0].message.content;
 
-      // Extract structured JSON data from the analysis response
       let programTypePlural = '';
       let targetPopulation = '';
       
       try {
-        // Look for JSON block in the response
         const jsonMatch = analysis.match(/```json\s*({[\s\S]*?})\s*```/);
         if (jsonMatch) {
           const extractedData = JSON.parse(jsonMatch[1]);
           programTypePlural = extractedData.program_type_plural || '';
           targetPopulation = extractedData.target_population || '';
         } else {
-          // Fallback: look for JSON object anywhere in the text
           const jsonObjectMatch = analysis.match(/{[\s\S]*?"program_type_plural"[\s\S]*?"target_population"[\s\S]*?}/);
           if (jsonObjectMatch) {
             const extractedData = JSON.parse(jsonObjectMatch[0]);
@@ -85,7 +79,6 @@ const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onCom
         }
       } catch (error) {
         console.warn('Could not extract structured data from analysis:', error);
-        // Use fallback values if extraction fails
         programTypePlural = 'programs of this type';
         targetPopulation = 'the target population described in this evaluation plan';
       }
@@ -98,7 +91,6 @@ const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onCom
       });
       setAnalysisStatus('complete');
 
-      // Auto-advance after a brief delay
       setTimeout(() => {
         setIsProcessing(false);
         onComplete();
@@ -112,47 +104,40 @@ const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onCom
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="p-2 rounded-lg" style={{backgroundColor: '#e6f3ff'}}>
-            <Brain className="h-6 w-6" style={{color: '#0085ca'}} />
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.headerContent}>
+          <div className={styles.iconWrapper}>
+            <Sparkles className={styles.icon} />
           </div>
           <div>
-            <h2 className="text-2xl font-bold" style={{color: '#30302f'}}>AI Program Model Analysis</h2>
-            <p className="text-gray-600">Analyzing program model using advanced AI and web search</p>
+            <h2 className={styles.title}>AI Program Model Analysis</h2>
+            <p className={styles.subtitle}>Analyzing program model using advanced AI and web search</p>
           </div>
         </div>
       </div>
 
-      <div className="space-y-6">
-        {/* Status Card */}
-        <div 
-          className="p-6 rounded-lg border"
-          style={{
-            backgroundColor: analysisStatus === 'analyzing' ? '#e6f3ff' :
-                           analysisStatus === 'complete' ? '#f0f9ff' :
-                           analysisStatus === 'error' ? '#fef2f2' :
-                           '#f8fafc',
-            borderColor: analysisStatus === 'analyzing' ? '#0085ca' :
-                        analysisStatus === 'complete' ? '#10b981' :
-                        analysisStatus === 'error' ? '#ef4444' :
-                        '#e2e8f0'
-          }}
-        >
-          <div className="flex items-center space-x-3">
-            {analysisStatus === 'analyzing' && <Loader2 className="h-6 w-6 animate-spin" style={{color: '#0085ca'}} />}
-            {analysisStatus === 'complete' && <CheckCircle className="h-6 w-6 text-green-600" />}
-            {analysisStatus === 'error' && <AlertCircle className="h-6 w-6 text-red-600" />}
+      <div className={styles.content}>
+        <div className={`${styles.statusCard} ${styles[analysisStatus]}`}>
+          <div className={styles.statusContent}>
+            {analysisStatus === 'analyzing' && <Loader2 className={`${styles.statusIcon} ${styles.analyzing}`} style={{ animation: 'spin 1s linear infinite' }} />}
+            {analysisStatus === 'complete' && <CheckCircle className={`${styles.statusIcon} ${styles.complete}`} />}
+            {analysisStatus === 'error' && (
+              <svg className={`${styles.statusIcon} ${styles.error}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            )}
             
             <div>
-              <h3 className="text-lg font-semibold" style={{color: '#30302f'}}>
+              <h3 className={styles.statusTitle}>
                 {analysisStatus === 'analyzing' && 'Analyzing Program Model...'}
                 {analysisStatus === 'complete' && 'Analysis Complete'}
                 {analysisStatus === 'error' && 'Analysis Failed'}
                 {analysisStatus === 'idle' && 'Preparing Analysis...'}
               </h3>
-              <p className="text-gray-600">
+              <p className={styles.statusDescription}>
                 {analysisStatus === 'analyzing' && 'Using AI to define program terms, goals, activities, and intended outcomes'}
                 {analysisStatus === 'complete' && 'Program model analysis completed successfully'}
                 {analysisStatus === 'error' && 'An error occurred during analysis'}
@@ -162,17 +147,16 @@ const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onCom
           </div>
         </div>
 
-        {/* Error Recovery Options */}
         {analysisStatus === 'error' && (
-          <div className="space-y-4">
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <p className="text-sm text-amber-800 mb-3">
+          <div className={styles.errorSection}>
+            <div className={styles.errorBox}>
+              <p className={styles.errorMessage}>
                 The AI analysis encountered an issue. This could be due to API connectivity or rate limits. You can:
               </p>
-              <div className="flex gap-3">
+              <div className={styles.buttonGroup}>
                 <button
                   onClick={analyzeProgram}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className={styles.primaryButton}
                 >
                   Retry Analysis
                 </button>
@@ -186,7 +170,7 @@ const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onCom
                     setIsProcessing(false);
                     onComplete();
                   }}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  className={styles.secondaryButton}
                 >
                   Skip and Continue
                 </button>
@@ -195,52 +179,54 @@ const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onCom
           </div>
         )}
 
-        {/* Analysis Progress */}
         {analysisStatus === 'analyzing' && (
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#0085ca'}}></div>
-              <span className="text-sm text-gray-600">Identifying target population and presenting issues</span>
+          <div className={styles.progressList}>
+            <div className={styles.progressItem}>
+              <div className={styles.progressDot}></div>
+              <span className={styles.progressText}>Identifying target population and presenting issues</span>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#0085ca', animationDelay: '0.5s'}}></div>
-              <span className="text-sm text-gray-600">Analyzing core intervention strategies</span>
+            <div className={styles.progressItem}>
+              <div className={styles.progressDot} style={{ animationDelay: '0.5s' }}></div>
+              <span className={styles.progressText}>Analyzing core intervention strategies</span>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#0085ca', animationDelay: '1s'}}></div>
-              <span className="text-sm text-gray-600">Determining theoretical foundations</span>
+            <div className={styles.progressItem}>
+              <div className={styles.progressDot} style={{ animationDelay: '1s' }}></div>
+              <span className={styles.progressText}>Determining theoretical foundations</span>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#0085ca', animationDelay: '1.5s'}}></div>
-              <span className="text-sm text-gray-600">Comparing with evidence-based models</span>
+            <div className={styles.progressItem}>
+              <div className={styles.progressDot} style={{ animationDelay: '1.5s' }}></div>
+              <span className={styles.progressText}>Comparing with evidence-based models</span>
             </div>
           </div>
         )}
 
-        {/* Results Preview */}
         {analysisResult && (
-          <div className="mt-8">
-            <h4 className="text-lg font-semibold text-slate-900 mb-4">Analysis Results</h4>
-            <div className="bg-slate-50 rounded-lg p-6 max-h-96 overflow-y-auto border border-slate-200">
-              <div className="prose prose-sm max-w-none">
-                <pre className="whitespace-pre-wrap text-sm text-slate-700 font-sans">
-                  {analysisResult}
-                </pre>
-              </div>
+          <div className={styles.resultsSection}>
+            <h4 className={styles.resultsTitle}>Analysis Results</h4>
+            <div className={styles.resultsBox}>
+              <pre className={styles.resultsContent}>
+                {analysisResult}
+              </pre>
             </div>
           </div>
         )}
 
-        {/* Technical Details */}
-        <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-          <h4 className="text-sm font-medium text-slate-700 mb-2">Analysis Details</h4>
-          <div className="text-xs text-slate-600 space-y-1">
+        <div className={styles.detailsBox}>
+          <h4 className={styles.detailsTitle}>Analysis Details</h4>
+          <div className={styles.detailsList}>
             <div>• Focus: {programData.programName}</div>
             <div>• Organization: {programData.organizationName}</div>
             <div>• Data Sources: Program description, URLs, additional context</div>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };
