@@ -479,152 +479,173 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                 </h1>
                 
                 <div className="space-y-8 text-sm text-gray-700">
-                  {/* How to change prompts section */}
+                  {/* How to edit prompts section */}
                   <div>
                     <h2 className="text-lg font-semibold mb-3" style={{ color: '#30302f' }}>
-                      How to change prompts
+                      How to edit AI prompts
                     </h2>
-                    <p className="mb-3">
-                      To edit the AI prompts used in the evaluation planning process:
+                    <p className="mb-4">
+                      Prompts are the instructions that tell the AI what to do when analyzing programs. You can customize these instructions to match your organization's evaluation approach.
                     </p>
-                    <ol className="list-decimal ml-5 space-y-2">
+                    
+                    <p className="mb-2 font-medium">Step-by-step guide:</p>
+                    <ol className="list-decimal ml-5 space-y-2 mb-4 text-sm">
                       <li>
-                        <strong>Select a prompt:</strong> Click on any prompt from the list on the left sidebar.
+                        <strong>Pick a prompt</strong> - Click on one from the left sidebar (they're named like "Analyze program model")
                       </li>
                       <li>
-                        <strong>Edit the content:</strong> Use the markdown editor to modify the prompt text. You can use template variables like <code className="bg-gray-100 px-1 rounded">{'{{programName}}'}</code>, <code className="bg-gray-100 px-1 rounded">{'{{organizationName}}'}</code>, etc.
+                        <strong>Edit the text</strong> - Write your instructions in everyday language. The AI will automatically get all the program details, so just tell it what analysis you want
                       </li>
                       <li>
-                        <strong>Add change notes (optional):</strong> Enter a brief description of your changes in the "Change Notes" field to track modifications.
+                        <strong>Add a note</strong> - (Optional) Write a quick reminder about why you changed it
                       </li>
                       <li>
-                        <strong>Save your changes:</strong> Click the "Save Changes" button at the top of the editor.
+                        <strong>Save it</strong> - Click the "Save Changes" button at the top
                       </li>
                       <li>
-                        <strong>Version history:</strong> Click "Show Versions" to view previous versions of the prompt. You can rollback to any previous version by clicking the rollback icon next to that version.
+                        <strong>See old versions</strong> - Click "Show Versions" to view or restore any previous version
                       </li>
                     </ol>
-                    <p className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-900">
-                      <strong>Note:</strong> All changes are automatically versioned. Each save creates a new version that can be restored later if needed.
+                    
+                    <p className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg text-green-900 text-sm">
+                      ✅ <strong>Don't worry about breaking things:</strong> Every time you save, a complete backup is created automatically. You can always restore any previous version.
                     </p>
                   </div>
 
                   {/* How to change configuration section */}
                   <div className="border-t pt-6">
                     <h2 className="text-lg font-semibold mb-3" style={{ color: '#30302f' }}>
-                      How to change configuration
+                      How to change system settings
                     </h2>
                     
                     <div className="space-y-6">
                       <div>
                         <h3 className="font-semibold text-base mb-2" style={{ color: '#30302f' }}>
-                          Changing the sent-from email address
+                          How to change the email sender address
                         </h3>
-                        <p className="mb-2">
-                          To change the email address used for sending evaluation reports:
+                        <p className="mb-3">
+                          This is the email address that appears in the "From" field when evaluation reports are emailed to users.
                         </p>
-                        <ol className="list-decimal ml-5 space-y-2">
+                        
+                        <p className="mb-2 font-medium">Easiest method: Ask Replit Agent</p>
+                        <div className="p-3 bg-gray-50 border border-gray-300 rounded-lg mb-3 font-mono text-sm">
+                          "Change the email sender address to reports@myorganization.org"
+                        </div>
+                        
+                        <p className="mb-2 font-medium text-gray-600">Alternative: Change it yourself</p>
+                        <ol className="list-decimal ml-5 space-y-2 text-sm">
                           <li>
-                            <strong>Using the default domain ({config ? config.emailFromAddress.split('@')[1] : 'current domain'}):</strong> Set the <code className="bg-gray-100 px-1 rounded">RESEND_FROM_EMAIL</code> environment variable to your desired address (e.g., <code className="bg-gray-100 px-1 rounded">reports@{config ? config.emailFromAddress.split('@')[1] : 'yourdomain.com'}</code>).
+                            <strong>Using the current domain ({config ? config.emailFromAddress.split('@')[1] : 'current domain'}):</strong>
+                            <p className="mt-1">You can use any address ending with @{config ? config.emailFromAddress.split('@')[1] : 'yourdomain.com'}. Just tell Replit Agent what address you want (like "reports@{config ? config.emailFromAddress.split('@')[1] : 'yourdomain.com'}").</p>
                           </li>
                           <li>
-                            <strong>Using a custom domain:</strong>
+                            <strong>Using your own custom domain:</strong>
+                            <p className="mt-1">This requires technical setup. You'll need to:</p>
                             <ul className="list-disc ml-5 mt-2 space-y-1">
-                              <li>Add and verify your domain in your <a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Resend dashboard</a></li>
-                              <li>Add the required DNS records (MX, TXT, CNAME) to your domain's DNS settings</li>
-                              <li>Wait for DNS propagation (typically 15-60 minutes)</li>
-                              <li>Set <code className="bg-gray-100 px-1 rounded">RESEND_FROM_EMAIL</code> to your verified domain address</li>
+                              <li>Verify ownership of your domain in the <a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Resend email service</a></li>
+                              <li>Add special verification codes to your domain's settings (your IT team or domain registrar can help with this)</li>
+                              <li>Wait 15-60 minutes for the changes to take effect</li>
+                              <li>Ask Replit Agent to update the sender address to your custom domain</li>
                             </ul>
                           </li>
                         </ol>
-                        <p className="mt-2 text-gray-600 italic">
-                          Note: The Resend connector in this project automatically manages API keys and handles rotation.
-                        </p>
                       </div>
 
                       <div className="border-t pt-6">
                         <h3 className="font-semibold text-base mb-2" style={{ color: '#30302f' }}>
-                          Changing LLM models and settings
+                          How to change AI models
                         </h3>
                         <p className="mb-3">
-                          Configure AI models for each prompt using environment variables. All models use OpenRouter for routing to different providers.
+                          Each prompt uses an AI model (like GPT-5 or Claude) to generate text. Different models have different strengths - some are better at analysis, others at creative writing. You might want to change models to improve quality or reduce costs.
                         </p>
                         
-                        <div className="space-y-4">
-                          <div>
-                            <h4 className="font-medium mb-1">{prompts.find(p => p.step_name === 'prompt1')?.display_name}</h4>
-                            <p className="text-sm text-gray-600 mb-2">Controls the LLM used for this prompt.</p>
-                            <ul className="list-disc ml-5 space-y-1 text-sm">
-                              <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT1_MODEL</code> - Model identifier (e.g., <code className="bg-gray-100 px-1 rounded">openai/gpt-5</code>, <code className="bg-gray-100 px-1 rounded">anthropic/claude-3.5-sonnet</code>)</li>
-                              <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT1_TEMPERATURE</code> - Temperature value (optional)</li>
-                            </ul>
-                          </div>
-
-                          <div>
-                            <h4 className="font-medium mb-1">{prompts.find(p => p.step_name === 'prompt2')?.display_name}</h4>
-                            <p className="text-sm text-gray-600 mb-2">Controls the LLM used for this prompt.</p>
-                            <ul className="list-disc ml-5 space-y-1 text-sm">
-                              <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT2_MODEL</code> - Model identifier</li>
-                              <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT2_TEMPERATURE</code> - Temperature value (optional)</li>
-                            </ul>
-                          </div>
-
-                          <div>
-                            <h4 className="font-medium mb-1">{prompts.find(p => p.step_name === 'report_template')?.display_name}</h4>
-                            <p className="text-sm text-gray-600 mb-2">Controls the LLM used for this prompt.</p>
-                            <ul className="list-disc ml-5 space-y-1 text-sm">
-                              <li><code className="bg-gray-100 px-1 rounded">VITE_REPORT_TEMPLATE_MODEL</code> - Model identifier</li>
-                              <li><code className="bg-gray-100 px-1 rounded">VITE_REPORT_TEMPLATE_TEMPERATURE</code> - Temperature value (optional)</li>
-                            </ul>
-                          </div>
+                        <p className="mb-2 font-medium">Easiest method: Ask Replit Agent</p>
+                        <div className="p-3 bg-gray-50 border border-gray-300 rounded-lg mb-4 font-mono text-sm space-y-1">
+                          <div>"Use GPT-5 for all prompts"</div>
+                          <div>"Switch {prompts.find(p => p.step_name === 'prompt1')?.display_name} to Claude 3.5 Sonnet"</div>
+                          <div>"Change {prompts.find(p => p.step_name === 'report_template')?.display_name} to use GPT-4"</div>
                         </div>
+                        
+                        <p className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-900 text-sm">
+                          <strong>What is "temperature"?</strong> This controls how creative vs. predictable the AI is. Lower values (like 0.3) make it more focused and consistent. Higher values (like 0.9) make it more creative and varied. Most prompts work well with the default setting.
+                        </p>
 
+                        <details className="text-sm">
+                          <summary className="font-medium cursor-pointer text-gray-700 mb-2">Advanced: Technical details for each prompt</summary>
+                          <div className="space-y-3 mt-3 ml-4 text-gray-600">
+                            <div>
+                              <h4 className="font-medium text-gray-900">{prompts.find(p => p.step_name === 'prompt1')?.display_name}</h4>
+                              <p className="text-xs mt-1">Configuration settings:</p>
+                              <ul className="list-disc ml-5 space-y-1 text-xs mt-1">
+                                <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT1_MODEL</code> - Which AI model to use (examples: openai/gpt-5, anthropic/claude-3.5-sonnet)</li>
+                                <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT1_TEMPERATURE</code> - Creativity level, 0.0 to 1.0 (optional)</li>
+                              </ul>
+                            </div>
 
-                        <p className="mt-4 text-gray-600 italic text-sm">
-                          <strong>API Key:</strong> The OpenRouter API key is managed via <code className="bg-gray-100 px-1 rounded">VITE_OPENROUTER_API_KEY</code> environment variable. All models route through OpenRouter, so only this single API key is needed. See <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">openrouter.ai/models</a> for complete list of available LLMs.
+                            <div>
+                              <h4 className="font-medium text-gray-900">{prompts.find(p => p.step_name === 'prompt2')?.display_name}</h4>
+                              <p className="text-xs mt-1">Configuration settings:</p>
+                              <ul className="list-disc ml-5 space-y-1 text-xs mt-1">
+                                <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT2_MODEL</code> - Which AI model to use</li>
+                                <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT2_TEMPERATURE</code> - Creativity level (optional)</li>
+                              </ul>
+                            </div>
+
+                            <div>
+                              <h4 className="font-medium text-gray-900">{prompts.find(p => p.step_name === 'report_template')?.display_name}</h4>
+                              <p className="text-xs mt-1">Configuration settings:</p>
+                              <ul className="list-disc ml-5 space-y-1 text-xs mt-1">
+                                <li><code className="bg-gray-100 px-1 rounded">VITE_REPORT_TEMPLATE_MODEL</code> - Which AI model to use</li>
+                                <li><code className="bg-gray-100 px-1 rounded">VITE_REPORT_TEMPLATE_TEMPERATURE</code> - Creativity level (optional)</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </details>
+
+                        <p className="mt-4 text-gray-600 text-sm">
+                          <strong>Note:</strong> All AI models are accessed through a service called OpenRouter. See the <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">full list of available models</a> if you want to explore options.
                         </p>
                       </div>
 
                       <div className="border-t pt-6">
                         <h3 className="font-semibold text-base mb-2" style={{ color: '#30302f' }}>
-                          Enabling or disabling web search for prompts
+                          How to turn web search on or off
                         </h3>
                         <p className="mb-3">
-                          Some prompts can use web search to find additional information about similar programs and best practices. This helps create more informed evaluation plans.
+                          Web search allows the AI to look up information about similar programs and best practices from across the internet. This can make evaluation plans more informed and comprehensive, but it also makes processing slower and slightly more expensive.
                         </p>
 
-                        <div className="p-3 bg-gray-50 border border-gray-300 rounded-lg mb-3">
-                          <h4 className="font-medium text-sm mb-2">Current settings:</h4>
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+                          <h4 className="font-medium text-sm mb-2">Your current settings:</h4>
                           <ul className="space-y-1 text-sm">
-                            <li>• <strong>{prompts.find(p => p.step_name === 'prompt1')?.display_name}</strong> - Web search <strong>{config?.prompt1.webSearch ? 'enabled' : 'disabled'}</strong></li>
-                            <li>• <strong>{prompts.find(p => p.step_name === 'prompt2')?.display_name}</strong> - Web search <strong>{config?.prompt2.webSearch ? 'enabled' : 'disabled'}</strong></li>
-                            <li>• <strong>{prompts.find(p => p.step_name === 'report_template')?.display_name}</strong> - Web search <strong>{config?.reportTemplate.webSearch ? 'enabled' : 'disabled'}</strong></li>
+                            <li>• <strong>{prompts.find(p => p.step_name === 'prompt1')?.display_name}:</strong> Web search is <strong className={config?.prompt1.webSearch ? 'text-green-700' : 'text-gray-600'}>{config?.prompt1.webSearch ? 'ON' : 'OFF'}</strong></li>
+                            <li>• <strong>{prompts.find(p => p.step_name === 'prompt2')?.display_name}:</strong> Web search is <strong className={config?.prompt2.webSearch ? 'text-green-700' : 'text-gray-600'}>{config?.prompt2.webSearch ? 'ON' : 'OFF'}</strong></li>
+                            <li>• <strong>{prompts.find(p => p.step_name === 'report_template')?.display_name}:</strong> Web search is <strong className={config?.reportTemplate.webSearch ? 'text-green-700' : 'text-gray-600'}>{config?.reportTemplate.webSearch ? 'ON' : 'OFF'}</strong></li>
                           </ul>
                         </div>
 
-                        <div className="mb-3">
-                          <h4 className="font-medium text-sm mb-2">To change web search settings:</h4>
-                          <p className="text-sm mb-2">
-                            <strong>Option 1: Ask Replit Agent in plain language</strong>
-                          </p>
-                          <div className="p-3 bg-gray-50 border border-gray-300 rounded-lg mb-3 font-mono text-sm space-y-1">
-                            <div>"Turn off web search for {prompts.find(p => p.step_name === 'prompt1')?.display_name}"</div>
-                            <div>"Enable web search for {prompts.find(p => p.step_name === 'prompt2')?.display_name}"</div>
-                            <div>"Disable web search for {prompts.find(p => p.step_name === 'report_template')?.display_name}"</div>
-                          </div>
-
-                          <p className="text-sm mb-2">
-                            <strong>Option 2: Set environment variables directly</strong>
-                          </p>
-                          <ul className="list-disc ml-5 space-y-1 text-sm">
-                            <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT1_WEB_SEARCH</code> - Set to <code className="bg-gray-100 px-1 rounded">true</code> or <code className="bg-gray-100 px-1 rounded">false</code> for {prompts.find(p => p.step_name === 'prompt1')?.display_name}</li>
-                            <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT2_WEB_SEARCH</code> - Set to <code className="bg-gray-100 px-1 rounded">true</code> or <code className="bg-gray-100 px-1 rounded">false</code> for {prompts.find(p => p.step_name === 'prompt2')?.display_name}</li>
-                            <li><code className="bg-gray-100 px-1 rounded">VITE_REPORT_TEMPLATE_WEB_SEARCH</code> - Set to <code className="bg-gray-100 px-1 rounded">true</code> or <code className="bg-gray-100 px-1 rounded">false</code> for {prompts.find(p => p.step_name === 'report_template')?.display_name}</li>
-                          </ul>
+                        <p className="mb-2 font-medium">Easiest method: Ask Replit Agent</p>
+                        <div className="p-3 bg-gray-50 border border-gray-300 rounded-lg mb-4 font-mono text-sm space-y-1">
+                          <div>"Turn off web search for {prompts.find(p => p.step_name === 'prompt1')?.display_name}"</div>
+                          <div>"Enable web search for {prompts.find(p => p.step_name === 'prompt2')?.display_name}"</div>
+                          <div>"Turn on web search for all prompts"</div>
                         </div>
 
-                        <p className="mt-2 text-gray-600 italic text-sm">
-                          Note: Web search is enabled by default for the first two prompts, and disabled by default for the report template.
+                        <details className="text-sm mb-3">
+                          <summary className="font-medium cursor-pointer text-gray-700 mb-2">Advanced: Change settings manually</summary>
+                          <p className="text-xs text-gray-600 mt-2 ml-4">
+                            If you prefer to change settings yourself, ask Replit Agent to update these configuration variables:
+                          </p>
+                          <ul className="list-disc ml-8 space-y-1 text-xs text-gray-600 mt-2">
+                            <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT1_WEB_SEARCH</code> for {prompts.find(p => p.step_name === 'prompt1')?.display_name}</li>
+                            <li><code className="bg-gray-100 px-1 rounded">VITE_PROMPT2_WEB_SEARCH</code> for {prompts.find(p => p.step_name === 'prompt2')?.display_name}</li>
+                            <li><code className="bg-gray-100 px-1 rounded">VITE_REPORT_TEMPLATE_WEB_SEARCH</code> for {prompts.find(p => p.step_name === 'report_template')?.display_name}</li>
+                          </ul>
+                          <p className="text-xs text-gray-600 mt-2 ml-4">Set each to either <code className="bg-gray-100 px-1 rounded">true</code> (on) or <code className="bg-gray-100 px-1 rounded">false</code> (off).</p>
+                        </details>
+
+                        <p className="text-gray-600 italic text-sm">
+                          💡 <strong>Default settings:</strong> Web search is turned on for the first two prompts (to gather context) and off for the report template (which uses already-gathered information).
                         </p>
                       </div>
                     </div>
@@ -649,8 +670,21 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                     </p>
                   </div>
 
-                  <div className="border-t pt-4 text-xs text-gray-500">
-                    <p>💡 <strong>Tip:</strong> After changing environment variables, restart the application for changes to take effect. The current configuration values are displayed in the Configuration box on the left.</p>
+                  <div className="border-t pt-6">
+                    <h2 className="text-lg font-semibold mb-3" style={{ color: '#30302f' }}>
+                      How to apply your changes
+                    </h2>
+                    <div className="space-y-3 text-sm text-gray-700">
+                      <div className="p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                        <p><strong>⚠️ Restart required:</strong> After changing any settings, ask Replit Agent to restart the application. Your changes won't work until the restart is complete.</p>
+                      </div>
+                      <div className="p-3 bg-blue-50 border-l-4 border-blue-400 rounded">
+                        <p><strong>📊 Check current settings:</strong> The Configuration panel on the left shows what's currently active - AI models, web search status, and email settings.</p>
+                      </div>
+                      <div className="p-3 bg-green-50 border-l-4 border-green-400 rounded">
+                        <p><strong>✨ Easiest method:</strong> For any change in these instructions, just ask Replit Agent in plain English. Example: "Turn off web search" or "Switch to Claude for all prompts"</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
