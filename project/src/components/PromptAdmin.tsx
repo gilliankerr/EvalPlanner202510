@@ -61,6 +61,9 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
   const [passwordError, setPasswordError] = useState('');
   const [config, setConfig] = useState<Config | null>(null);
   const [sessionToken, setSessionToken] = useState<string>('');
+  const [showSettings, setShowSettings] = useState(false);
+  const [settings, setSettings] = useState<any>(null);
+  const [settingsSaveSuccess, setSettingsSaveSuccess] = useState(false);
   const API_URL = '/api';
 
   useEffect(() => {
@@ -71,6 +74,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
     if (isAuthenticated) {
       fetchPrompts();
       fetchConfig();
+      fetchSettings();
     }
   }, [isAuthenticated]);
 
@@ -91,6 +95,46 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
       setConfig(data);
     } catch (error) {
       console.error('Error fetching config:', error);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch(`${API_URL}/settings`, {
+        headers: {
+          'Authorization': `Bearer ${sessionToken}`
+        }
+      });
+      const data = await response.json();
+      const settingsObj = data.reduce((acc: any, setting: any) => {
+        acc[setting.key] = setting.value || '';
+        return acc;
+      }, {});
+      setSettings(settingsObj);
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
+
+  const updateSetting = async (key: string, value: string) => {
+    try {
+      const response = await fetch(`${API_URL}/settings/${key}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionToken}`
+        },
+        body: JSON.stringify({ value })
+      });
+      
+      if (response.ok) {
+        setSettingsSaveSuccess(true);
+        fetchSettings();
+        fetchConfig();
+        setTimeout(() => setSettingsSaveSuccess(false), 3000);
+      }
+    } catch (error) {
+      console.error('Error updating setting:', error);
     }
   };
 
@@ -342,19 +386,29 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
               </h2>
               <div className={styles.optionsList}>
                 <button
-                  onClick={() => setSelectedPrompt(null)}
-                  className={`${styles.optionButton} ${!selectedPrompt ? styles.optionButtonActive : ''}`}
+                  onClick={() => { setSelectedPrompt(null); setShowSettings(false); }}
+                  className={`${styles.optionButton} ${!selectedPrompt && !showSettings ? styles.optionButtonActive : ''}`}
                 >
                   <div className={styles.optionTitle}>📖 Instructions</div>
                   <div className={styles.optionSubtitle}>
                     View help and guides
                   </div>
                 </button>
+
+                <button
+                  onClick={() => { setSelectedPrompt(null); setShowSettings(true); }}
+                  className={`${styles.optionButton} ${showSettings ? styles.optionButtonActive : ''}`}
+                >
+                  <div className={styles.optionTitle}>⚙️ Settings</div>
+                  <div className={styles.optionSubtitle}>
+                    Configure API keys & models
+                  </div>
+                </button>
                 
                 {prompts.map((prompt) => (
                   <button
                     key={prompt.id}
-                    onClick={() => selectPrompt(prompt)}
+                    onClick={() => { selectPrompt(prompt); setShowSettings(false); }}
                     className={`${styles.optionButton} ${selectedPrompt?.id === prompt.id ? styles.optionButtonActive : ''}`}
                   >
                     <div className={styles.optionTitle}>{prompt.display_name}</div>
@@ -414,7 +468,100 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
           </div>
 
           <div className={styles.editorArea}>
-            {selectedPrompt ? (
+            {showSettings ? (
+              <div className={styles.editorCard}>
+                <h2 className={styles.sectionTitle} style={{ marginBottom: '1.5rem' }}>
+                  ⚙️ System Settings
+                </h2>
+                
+                {settingsSaveSuccess && (
+                  <div className={styles.saveSuccess} style={{ marginBottom: '1rem' }}>
+                    <Check className={styles.iconMd} />
+                    <span className={styles.buttonText}>Settings saved successfully!</span>
+                  </div>
+                )}
+
+                {settings && (
+                  <div style={{ maxWidth: '600px' }}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>OpenRouter API Key</label>
+                      <input
+                        type="password"
+                        value={settings.openrouter_api_key || ''}
+                        onChange={(e) => setSettings({ ...settings, openrouter_api_key: e.target.value })}
+                        placeholder="Enter your OpenRouter API key..."
+                        className={styles.formInput}
+                      />
+                      <button
+                        onClick={() => updateSetting('openrouter_api_key', settings.openrouter_api_key)}
+                        className={styles.headerButton}
+                        style={{ marginTop: '0.5rem' }}
+                      >
+                        Save API Key
+                      </button>
+                    </div>
+
+                    <h3 className={styles.subsectionTitle} style={{ marginTop: '2rem', marginBottom: '1rem' }}>
+                      Model Configuration
+                    </h3>
+
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Prompt 1 Model</label>
+                      <input
+                        type="text"
+                        value={settings.prompt1_model || ''}
+                        onChange={(e) => setSettings({ ...settings, prompt1_model: e.target.value })}
+                        placeholder="e.g., openai/gpt-4o"
+                        className={styles.formInput}
+                      />
+                      <button
+                        onClick={() => updateSetting('prompt1_model', settings.prompt1_model)}
+                        className={styles.headerButton}
+                        style={{ marginTop: '0.5rem' }}
+                      >
+                        Save
+                      </button>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Prompt 2 Model</label>
+                      <input
+                        type="text"
+                        value={settings.prompt2_model || ''}
+                        onChange={(e) => setSettings({ ...settings, prompt2_model: e.target.value })}
+                        placeholder="e.g., openai/gpt-4o"
+                        className={styles.formInput}
+                      />
+                      <button
+                        onClick={() => updateSetting('prompt2_model', settings.prompt2_model)}
+                        className={styles.headerButton}
+                        style={{ marginTop: '0.5rem' }}
+                      >
+                        Save
+                      </button>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Report Template Model</label>
+                      <input
+                        type="text"
+                        value={settings.report_template_model || ''}
+                        onChange={(e) => setSettings({ ...settings, report_template_model: e.target.value })}
+                        placeholder="e.g., openai/gpt-4o"
+                        className={styles.formInput}
+                      />
+                      <button
+                        onClick={() => updateSetting('report_template_model', settings.report_template_model)}
+                        className={styles.headerButton}
+                        style={{ marginTop: '0.5rem' }}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : selectedPrompt ? (
               <div className={styles.editorCard}>
                 <div className={styles.versionInfo}>
                   <p className={styles.versionText}>
