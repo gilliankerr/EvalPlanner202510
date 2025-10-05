@@ -256,6 +256,80 @@ app.post('/openrouter-proxy', async (req, res) => {
   }
 });
 
+// New OpenRouter proxy endpoint that reads model/temperature from settings
+// Frontend calls this endpoint with a 'step' parameter (prompt1, prompt2, or report_template)
+app.post('/api/openrouter/chat/completions', async (req, res) => {
+  try {
+    const { step, messages, max_tokens } = req.body;
+    
+    if (!step) {
+      return res.status(400).json({ 
+        error: 'Missing step parameter. Must be one of: prompt1, prompt2, report_template' 
+      });
+    }
+    
+    // Get API key from database, fallback to environment variable
+    const apiKey = await getSetting('openrouter_api_key', 'OPENROUTER_API_KEY');
+    
+    if (!apiKey) {
+      return res.status(500).json({ 
+        error: 'OpenRouter API key not configured. Please set it in the admin settings or as an environment variable.' 
+      });
+    }
+    
+    // Get model and temperature for this step from settings
+    // Settings keys: prompt1_model, prompt2_model, report_template_model
+    // Environment fallbacks: PROMPT1_MODEL, PROMPT2_MODEL, REPORT_TEMPLATE_MODEL
+    const stepUpperCase = step.toUpperCase();
+    const model = await getSetting(`${step}_model`, `${stepUpperCase}_MODEL`) || 'openai/gpt-4o';
+    
+    // Temperature settings (optional)
+    const temperatureStr = await getSetting(`${step}_temperature`, `${stepUpperCase}_TEMPERATURE`);
+    const temperature = temperatureStr ? parseFloat(temperatureStr) : undefined;
+    
+    // Build request body
+    const requestBody = {
+      model,
+      messages,
+      max_tokens: max_tokens || 4000
+    };
+    
+    // Add temperature if provided
+    if (temperature !== undefined && !isNaN(temperature)) {
+      requestBody.temperature = temperature;
+    }
+    
+    console.log(`Making OpenRouter API call for step: ${step}, model: ${model}`);
+    
+    // Make request to OpenRouter
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OpenRouter API Error:', errorText);
+      return res.status(response.status).json({ 
+        error: `OpenRouter API error: ${response.status} - ${errorText}` 
+      });
+    }
+    
+    const data = await response.json();
+    res.json(data);
+    
+  } catch (error) {
+    console.error('OpenRouter proxy error:', error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to proxy request to OpenRouter' 
+    });
+  }
+});
+
 // Test endpoint
 app.get('/test', (req, res) => {
   res.json({ status: 'Backend API server is running' });

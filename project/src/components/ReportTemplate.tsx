@@ -166,29 +166,21 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
         evaluationFramework: programData.evaluationFramework
       });
 
-      // Make API call to generate the evaluation plan using the prompt from database
-      const model = import.meta.env.VITE_REPORT_TEMPLATE_MODEL || 'openai/gpt-5';
-      const temperature = import.meta.env.VITE_REPORT_TEMPLATE_TEMPERATURE ? parseFloat(import.meta.env.VITE_REPORT_TEMPLATE_TEMPERATURE) : undefined;
-      
+      // Make API call through backend proxy (secure - API key never exposed to frontend)
       const requestBody: any = {
-        model,
         messages: [
           {
             role: 'user',
             content: planPrompt
           }
         ],
-        max_tokens: 12000
+        max_tokens: 12000,
+        step: 'report_template'  // Backend uses this to determine model/temperature from config
       };
       
-      if (temperature !== undefined) {
-        requestBody.temperature = temperature;
-      }
-      
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const response = await fetch('/api/openrouter/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody)

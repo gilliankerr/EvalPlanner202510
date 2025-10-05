@@ -37,29 +37,21 @@ const Prompt2: React.FC<Prompt2Props> = ({ programData, updateProgramData, onCom
         programAnalysis: programData.programAnalysis
       });
 
-      // Make API call to OpenRouter
-      const model = import.meta.env.VITE_PROMPT2_MODEL || 'openai/gpt-5';
-      const temperature = import.meta.env.VITE_PROMPT2_TEMPERATURE ? parseFloat(import.meta.env.VITE_PROMPT2_TEMPERATURE) : undefined;
-      
+      // Make API call through backend proxy (secure - API key never exposed to frontend)
       const requestBody: any = {
-        model,
         messages: [
           {
             role: 'user',
             content: analysisPrompt
           }
         ],
-        max_tokens: 4000
+        max_tokens: 4000,
+        step: 'prompt2'  // Backend uses this to determine model/temperature from config
       };
       
-      if (temperature !== undefined) {
-        requestBody.temperature = temperature;
-      }
-      
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const response = await fetch('/api/openrouter/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody)
