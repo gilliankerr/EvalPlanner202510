@@ -235,7 +235,7 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
           onClick={handleSubmit}
           className={styles.submitButton}
         >
-          Continue to next step
+          Submit
         </button>
       </div>
     </div>
