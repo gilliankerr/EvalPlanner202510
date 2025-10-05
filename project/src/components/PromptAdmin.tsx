@@ -532,23 +532,24 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                           "Change the email sender address to reports@myorganization.org"
                         </div>
                         
-                        <p className="mb-2 font-medium text-gray-600">Alternative: Change it yourself</p>
+                        <p className="mb-2 font-medium text-gray-600">Alternative: Change it in Replit Integrations</p>
                         <ol className="list-decimal ml-5 space-y-2 text-sm">
                           <li>
-                            <strong>Using the current domain ({config ? config.emailFromAddress.split('@')[1] : 'current domain'}):</strong>
-                            <p className="mt-1">You can use any address ending with @{config ? config.emailFromAddress.split('@')[1] : 'yourdomain.com'}. Just tell Replit Agent what address you want (like "reports@{config ? config.emailFromAddress.split('@')[1] : 'yourdomain.com'}").</p>
+                            <strong>Go to Replit Integrations</strong>
+                            <p className="mt-1">Find and click on the Resend integration in your Replit project</p>
                           </li>
                           <li>
-                            <strong>Using your own custom domain:</strong>
-                            <p className="mt-1">This requires technical setup. You'll need to:</p>
-                            <ul className="list-disc ml-5 mt-2 space-y-1">
-                              <li>Verify ownership of your domain in the <a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Resend email service</a></li>
-                              <li>Add special verification codes to your domain's settings (your IT team or domain registrar can help with this)</li>
-                              <li>Wait 15-60 minutes for the changes to take effect</li>
-                              <li>Ask Replit Agent to update the sender address to your custom domain</li>
-                            </ul>
+                            <strong>Update the "From Email" field</strong>
+                            <p className="mt-1">Enter your desired email sender address</p>
+                          </li>
+                          <li>
+                            <strong>Restart the email server</strong>
+                            <p className="mt-1">The changes will take effect after restarting</p>
                           </li>
                         </ol>
+                        <p className="mt-3 text-sm text-gray-600">
+                          <strong>Note:</strong> If using a custom domain, make sure it's verified in your <a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Resend account</a> first.
+                        </p>
                       </div>
 
                       <div className="border-t pt-6">
