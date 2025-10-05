@@ -42,9 +42,7 @@ The project is configured for a Reserved VM deployment on Replit, running a two-
 A secure, session-based authentication system protects the admin interface, which allows for managing AI prompts, viewing system configurations (LLM models, temperatures, web search settings, email settings), and managing email delivery templates. Prompts can be edited using a markdown editor, with support for version history and rollbacks. The configuration panel displays web search status for each prompt with clear visual indicators (🌐 Enabled/Disabled).
 
 ### HTML Report Generation
-HTML reports are generated using the `marked` library, incorporating enhanced table styling and responsive design, with options for direct download or email delivery.
-
-**Logic Model Diagram** (October 2025): The final HTML report dynamically generates a visual flow diagram for logic model tables. The diagram displays 6 sequential boxes (Inputs → Activities → Outputs → Short-term Outcomes → Mid-term Outcomes → Long-term Outcomes) connected by arrows, with all items from each column aggregated and displayed as bulleted lists within each box. The diagram is fully responsive (wraps on smaller screens, hides arrows on mobile), print-optimized, and automatically inserted above the logic model data table in the report. Implementation in `StepSix.tsx` parses table tokens, extracts column headers and cell content (splitting on semicolons/newlines), and generates styled HTML boxes with CSS flexbox layout.
+HTML reports are generated using the `marked` library, incorporating logic model SVG diagrams, enhanced table styling, and responsive design, with options for direct download or email delivery.
 
 ## External Dependencies
 - **PostgreSQL**: Database for storing prompts and version history.

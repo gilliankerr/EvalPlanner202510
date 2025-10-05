@@ -174,48 +174,8 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
           row.map(cell => flattenTokensToText(cell.tokens))
         );
         
-        // Extract column headers for diagram
-        const columnHeaders = token.header.map(cell => flattenHeaderTokens(cell.tokens));
+        // Extract comprehensive plain text data for processing
         
-        // Generate logic model diagram
-        const generateLogicModelDiagram = (headers: string[], rowData: string[][]) => {
-          // Aggregate all items for each column from all rows
-          const columnData = headers.map((header, colIndex) => {
-            const items: string[] = [];
-            rowData.forEach(row => {
-              if (row[colIndex]) {
-                const cellText = row[colIndex];
-                // Split on semicolons OR line breaks
-                const semicolonItems = cellText.split(/;\s*/);
-                semicolonItems.forEach(item => {
-                  const lineItems = item.split(/\n+/).map(s => s.trim()).filter(s => s.length > 0);
-                  items.push(...lineItems);
-                });
-              }
-            });
-            return items.filter(item => item.length > 0);
-          });
-
-          // Generate diagram HTML with 6 boxes and arrows
-          const diagramBoxes = headers.map((header, index) => {
-            const items = columnData[index];
-            const itemsHtml = items.length > 0 
-              ? items.map(item => `<li>${item}</li>`).join('')
-              : '<li><em>No content</em></li>';
-            
-            return `
-              <div class="logic-model-box">
-                <div class="logic-model-box-header">${header}</div>
-                <ul class="logic-model-box-items">${itemsHtml}</ul>
-              </div>
-              ${index < headers.length - 1 ? '<div class="logic-model-arrow">→</div>' : ''}
-            `;
-          }).join('');
-
-          return `<div class="logic-model-diagram">${diagramBoxes}</div>`;
-        };
-
-        const diagram = generateLogicModelDiagram(columnHeaders, tokenTextData);
         
         // Enhanced table fallback with comprehensive separator handling
         const enhancedBody = tokenTextData.map(row => 
@@ -245,8 +205,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         ).join('');
         
         return `<div class="logic-model-container">
-          <h4 style="margin: 0 0 1.5rem 0; color: #1e40af; text-align: center;">${programData.programName} Logic Model</h4>
-          ${diagram}
+          <h4 style="margin: 0 0 1rem 0; color: #1e40af; text-align: center;">${programData.programName} Logic Model</h4>
           <table class="standard-table">
             <thead><tr>${header}</tr></thead>
             <tbody>${enhancedBody}</tbody>
@@ -566,104 +525,6 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         
         .logic-model-table tbody tr:hover {
             background: #f1f5f9;
-        }
-
-        /* Logic Model Diagram Styles */
-        .logic-model-diagram {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: white;
-            border-radius: 12px;
-            overflow-x: auto;
-        }
-
-        .logic-model-box {
-            flex: 1;
-            min-width: 150px;
-            max-width: 200px;
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border: 2px solid #3b82f6;
-            border-radius: 8px;
-            padding: 1rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .logic-model-box-header {
-            font-weight: 700;
-            color: #1e40af;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.025em;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #3b82f6;
-            text-align: center;
-        }
-
-        .logic-model-box-items {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            font-size: 0.8rem;
-            color: #374151;
-            line-height: 1.5;
-        }
-
-        .logic-model-box-items li {
-            padding: 0.25rem 0;
-            margin: 0;
-            position: relative;
-            padding-left: 1rem;
-        }
-
-        .logic-model-box-items li::before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: #3b82f6;
-            font-weight: bold;
-        }
-
-        .logic-model-arrow {
-            font-size: 2rem;
-            color: #3b82f6;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-
-        @media (max-width: 1200px) {
-            .logic-model-diagram {
-                flex-wrap: wrap;
-            }
-            
-            .logic-model-box {
-                min-width: 45%;
-            }
-            
-            .logic-model-arrow {
-                display: none;
-            }
-        }
-
-        @media print {
-            .logic-model-diagram {
-                display: flex;
-                flex-wrap: nowrap;
-                page-break-inside: avoid;
-            }
-            
-            .logic-model-box {
-                font-size: 0.7rem;
-                padding: 0.5rem;
-            }
-            
-            .logic-model-arrow {
-                font-size: 1.5rem;
-            }
         }
         
         th {
