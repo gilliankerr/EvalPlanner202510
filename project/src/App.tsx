@@ -20,6 +20,8 @@ import PromptAdmin from './components/PromptAdmin';
  * Each component internally references the appropriate database step_name.
  */
 
+import type { LabeledScrapeResult } from './utils/scrape';
+
 export interface ProgramData {
   organizationName: string;
   programName: string;
@@ -28,6 +30,7 @@ export interface ProgramData {
   deliveryMethod: string;
   urls: string[];
   scrapedContent: string;
+  labeledScrapedContent?: LabeledScrapeResult[];
   programAnalysis: string;
   programTypePlural: string;
   targetPopulation: string;

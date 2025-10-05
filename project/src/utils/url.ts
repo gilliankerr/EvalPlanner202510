@@ -10,6 +10,12 @@ export interface ExtractedUrl {
   error?: string;
 }
 
+export interface LabeledUrl {
+  label: string;
+  url: string;
+  normalized: string;
+}
+
 /**
  * Extract and normalize URLs from text input
  * @param text - Input text containing potential URLs
@@ -134,4 +140,54 @@ export function validateAndNormalizeUrls(urls: string[]): string[] {
   return extractAndNormalizeUrls('', urls)
     .filter(url => url.isValid)
     .map(url => url.normalized);
+}
+
+/**
+ * Extract URLs with their contextual labels from text
+ * @param text - Input text with labeled URLs (e.g., "Program info: https://example.com")
+ * @returns Array of labeled URLs with context preserved
+ */
+export function extractLabeledUrls(text: string): LabeledUrl[] {
+  if (!text) return [];
+  
+  const urlRegex = /(https?:\/\/[^\s<>"{}|\\^`\[\]]+)|(www\.[^\s<>"{}|\\^`\[\]]+)/gi;
+  const lines = text.split('\n');
+  const results: LabeledUrl[] = [];
+  
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    if (!trimmedLine) continue;
+    
+    const urlMatches = trimmedLine.match(urlRegex);
+    if (!urlMatches || urlMatches.length === 0) continue;
+    
+    // For each URL found in the line
+    for (const urlMatch of urlMatches) {
+      const cleanUrl = urlMatch.replace(/[.,;!?)\]]+$/, '');
+      const processed = processUrl(cleanUrl);
+      
+      if (processed.isValid) {
+        // Extract the label (everything before the URL)
+        const urlIndex = trimmedLine.indexOf(urlMatch);
+        let label = trimmedLine.substring(0, urlIndex).trim();
+        
+        // Clean up common label separators
+        label = label.replace(/[:：\-–—]\s*$/, '').trim();
+        
+        // If no label, use a generic one
+        if (!label) {
+          label = 'Reference';
+        }
+        
+        results.push({
+          label,
+          url: processed.original,
+          normalized: processed.normalized
+        });
+      }
+    }
+  }
+  
+  console.log('[URL Extraction] Labeled URLs:', results);
+  return results;
 }

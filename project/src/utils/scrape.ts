@@ -15,6 +15,14 @@ export interface ScrapeResult {
   retryAfter?: number;
 }
 
+export interface LabeledScrapeResult {
+  label: string;
+  url: string;
+  status: 'success' | 'timeout' | 'rate_limited' | 'blocked' | 'not_found' | 'unsupported_content' | 'network_error';
+  content?: string;
+  error?: string;
+}
+
 interface ProxyConfig {
   name: string;
   buildUrl: (url: string) => string;
