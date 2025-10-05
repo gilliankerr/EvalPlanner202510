@@ -504,7 +504,8 @@ async function startServer() {
     try {
       const credentials = await getCredentials();
       console.log('✓ Resend connection successful');
-      console.log(`  From email: ${credentials.fromEmail || FROM_EMAIL}`);
+      console.log(`  Resend integration configured with: ${credentials.fromEmail}`);
+      console.log(`  Emails will be sent from: ${FROM_EMAIL}`);
     } catch (error) {
       console.error('✗ Resend connection failed:', error.message);
       console.error('  This may work in development but will cause issues when sending emails');
