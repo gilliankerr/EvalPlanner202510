@@ -14,22 +14,14 @@ const PORT = 3001;
 // EMAIL CONFIGURATION
 // ============================================================================
 // 
-// Configure the "from" email address used for all outgoing emails.
-// 
-// CURRENT METHOD (Hardcoded):
-// Change the FROM_EMAIL constant below to update the sender address.
+// The "from" email address is configured through the Resend integration.
+// To change it:
+// 1. Go to Replit Integrations
+// 2. Update the Resend connection's "From Email" field
+// 3. Restart the email server
+//
 // Make sure the domain is verified in your Resend account (https://resend.com/domains)
-//
-// ALTERNATIVE METHOD (Environment Variable):
-// You can also set RESEND_FROM_EMAIL in your environment variables/secrets.
-// If set, it will override the hardcoded value below.
-//
-// FUTURE IMPROVEMENT:
-// Consider adding a "System Settings" section to the Admin interface where
-// the from email can be configured dynamically without code changes.
 // ============================================================================
-
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'ai@gkerr.com';
 
 // ============================================================================
 // SESSION MANAGEMENT
@@ -149,10 +141,10 @@ async function getResendClient() {
 
 // Email sending function using Resend
 async function sendEmail(message) {
-  const { client } = await getResendClient();
+  const { client, fromEmail } = await getResendClient();
 
   const emailData = {
-    from: FROM_EMAIL,
+    from: fromEmail,
     to: Array.isArray(message.to) ? message.to : [message.to],
     subject: message.subject,
     html: message.html || undefined,
@@ -459,10 +451,19 @@ app.post('/prompts/:step/rollback/:version', authenticateAdmin, async (req, res)
 });
 
 // Configuration endpoint - returns read-only system settings
-app.get('/config', (req, res) => {
+app.get('/config', async (req, res) => {
   try {
+    // Get from email from Resend integration
+    let emailFromAddress = 'Not configured';
+    try {
+      const credentials = await getCredentials();
+      emailFromAddress = credentials.fromEmail;
+    } catch (error) {
+      console.error('Could not fetch from email:', error.message);
+    }
+
     const config = {
-      emailFromAddress: FROM_EMAIL,
+      emailFromAddress,
       prompt1: {
         model: process.env.VITE_PROMPT1_MODEL || 'openai/gpt-5',
         temperature: process.env.VITE_PROMPT1_TEMPERATURE ? parseFloat(process.env.VITE_PROMPT1_TEMPERATURE) : null,
@@ -504,8 +505,7 @@ async function startServer() {
     try {
       const credentials = await getCredentials();
       console.log('✓ Resend connection successful');
-      console.log(`  Resend integration configured with: ${credentials.fromEmail}`);
-      console.log(`  Emails will be sent from: ${FROM_EMAIL}`);
+      console.log(`  Emails will be sent from: ${credentials.fromEmail}`);
     } catch (error) {
       console.error('✗ Resend connection failed:', error.message);
       console.error('  This may work in development but will cause issues when sending emails');
