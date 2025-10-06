@@ -94,6 +94,11 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+// Handle pool errors to prevent crashes
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err);
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
@@ -180,7 +185,8 @@ async function getSetting(key, envVarName = null) {
       [key]
     );
     
-    if (result.rows.length > 0 && result.rows[0].value !== null) {
+    // Check if value exists and is not empty/blank
+    if (result.rows.length > 0 && result.rows[0].value !== null && result.rows[0].value.trim()) {
       return result.rows[0].value;
     }
     
