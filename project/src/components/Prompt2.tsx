@@ -46,13 +46,19 @@ const Prompt2: React.FC<Prompt2Props> = ({ programData, updateProgramData, onCom
         step: 'prompt2'
       };
       
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 300000); // 5 minute timeout to match backend
+      
       const response = await fetch('/api/openrouter/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeout);
 
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status}`);
