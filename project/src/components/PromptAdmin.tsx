@@ -831,7 +831,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                             Version {version.version_number}
                           </div>
                           <div className={styles.versionMeta}>
-                            {new Date(version.created_at).toLocaleDateString()}
+                            {new Date(version.created_at).toLocaleDateString('en-US', { timeZone: 'America/Toronto' })}
                           </div>
                           {version.change_notes && (
                             <div className={styles.versionNotes}>

@@ -1131,7 +1131,8 @@ async function processNextJob() {
               day: 'numeric',
               hour: '2-digit',
               minute: '2-digit',
-              timeZoneName: 'short'
+              timeZoneName: 'short',
+              timeZone: 'America/Toronto'
             });
             
             // Replace template variables

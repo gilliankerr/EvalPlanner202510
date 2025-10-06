@@ -424,7 +424,7 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
             <div>• Method: LogicalOutcomes Evaluation Planning Template</div>
             <div>• Program: {programData.programName}</div>
             <div>• Organization: {programData.organizationName}</div>
-            <div>• Generated: {new Date().toLocaleString()}</div>
+            <div>• Generated: {new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' })}</div>
           </div>
         </div>
       </div>

@@ -1215,7 +1215,8 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        timeZoneName: 'short'
+        timeZoneName: 'short',
+        timeZone: 'America/Toronto'
       });
 
       // Fetch email template from database and replace variables
