@@ -654,83 +654,10 @@ function getReportStyles() {
       margin-bottom: 1rem;
     }
     
-    .text-center {
-      text-align: center;
-    }
-    
-    .font-semibold {
-      font-weight: 600;
-    }
-    
-    .text-slate-900 {
-      color: #0f172a;
-    }
-    
-    .text-slate-600 {
-      color: #475569;
-    }
-    
-    .bg-slate-50 {
-      background-color: #f8fafc;
-    }
-    
-    .bg-blue-50 {
-      background-color: #eff6ff;
-    }
-    
-    .border-blue-200 {
-      border-color: #bfdbfe;
-    }
-    
-    .rounded {
-      border-radius: 0.375rem;
-    }
-    
-    .text-xs {
-      font-size: 0.75rem;
-    }
-    
-    .text-sm {
-      font-size: 0.875rem;
-    }
-    
-    .px-2 {
-      padding-left: 0.5rem;
-      padding-right: 0.5rem;
-    }
-    
-    .py-1 {
-      padding-top: 0.25rem;
-      padding-bottom: 0.25rem;
-    }
-    
-    .px-6 {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
-    }
-    
-    .py-8 {
-      padding-top: 2rem;
-      padding-bottom: 2rem;
-    }
-    
-    .space-y-1 > * + * {
-      margin-top: 0.25rem;
-    }
-    
-    .max-w-6xl {
-      max-width: 1200px;
-    }
-    
     .report-container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 1rem;
-    }
-    
-    .mx-auto {
-      margin-left: auto;
-      margin-right: auto;
     }
     
     /* Print button styling */
@@ -754,56 +681,8 @@ function getReportStyles() {
       border-color: #60a5fa;
     }
     
-    /* Layout classes */
-    .flex {
-      display: flex;
-    }
-    
-    .flex-1 {
-      flex: 1;
-    }
-    
-    .w-80 {
-      width: 20rem;
-      min-width: 20rem;
-    }
-    
-    .min-h-screen {
-      min-height: 100vh;
-    }
-    
-    .p-6 {
-      padding: 1.5rem;
-    }
-    
-    .max-w-none {
-      max-width: none;
-    }
-    
-    .mt-16 {
-      margin-top: 4rem;
-    }
-    
-    .bg-slate-900 {
-      background-color: #0f172a;
-    }
-    
-    .text-white {
-      color: white;
-    }
-    
     @media (max-width: 768px) {
-      .flex {
-        display: block;
-      }
-      
-      .w-80 {
-        width: 100%;
-        min-height: auto;
-        margin-bottom: 1rem;
-        padding: 1rem;
-        border-radius: 0.5rem;
-      }
+      /* Mobile responsiveness handled via inline styles */
     }
   `;
 }
@@ -838,31 +717,31 @@ function generateFullHtmlDocument(markdown, options = {}) {
         ${styles}
     </style>
 </head>
-<body class="bg-white">`;
+<body style="background-color: #ffffff; margin: 0; padding: 0;">`;
 
   if (includePrintButton) {
     // Include print button and sidebar layout (for downloads)
     htmlDocument += `
     <!-- Table of Contents Layout -->
     <div class="report-container">
-        <div class="flex">
+        <div style="display: flex;">
         <!-- TOC Sidebar: Always visible on left -->
-        <aside class="w-80 bg-slate-50 min-h-screen p-6 no-print">
+        <aside style="width: 320px; background-color: #f8fafc; min-height: 100vh; padding: 24px;" class="no-print">
             <button onclick="printLandscape()" class="print-btn">
                 Print / Save PDF
             </button>
-            <p class="text-xs text-slate-600 mb-4 px-2 py-1 bg-blue-50 border border-blue-200 rounded text-center">
+            <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 1rem; padding: 0.5rem; background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 0.375rem; text-align: center;">
                 💡 For best results, select <strong>Landscape</strong> orientation in your print dialog
             </p>
-            <h3 class="font-semibold text-slate-900 mb-4">Table of Contents</h3>
-            <nav class="space-y-1 text-sm">
+            <h3 style="font-weight: 600; color: #0f172a; margin-bottom: 1rem;">Table of Contents</h3>
+            <nav style="font-size: 0.875rem; line-height: 1.6;">
                 ${tocHtml}
             </nav>
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 p-6">
-            <div class="max-w-none">
+        <main style="flex: 1; padding: 24px; background-color: #ffffff;">
+            <div style="max-width: none;">
                 ${contentHtml}
             </div>
         </main>
