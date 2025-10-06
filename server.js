@@ -470,7 +470,7 @@ app.post('/api/send-email', async (req, res) => {
 });
 
 // Password verification endpoint
-app.post('/api/verify-admin-password', (req, res) => {
+app.post('/api/verify-admin-password', async (req, res) => {
   try {
     const { password } = req.body;
     
@@ -485,7 +485,7 @@ app.post('/api/verify-admin-password', (req, res) => {
     
     if (password === adminPassword) {
       // Create a new session
-      const { token, expiresAt } = createSession();
+      const { token, expiresAt } = await createSession();
       
       res.json({ 
         success: true,
