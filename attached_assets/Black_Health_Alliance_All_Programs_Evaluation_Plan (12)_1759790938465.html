@@ -1,0 +1,783 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black Health Alliance — All Programs Evaluation Plan</title>
+    <style>
+        @media print {
+            .no-print { display: none; }
+            .page-break { page-break-before: always; }
+        }
+        
+        /* Typography System */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #1e293b;
+        }
+        
+        /* Main Title */
+        h1:first-of-type {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 2rem 0 1rem 0;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid #2563eb;
+            text-align: center;
+        }
+        
+        /* Subtitle */
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            font-weight: 400;
+        }
+        
+        /* Section Headings */
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 3rem 0 1.5rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e2e8f0;
+            position: relative;
+        }
+        
+        h2::before {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: #2563eb;
+        }
+        
+        /* Subsection Headings */
+        h3 {
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: #374151;
+            margin: 2.5rem 0 1rem 0;
+            padding-left: 1rem;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        h4 {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin: 2rem 0 0.75rem 0;
+        }
+        
+        /* Paragraphs */
+        p {
+            margin-bottom: 1.25rem;
+            line-height: 1.7;
+            color: #374151;
+        }
+        
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0 1.5rem 0;
+            padding-left: 2rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+            color: #374151;
+        }
+        
+        /* Strong text */
+        strong {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        /* Links styling - underlined and visible */
+        a {
+            color: #2563eb;
+            text-decoration: underline;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        a:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+        
+        a:visited {
+            color: #7c3aed;
+        }
+        
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e5e7eb;
+        }
+        
+        /* Logic Model Table Styling */
+        .logic-model-container {
+            margin: 2.5rem 0;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 16px;
+            border: 2px solid #3b82f6;
+            overflow-x: auto;
+        }
+        
+        .logic-model-table {
+            margin: 0;
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+            border: 2px solid #3b82f6;
+            table-layout: fixed;
+            width: 100%;
+        }
+        
+        .logic-model-table th {
+            padding: 0.6rem 0.8rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .logic-model-table td {
+            padding: 0.75rem 0.8rem;
+            vertical-align: top;
+            line-height: 1.4;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            font-size: 0.75rem;
+            word-wrap: break-word;
+        }
+        
+        .logic-model-table td:last-child {
+            border-right: none;
+        }
+        
+        .logic-model-table tbody tr:hover {
+            background: #f1f5f9;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            text-align: left;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            color: #374151;
+            vertical-align: top;
+            line-height: 1.5;
+            font-size: 0.875rem;
+        }
+        
+        tbody tr:hover {
+            background-color: #f8fafc;
+            transition: background-color 0.15s ease;
+        }
+        
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Alternating row colors for better readability */
+        tbody tr:nth-child(even) {
+            background-color: #fafbfc;
+        }
+        
+        tbody tr:nth-child(even):hover {
+            background-color: #f1f5f9;
+        }
+
+        /* Table captions */
+        caption {
+            caption-side: top;
+            padding: 1rem 0;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 1.1rem;
+        }
+
+        /* Introduction section styling */
+        .intro-section {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border-left: 4px solid #0ea5e9;
+        }
+
+        /* Content sections */
+        .content-section {
+            margin: 3rem 0;
+            padding: 0 1rem;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            h1:first-of-type {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            h3 {
+                font-size: 1.25rem;
+            }
+            
+            table {
+                font-size: 0.875rem;
+            }
+            
+            th, td {
+                padding: 0.75rem 1rem;
+            }
+            
+            .content-section {
+                padding: 0 0.5rem;
+            }
+        }
+
+        .toc-item {
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
+        
+        .toc-level-1 {
+            margin-left: 0;
+        }
+        
+        .toc-level-2 {
+            margin-left: 0.5rem;
+        }
+        
+        .toc-level-3 {
+            margin-left: 1rem;
+        }
+        
+        .toc-item:hover {
+            background-color: #f1f5f9;
+            transform: translateX(4px);
+        }
+        
+        .toc-item a {
+            color: #475569;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+        
+        .toc-item a:hover {
+            color: #2563eb;
+        }
+        
+        .highlight-box {
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: #fffbeb;
+            border-left: 4px solid #d97706;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Syntax Highlighting Styles */
+        .hljs {
+            background: #f8fafc;
+            color: #1e293b;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+        
+        .hljs-comment { color: #64748b; font-style: italic; }
+        .hljs-keyword { color: #7c3aed; font-weight: 600; }
+        .hljs-string { color: #059669; }
+        .hljs-number { color: #dc2626; }
+        .hljs-function { color: #2563eb; }
+        .hljs-variable { color: #b45309; }
+        
+        
+        /* Enhanced Table Styles - Using Theme Colors */
+        .timeline-table,
+        .stakeholder-table,
+        .evaluation-table,
+        .metrics-table {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid #2563eb;
+        }
+        
+        .timeline-table th,
+        .stakeholder-table th,
+        .evaluation-table th,
+        .metrics-table th {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: #1e293b;
+        }
+        
+        .standard-table {
+            background: white;
+            border-left: 4px solid #6b7280;
+        }
+        
+        .standard-table th {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: #1e293b;
+        }
+        
+        /* Enhanced Callout Boxes */
+        .highlight-box {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border-left: 4px solid #2563eb;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 12px 12px 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .highlight-box::before {
+            content: "💡";
+            position: absolute;
+            top: 1rem;
+            left: -0.75rem;
+            background: #2563eb;
+            color: white;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid #d97706;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 12px 12px 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .warning-box::before {
+            content: "⚠️";
+            position: absolute;
+            top: 1rem;
+            left: -0.75rem;
+            background: #d97706;
+            color: white;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+        
+        .intro-section {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border-left: 4px solid #0ea5e9;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .intro-section::before {
+            content: "📋";
+            position: absolute;
+            top: 1.5rem;
+            left: -0.75rem;
+            background: #0ea5e9;
+            color: white;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+        
+        /* Error message styling */
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        /* Responsive Improvements */
+        @media (max-width: 768px) {
+            .logic-model-diagram {
+                padding: 1rem;
+                margin: 2rem 0;
+            }
+            
+            .logic-model-svg {
+                width: 100%;
+                height: auto;
+            }
+            
+            /* Enhanced table responsive design */
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+                border-radius: 8px;
+                margin: 1rem 0;
+            }
+            
+            table.timeline-table,
+            table.stakeholder-table,
+            table.evaluation-table,
+            table.metrics-table,
+            table.standard-table {
+                min-width: 600px;
+            }
+            
+            .highlight-box,
+            .warning-box,
+            .intro-section {
+                margin: 1rem 0;
+                padding: 1rem;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .highlight-box::before,
+            .warning-box::before,
+            .intro-section::before {
+                display: none;
+            }
+            
+            .hljs {
+                padding: 1rem;
+                font-size: 0.875rem;
+                margin: 1rem 0;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logic-model-diagram {
+                padding: 0.75rem;
+            }
+            
+            .logic-model-diagram h4 {
+                font-size: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            table {
+                font-size: 0.75rem;
+            }
+            
+            th, td {
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .highlight-box,
+            .warning-box,
+            .intro-section {
+                padding: 0.75rem;
+                margin: 0.75rem 0;
+            }
+        }
+        
+        /* Left Column Layout CSS - Replace Tailwind classes */
+        .flex {
+            display: flex;
+        }
+        
+        .max-w-6xl {
+            max-width: 1200px;
+        }
+        
+        .report-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .mx-auto {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .w-80 {
+            width: 20rem;
+            min-width: 200px;
+        }
+        
+        .bg-slate-50 {
+            background-color: #f8fafc;
+        }
+        
+        .min-h-screen {
+            min-height: 100vh;
+        }
+        
+        .p-6 {
+            padding: 1.5rem;
+        }
+        
+        .flex-1 {
+            flex: 1 1 0%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .no-print {
+            /* Hide when printing */
+        }
+        
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            /* Expand content to use full landscape width when printing */
+            .report-container {
+                max-width: 100%;
+                padding: 0;
+            }
+            
+            .flex-1 {
+                max-width: 100%;
+                margin: 0;
+            }
+        }
+        
+        /* TOC Specific Styling */
+        aside h3 {
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 1rem;
+        }
+        
+        aside nav {
+            font-size: 0.875rem;
+        }
+        
+        aside nav a {
+            display: block;
+            padding: 0.25rem 0;
+            color: #64748b;
+            text-decoration: none !important;
+            transition: color 0.2s;
+        }
+        
+        aside nav a:hover {
+            color: #1e293b;
+        }
+        
+        /* Print/Save PDF Button Styling */
+        .text-xs {
+            font-size: 0.75rem;
+        }
+        
+        .px-3 {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+        
+        .py-1 {
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+        }
+        
+        .rounded {
+            border-radius: 0.25rem;
+        }
+        
+        .bg-blue-600 {
+            background-color: #2563eb;
+        }
+        
+        .hover:bg-blue-700:hover {
+            background-color: #1d4ed8;
+        }
+        
+        .transition-colors {
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Print Button Styling */
+        .print-btn {
+            background-color: #dbeafe;
+            color: #1f2937;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #93c5fd;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1.5rem;
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .print-btn:hover {
+            background-color: #bfdbfe;
+            border-color: #60a5fa;
+        }
+        
+        /* Print Styles - Comprehensive Landscape Print Setup */
+        @page {
+            size: landscape;
+            margin: 0.5in;
+        }
+        
+        @media print {
+            .no-print { 
+                display: none !important; 
+            }
+            .page-break { 
+                page-break-before: always; 
+            }
+            @page {
+                size: landscape;
+                margin: 0.5in;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            * {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            html, body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+                font-size: 12pt;
+                line-height: 1.4;
+            }
+            table, th, td {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+        
+        /* Responsive: Stack on smaller screens */
+        @media (max-width: 768px) {
+            .flex {
+                display: block;
+            }
+            
+            .w-80 {
+                width: 100%;
+                min-height: auto;
+                margin-bottom: 1rem;
+                padding: 1rem;
+                border-radius: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <!-- Table of Contents Layout -->
+    <div class="report-container">
+        <div class="flex">
+        <!-- TOC Sidebar: Always visible on left -->
+        <aside class="w-80 bg-slate-50 min-h-screen p-6 no-print">
+            <button onclick="printLandscape()" class="print-btn">
+                Print / Save PDF
+            </button>
+            <p class="text-xs text-slate-600 mb-4 px-2 py-1 bg-blue-50 border border-blue-200 rounded text-center">
+                💡 For best results, select <strong>Landscape</strong> orientation in your print dialog
+            </p>
+            <h3 class="font-semibold text-slate-900 mb-4">Table of Contents</h3>
+            <nav class="space-y-1 text-sm">
+                <div class="toc-item toc-level-1"><a href="#black-health-alliance-all-programs-draft-evaluation-plan">Black Health Alliance — All Programs Draft Evaluation Plan</a></div><div class="toc-item toc-level-2"><a href="#program-summary-and-analysis">Program summary and analysis</a></div><div class="toc-item toc-level-3"><a href="#summary-of-the-program">Summary of the program</a></div><div class="toc-item toc-level-3"><a href="#program-overview">Program overview</a></div><div class="toc-item toc-level-3"><a href="#activities">Activities</a></div><div class="toc-item toc-level-3"><a href="#key-management-processes">Key management processes</a></div><div class="toc-item toc-level-3"><a href="#main-interest-groups">Main interest groups</a></div><div class="toc-item toc-level-3"><a href="#areas-of-evaluation-focus">Areas of evaluation focus</a></div><div class="toc-item toc-level-2"><a href="#program-evaluation-plan">Program evaluation plan</a></div><div class="toc-item toc-level-3"><a href="#evaluation-objectives">Evaluation objectives</a></div><div class="toc-item toc-level-3"><a href="#evaluation-questions">Evaluation questions</a></div><div class="toc-item toc-level-3"><a href="#logic-model">Logic model</a></div><div class="toc-item toc-level-3"><a href="#evaluation-framework-for-all-programs">Evaluation framework for All Programs</a></div><div class="toc-item toc-level-2"><a href="#evaluation-phases">Evaluation phases</a></div><div class="toc-item toc-level-3"><a href="#overview">Overview</a></div><div class="toc-item toc-level-3"><a href="#phase-1-engage-the-project-sponsor-team-members-and-key-decision-makers">Phase 1. Engage the project sponsor, team members, and key decision-makers</a></div><div class="toc-item toc-level-3"><a href="#phase-2-define-evaluation-objectives-and-questions">Phase 2. Define evaluation objectives and questions</a></div><div class="toc-item toc-level-3"><a href="#phase-3-develop-and-test-data-collection-tools">Phase 3. Develop and test data collection tools</a></div><div class="toc-item toc-level-3"><a href="#phase-4-collect-and-manage-data">Phase 4. Collect and manage data</a></div><div class="toc-item toc-level-3"><a href="#phase-5-analyze-data-and-interpret-findings">Phase 5. Analyze data and interpret findings</a></div><div class="toc-item toc-level-3"><a href="#phase-6-communicate-findings-and-facilitate-use">Phase 6. Communicate findings and facilitate use</a></div><div class="toc-item toc-level-2"><a href="#roles-and-responsibilities">Roles and responsibilities</a></div><div class="toc-item toc-level-2"><a href="#meeting-agendas">Meeting agendas</a></div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6">
+            
+            <div class="max-w-none">
+                <h1 id="black-health-alliance-all-programs-draft-evaluation-plan">Black Health Alliance — All Programs Draft Evaluation Plan</h1><p class="subtitle">Created on 2025-10-06 by LogicalOutcomes Evaluation Planner</p><p>This draft evaluation plan aims to support Black Health Alliance in a process of continuous improvement that will also demonstrate the impact of All Programs. The evaluation approach is designed to provide useful information for program staff, management, and funders with minimal time spent in initial planning, logic modelling, creating an evaluation framework, and so on.  It helps evaluation teams move quickly to data collection, analysis and engagement by streamlining the planning phase. </p><p>This plan does not include citations or research references. It is based on the <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4815131">LogicalOutcomes Evaluation Planning Handbook</a> by Gillian Kerr and Sophie Llewelyn, which describes a structured process that relies on general evidence about effective nonprofit programs, supported by an in-depth web search about the program itself. </p><p>We recommend that users also carry out a quick literature review to check that the program’s design is consistent with research and evidence about its effectiveness with the target population.  For a free research scan we suggest <a href="https://consensus.app/">Consensus</a>. Ask something like, ‘What are likely to be essential program delivery elements and critical success factors for (type of program) serving (target population)? You can export the report and attach it to this evaluation plan. </p><p>If the draft evaluation plan is not accurate, you can paste additional information about the program or community into the ‘About the Program’ box and try the app again. Or you can just use it as a rough draft and make your own changes. </p><section class="content-section"><h2 id="program-summary-and-analysis">Program summary and analysis</h2><h3 id="summary-of-the-program">Summary of the program</h3><p>Black Health Alliance (BHA) is a community-led registered charity working to improve the health and well-being of Black communities in Canada (<a href="https://blackhealthalliance.ca/">https://blackhealthalliance.ca/</a>). BHA centres Black communities in defining challenges and co-designing solutions, focusing on social determinants of health, health inequities, anti-Black racism, and building connected communities.</p><p>Across All Programs, BHA’s primary activities include health promotion and community engagement, research and policy, and strategy, design and implementation. The organization convenes partners, mobilizes evidence, and provides technical assistance so that systems and services become more equitable and culturally safe for Black community members.</p><h3 id="program-overview">Program overview</h3><p>BHA’s All Programs operate as an integrated portfolio that addresses structural inequities and improves health outcomes for Black communities. The work is organized through three core service lines: Health Promotion &amp; Community Engagement; Research and Policy; and Strategy, Design &amp; Implementation. Knowledge mobilization underpins all three, ensuring that community-generated evidence informs practice and policy.</p><p>Community members typically engage with BHA through outreach, workshops, forums, and campaigns tailored to local needs. BHA supports community leadership development and peer facilitation, and it convenes multi-sector partners to co-design interventions. Research and policy efforts use community-based and participatory approaches to generate and translate evidence on Black health inequities into actionable recommendations. Strategy, design and implementation supports include technical assistance, training, and coaching to help organizations adopt anti-racist, culturally safe practices, as well as backbone support for collaboratives.</p><p>The intended journey emphasizes co-design and shared accountability: community members articulate priorities; BHA and partners translate these into strategies; pilots are implemented with coaching and shared measurement; and successful approaches are scaled and embedded in policy and practice.</p><h3 id="activities">Activities</h3><ul><li>Health promotion and community engagement<ul><li>Attending community outreach events, workshops and forums</li><li>Participating in peer-led groups and leadership development</li><li>Joining co-design sessions to define needs and solutions</li></ul></li><li>Research and policy<ul><li>Participating in community-based and participatory research</li><li>Reviewing and sharing findings on Black health inequities</li><li>Engaging in policy dialogues, briefings and consultations</li></ul></li><li>Strategy, design and implementation<ul><li>Co-developing tools, protocols and pilots with partners</li><li>Receiving training and coaching on anti-racism and cultural safety</li><li>Joining collaboratives with shared goals and measures</li></ul></li><li>Knowledge mobilization and communications<ul><li>Accessing toolkits, briefs, webinars and media content</li><li>Sharing stories and insights to shift narratives</li><li>Tracking progress through shared dashboards and updates</li></ul></li></ul><h3 id="key-management-processes">Key management processes</h3><p>Several management processes must be properly implemented to make for an effective program. </p><ul><li>Feedback and quality control: Establish an ongoing, multi-channel feedback system (listening sessions, post-event quick polls, partner debriefs) to inform rapid improvements in engagements, training, research dissemination, and implementation supports. Include a standing agenda item in staff meetings for reviewing community feedback and equity metrics.</li><li>Participatory decision-making: Engage Black community members in shaping priorities and decisions through paid advisory panels, co-design workshops, and participatory governance for collaboratives. Document decisions and how community input is acted upon.</li><li>Staff development: Provide continuous professional development on anti-Black racism, cultural safety, trauma-informed practice, CBPR methods, facilitation, implementation coaching, and data ethics. Offer regular supervision and reflective practice.</li><li>Resource management: Monitor budgets, staff effort, and in-kind contributions. Use workplans and milestone tracking for projects, ensuring adequate resourcing for engagement, data stewardship, and accessibility supports (e.g., childcare, honoraria, translation).</li><li>Partnership and backbone management: Use MOUs with clear roles, resources and decision rules. Facilitate cross-sector convenings, maintain shared agendas and measures, and steward partner accountability.</li><li>Community data governance and privacy: Maintain a community data governance charter; apply privacy-by-design, informed consent, de-identification, and data minimization. Review all data collection for necessity and potential harms.</li><li>Equity and cultural responsiveness protocols: Apply equity impact assessments to major outputs; ensure materials are accessible and culturally relevant; track disaggregated participation and outcomes to identify gaps and adapt accordingly.</li></ul><h3 id="main-interest-groups">Main interest groups</h3><table class="standard-table"><thead><tr><th>Interest group</th><th>What they hope for</th><th>Potential risks from their perspective</th><th>Risk mitigation strategies</th></tr></thead><tbody><tr><td>Black community members</td><td>Culturally safe access; real influence on decisions; tangible improvements in care and well-being</td><td>Tokenistic engagement; burdensome surveys; privacy concerns; limited visible change</td><td>Paid advisory roles; decision logs showing uptake; minimal, multilingual data collection with consent; rapid feedback-to-action loop; transparent privacy practices</td></tr><tr><td>Community-based and grassroots organizations</td><td>Equitable partnerships; capacity-building; access to data and funding</td><td>Misalignment of expectations; unequal resource flows; over-collection of data</td><td>MOUs with clear roles/resources; shared measurement; small-grant supports; co-created data plans; regular partner learning sessions</td></tr><tr><td>Health and social service providers/organizations</td><td>Practical tools/training; improved outcomes; compliance with equity goals</td><td>Training without implementation support; unclear accountability; change fatigue</td><td>Readiness assessments; phased milestones; implementation coaching; leadership compacts; concise dashboards on progress</td></tr><tr><td>Policymakers and public agencies</td><td>Credible evidence; feasible policy options; accountability</td><td>Advocacy perceived as adversarial; insufficient cost/benefit data</td><td>Nonpartisan framing with strong evidence; policy roundtables; economic and equity analyses; co-authored briefs</td></tr><tr><td>Funders and philanthropy</td><td>Demonstrable impact; risk management; alignment with equity priorities</td><td>Unclear results; limited scalability; compliance burden</td><td>Portfolio dashboards; milestone-based reporting; pooled/longer-term funding proposals; right-sized reporting</td></tr><tr><td>Researchers/academic partners</td><td>Rigorous, ethical studies; timely knowledge translation</td><td>Weak CBPR practices; data access disputes</td><td>CBPR agreements; community co-authorship; data governance charter; clear KT timelines</td></tr><tr><td>Media and broader public</td><td>Accurate stories; narrative change</td><td>Stigmatizing or deficit framing</td><td>Storytelling guidelines; media briefings; amplify community voices; review for asset-based framing</td></tr><tr><td>BHA staff and volunteers</td><td>Manageable workload; professional growth; mission impact</td><td>Burnout; inadequate tools; role ambiguity</td><td>Workload planning; wellbeing supports; clear scopes; training and coaching; regular reflection on impact</td></tr></tbody></table><h3 id="areas-of-evaluation-focus">Areas of evaluation focus</h3><ul><li>Community member engagement and retention: Track participation, retention, and returning engagement across outreach, workshops, and co-design sessions.</li><li>Staff satisfaction and turnover: Monitor morale, workload, and retention to maintain delivery quality.</li><li>Program accessibility: Evaluate barriers and supports such as location, timing, childcare, honoraria, translation, and digital access.</li><li>Safety and well-being: Monitor psychological safety in engagements and trainings and any safety incidents at events.</li><li>Cultural appropriateness: Assess the cultural safety and relevance of activities and materials, including language and intersectional inclusion.</li><li>Outcome achievement: Track progress toward short-, mid-, and long-term outcomes across the portfolio.</li><li>Partnership effectiveness: Assess role clarity, shared measures, resource flows, and action follow-through in collaboratives.</li></ul></section><section class="content-section"><h2 id="program-evaluation-plan">Program evaluation plan</h2><p>This section outlines a full evaluation plan to evaluate All Programs, including roles, responsibilities and meeting agendas.</p><h3 id="evaluation-objectives">Evaluation objectives</h3><ol><li>Meet community member needs and help community members achieve their goals.</li><li>Achieve program goals and outcomes.</li><li>Improve program quality and fidelity.</li><li>Increase responsiveness to community members in the way activities and supports are provided.</li><li>Increase accessibility and equity in service provision (as defined by the program itself; e.g., for persons with disabilities, people living on low incomes, from defined racial or ethnic groups, for underserved groups in the target population).</li><li>Increase responsiveness to key interest groups (as defined by the program; e.g., to the broader community served, employees, volunteers, funders, donors).</li></ol><h3 id="evaluation-questions">Evaluation questions</h3><ol><li>What activities are provided by Black Health Alliance (BHA) All Programs?</li><li>To what extent is BHA All Programs being implemented as designed and meeting quality standards?</li><li>What are the characteristics of the populations served by the program?</li><li>What do community members think about activities and supports and what are their suggestions?</li><li>What do staff and other key interest groups think about activities and supports and what are their suggestions?</li><li>To what extent are community members meeting their goals?</li><li>What short-term and mid-term changes are community members experiencing?</li><li>What evidence suggests the program is contributing to its desired long-term impact?</li></ol><h3 id="logic-model">Logic model</h3><div class="logic-model-container">
+          <h4 style="margin: 0 0 1rem 0; color: #1e40af; text-align: center;">All Programs Logic Model</h4>
+          <table class="logic-model-table">
+            <thead><tr><th><strong>INPUTS</strong></th><th><strong>ACTIVITIES</strong></th><th><strong>OUTPUTS</strong></th><th><strong>SHORT-TERM OUTCOMES</strong></th><th><strong>MID-TERM OUTCOMES</strong></th><th><strong>LONG-TERM OUTCOMES</strong></th></tr></thead>
+            <tbody><tr><td>• Community lived expertise<br>• Skilled BHA staff<br>• Funding &amp; in-kind<br>• Cross-sector partners<br>• Strategic plan &amp; frameworks<br>• Data systems &amp; tools<br>• Communications platforms</td><td>• Conduct outreach/ workshops<br>• Facilitate co-design sessions<br>• Provide training/ coaching<br>• Conduct CBPR research<br>• Do policy analysis/ advocacy<br>• Convene collaboratives<br>• Support implementation<br>• Mobilize knowledge<br>• Track shared measures</td><td>• # community members engaged<br>• # workshops/ forums delivered<br>• # partners engaged<br>• # trainings/ TA sessions<br>• # research products<br>• # policy briefs/ submissions<br>• # co-designed tools/ protocols<br>• # implementation sites<br>• # media mentions/ reach</td><td>• Increased awareness of rights<br>• Greater trust in BHA<br>• Improved partner skills<br>• Readiness for equity practice<br>• Shared agendas established<br>• Use of community evidence</td><td>• Adoption of equity protocols<br>• Improved access/ navigation<br>• Uptake of culturally safe care<br>• Policy/ practice changes<br>• Stronger cross-sector networks<br>• Investment aligned to priorities</td><td>• Reduced health disparities<br>• Institutionalized anti-racism<br>• Improved health &amp; well-being<br>• Sustained connected communities<br>• Positive system-level change</td></tr></tbody>
+          </table>
+        </div><h3 id="evaluation-framework-for-all-programs">Evaluation framework for All Programs</h3><p>This evaluation framework operationalizes the logic model using the standard structure from the <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4815131">LogicalOutcomes Evaluation Planning Handbook</a>. It assumes a client record system tracks each community member. If no such system exists, focus on outputs and process measures rather than outcome measures, since results from surveys with low response rates will not be statistically valid.</p><table class="metrics-table"><thead><tr><th>Logic model element</th><th>Measure</th><th>Respondent</th><th>Mode of data collection</th><th>Comments</th></tr></thead><tbody><tr><td>OUTPUTS (reported quarterly)</td><td></td><td></td><td></td><td></td></tr><tr><td>Community members served</td><td># community members</td><td>Project manager</td><td>Analysis of client record system or staff interviews</td><td>If possible, include demographic breakdown (age, gender identity, immigration status, region) aligned to equity objectives.</td></tr><tr><td>Activities and supports provided</td><td># engagements; # initiatives</td><td>Project manager</td><td>Analysis of client record system or staff interviews</td><td>Include type of activity (workshop, training, co-design, research, policy), counts and duration. Compare with targets.</td></tr><tr><td>Delivery milestones for evaluation</td><td># weeks +/- target; Quality rating; Thematic analysis of optional 'description' field</td><td>Project manager</td><td>Document review of progress reports; Observation or audit</td><td>Track plan approval, tool finalization, data collection, cleaning, and reporting. Rate quality and ethical compliance.</td></tr><tr><td>SHORT-TERM OUTCOMES (reported quarterly, though some data collection may be on annual schedule)</td><td></td><td></td><td></td><td></td></tr><tr><td>Meet community member needs</td><td>Goal questionnaire</td><td>Community member</td><td>Questionnaire or interview</td><td>Gather individual or group-level goals at intake/first contact; follow-up after activity or series.</td></tr><tr><td>Increase responsiveness to community members</td><td>Suggestions; Impact interview; Community member satisfaction; # team debriefs; Thematic analysis</td><td>Community member; Reviewer</td><td>Questionnaire or interview; Observation or audit</td><td>Use brief, multilingual tools (including audio). Debriefs rely on staff meeting notes with action items.</td></tr><tr><td>Improve program quality and fidelity</td><td>Implementation fidelity/ program quality; Analysis of process data</td><td>Reviewer</td><td>Observation or audit; Analysis of client record system</td><td>Include fidelity checklists for trainings/TA; process measures such as wait time, follow-up, and completion rates.</td></tr><tr><td>Increase accessibility and equity to services</td><td>Suggestions; Impact interview; Analysis of intakes, dropouts compared to target population</td><td>Community member; Reviewer</td><td>Questionnaire or interview; Observation or audit</td><td>Examine barriers (timing, location, childcare, honoraria, translation, digital access). Track adaptations made.</td></tr><tr><td>Increase responsiveness to interest groups</td><td>Suggestions; Impact interview; Occasional satisfaction surveys</td><td>Interest group member</td><td>Questionnaire or interview; Observation or audit</td><td>Include community organizations, providers, policymakers, funders, researchers, media partners. Document changes made.</td></tr><tr><td>MID-TERM OUTCOMES (reported annually)</td><td></td><td></td><td></td><td></td></tr><tr><td>Achieve community member goals</td><td>Success rate of community member goals – self-identified</td><td>Community member</td><td>Questionnaire or interview</td><td>Link to specific engagements (e.g., co-design goals, training objectives). Capture partial and full achievement.</td></tr><tr><td>Achieve program goals</td><td>Success rate for program goals and outcomes</td><td>Interest group member</td><td>Questionnaire or interview; Analysis of client record system</td><td>Reference goals from BHA’s strategic plan (e.g., reduced inequities, connected communities). Use mixed methods.</td></tr><tr><td>Increase program effectiveness and efficiency</td><td>Improvements in processes; Increased cost-benefit ratio for high quality outputs and goal achievements</td><td>Employee; Reviewer</td><td>Questionnaire or interview; Observation or audit</td><td>Include improved partner alignment, reduced duplication, and unit cost per output/outcome proxy.</td></tr><tr><td>Meet key interest group needs</td><td>Analysis of interest group responses</td><td>Interest group member; Reviewer</td><td>Questionnaire or interview; Observation or audit</td><td>Report by group: community orgs, providers, policymakers, funders, researchers, media. Include funder response.</td></tr><tr><td>Improve organizational capacity</td><td>Specificity and responsiveness of organizational plans</td><td>Project manager or Reviewer</td><td>Observation or audit</td><td>Assess how evaluation findings inform plans, budgets, training, and partner agreements.</td></tr><tr><td>LONG-TERM OUTCOMES (for ongoing monitoring 2+ years once monitoring and evaluation system is mature)</td><td></td><td></td><td></td><td></td></tr><tr><td>Achieve program outcomes</td><td>Aggregated mid-term program outcomes or separate long-term evaluation project</td><td>N/A</td><td>N/A</td><td>Reduced disparities; institutionalized anti-racism; improved well-being; sustained connected communities.</td></tr><tr><td>Achieve community outcomes</td><td>Separate evaluation project</td><td>N/A</td><td>N/A</td><td>May include policy adoption rates, service parity indices, and population-level proxies (e.g., screening uptake parity).</td></tr><tr><td>Improve organizational sustainability</td><td>Separate evaluation project</td><td>N/A</td><td>N/A</td><td>Financial resilience, workforce wellbeing, governance effectiveness, and durable partnerships.</td></tr></tbody></table></section><section class="content-section"><h2 id="evaluation-phases">Evaluation phases</h2><p>This evaluation will be conducted in four overlapping phases to ensure a structured and participatory process.</p><h3 id="overview">Overview</h3><p>This evaluation will follow a compressed timeline to provide rapid, useful feedback. The phases are designed to build on each other, from foundational planning and engagement to data analysis and reporting. The intent is to focus evaluation resources as much as possible on understanding and responding to interest group perspectives and on improving program quality.</p><p>The evaluation project includes the following activities divided into four overlapping phases:</p><ul><li>Planning and initiation: Activities 1 – 5 (duration: 3 to 8 weeks)</li><li>Design and development: Activities 5 – 9 (duration: 1 to 12 weeks)</li><li>Implementation and analysis: Activities 9 – 11 (ongoing until project completion)</li><li>Communication and discussion: Activities 11 – 12 (duration: 3 to 6 weeks)</li></ul><h3 id="phase-1-engage-the-project-sponsor-team-members-and-key-decision-makers">Phase 1. Engage the project sponsor, team members, and key decision-makers</h3><ul><li>Confirm evaluation scope, budget and delivery date for the final report.</li><li>Define the main roles and responsibilities for the evaluation project, including the manager who is overseeing the project and who will be taking the recommendations to senior management.</li><li>Identify and invite members to an Evaluation Advisory Committee.</li><li>Define the timelines, resources (including staff effort for interviews and data collection) and the decision process for approval of final report.</li></ul><h3 id="phase-2-define-evaluation-objectives-and-questions">Phase 2. Define evaluation objectives and questions</h3><ul><li>Facilitate a meeting with the advisory committee to discuss and revise the evaluation objectives and questions.</li><li>Ensure evaluation questions are relevant to staff, meaningful to community members, and credible to funders.</li><li>Confirm or revise the specific activities that are delivered by the program and that are essential to the program. Include direct services to community members as well as other essential elements such as collaboration with other organizations, staff training and financial management.</li><li>Confirm or revise the key interest groups that should be engaged in data collection and/or discussion of the results.</li><li>Finalize the evaluation framework, confirming that the indicators are measurable and meaningful.</li></ul><h3 id="phase-3-develop-and-test-data-collection-tools">Phase 3. Develop and test data collection tools</h3><ul><li>Review and possibly adapt current client record system if one exists to assess whether it can generate reports for community member goals, milestones and activities. For example, every community member should be asked what they hope to get from the services, and if feasible asked later if they achieved their goals.</li><li>Draft all data collection tools (surveys, interview guides, tracking sheets). If possible, adapt and customize them from existing validated data collection tools to save time and improve validity.</li><li>Pilot test the tools with a small group of community members and staff to ensure clarity and cultural appropriateness.</li><li>Refine tools based on pilot feedback.</li></ul><h3 id="phase-4-collect-and-manage-data">Phase 4. Collect and manage data</h3><ul><li>Train staff or designated data collectors on protocols to ensure data quality and consistency.</li><li>Deploy surveys, conduct interviews, and analyze client records as per the evaluation framework.</li><li>Ensure ethical protocols, including informed consent and data confidentiality, are strictly followed.</li><li>Frequent interim reports will assess whether the data appears to be accurate and whether it captures feedback from defined interest groups and demographic groups.</li><li>If necessary, additional demographic segments may be targeted with additional interviews or financial incentives.</li></ul><h3 id="phase-5-analyze-data-and-interpret-findings">Phase 5. Analyze data and interpret findings</h3><ul><li>Clean and analyze quantitative and qualitative data.</li><li>Deliver reports frequently to appropriate staff and interest groups with a focus on recommended actions. Emerging findings may be tested with follow-up interviews or more detailed reports.</li><li>Notes from staff meetings will be reviewed for evidence of actions that have been taken or recommendations that have been made as a result of the reports.</li><li>Hold a "sense-making" session with the advisory committee and staff to interpret the initial findings, discuss implications, and co-develop recommendations. This participatory step is crucial for ensuring the results are understood and owned by the team.</li></ul><h3 id="phase-6-communicate-findings-and-facilitate-use">Phase 6. Communicate findings and facilitate use</h3><ul><li>Draft a comprehensive evaluation report with a clear executive summary.</li><li>Develop tailored communication materials for different groups (e.g., one-page summary for the board, presentation for staff, stories for a newsletter).</li><li>Facilitate a final meeting to discuss the report and create an action plan for implementing the recommendations.</li></ul></section><section class="content-section"><h2 id="roles-and-responsibilities">Roles and responsibilities</h2><p>It is necessary to involve senior managers and decision-makers in the evaluation process so that the resulting information will be relevant and credible to them. They should be engaged at three stages:</p><ul><li>Defining objectives, roles and key interest groups at the beginning of the evaluation.</li><li>Engaging with data as soon as it starts to be collected and then occasionally throughout the project.</li><li>Engaging with the final recommendations and action plans near the end of the evaluation.</li></ul><p>In addition, representatives of the organization need to be involved more deeply in:</p><ul><li>Defining the program services and key processes.</li><li>Defining project timelines and tracking quality.</li><li>Configuring the client record system and refining the data collection tools.</li></ul><p>And of course members of key interest groups will be asked for input as part of the data collection activities.</p><p>There are four essential roles for a successful evaluation project:</p><p>Sponsor (generally a senior manager who will be responsible for implementing recommendations)</p><ul><li>Provide guidance regarding overall objectives and constraints of project</li><li>Liaise with the organization's senior management and manage organizational expectations and scope issues as appropriate</li><li>Communicate with internal and external interest groups regarding project progress</li><li>Remove roadblocks to project success and respond to project risks and problems as they are identified by the Project Manager or Liaison</li><li>Approve significant changes to the project scope, timeline, budget, or quality if required</li><li>Review and approve project documents and other deliverables</li></ul><p>Liaison (generally a manager at the organization reporting to the Project Sponsor)</p><ul><li>Act as the primary contact person with the evaluator</li><li>Liaise with the Project Sponsor and take on their responsibilities as delegated</li><li>Act as a project manager from the organization's side, e.g., scheduling meetings with program staff, negotiating with I.T. staff</li></ul><p>Project Owner (generally a senior external evaluator)</p><ul><li>Provide project leadership for the evaluation as a whole</li><li>Define project methodologies and advise on strategic issues</li><li>Author, review and approve project documents as assigned</li><li>Manage and resolve team-level risks, issues, and changes</li><li>Remove roadblocks to project success and respond to project risks and problems as they are identified by the Project Manager or Project Sponsor</li><li>Review and provide detailed feedback regarding all project documents and deliverables</li></ul><p>Project Manager (generally an external evaluator reporting to the Project Owner)</p><ul><li>Act as liaison to the organization for operational issues</li><li>Monitor project scope, quality, schedule, resources, costs and risks</li><li>Coordinate implementation of project work</li><li>Ensure project plan, schedule, and budget are up-to-date; detect and manage discrepancies</li><li>Report risks, delays and problems to Project Owner and Project Sponsor as they arise</li><li>Author, review and approve project documents as assigned to ensure the quality standards are met</li><li>Arrange and follow-up on team meetings</li><li>Manage and contribute to data collection, analysis and report writing</li><li>Provide leadership and manage work as appropriate</li></ul><p>Program staff (one or more representatives of the people who will actually implement service improvements and experience changes in their workplace)</p><p>Other common roles include I.T. specialists, program community members and representatives from key constituencies.</p></section><section class="content-section"><h2 id="meeting-agendas">Meeting agendas</h2><p>At a bare minimum, not including meetings that involve only the Project Liaison and Project Manager, the project should have four structured meetings with organizational representatives, e.g., by holding a full day workshop to combine steps 2 and 3.</p><p>Following are agenda templates for these key meetings. The attendees represent the minimum roles required for a successful evaluation. Other roles may be invited depending on the needs of the project.</p><table class="standard-table"><thead><tr><th>Meeting Purpose</th><th>Deliverables</th><th>Minimum attendees (always includes project manager)</th><th>Notes</th></tr></thead><tbody><tr><td>1. Initiate the project</td><td>Draft of Evaluation Plan</td><td>Liaison</td><td>The agenda for this meeting is to clarify and confirm the evaluation's objectives, methodology, roles and timelines, using this report as a working draft. The Project Manager and Liaison revise this report with input from Statement of Work, proposal and program documents.</td></tr><tr><td>2. Define objectives, roles and key interest groups</td><td>Approved Evaluation Plan</td><td>Project Owner, Sponsor, Liaison, program staff</td><td>This meeting involves the organization's decision-makers and program staff to build engagement in the evaluation, to decide on priorities, and to commit on how they will handle problems as they arise. The completed Evaluation Plan is approved by the Sponsor shortly after the meeting.</td></tr><tr><td>3. Configure client record system and data collection tools</td><td>Revise or design client record system and approved data collection tools</td><td>Liaison, program staff</td><td>Use existing tools as much as possible. If further discussion needed offer additional meetings to subgroup</td></tr><tr><td>4. Track progress and troubleshoot problems</td><td>Progress report</td><td>Liaison</td><td>This can be combined with other meetings. The purpose is to discuss delays and solve problems as they arise.</td></tr><tr><td>5. Engage with data</td><td>Meeting notes with actions</td><td>Liaison, program staff (monthly at first, then bimonthly)</td><td>These meetings should be a recurring agenda item in regular program staff meetings, if feasible. Part of the purpose is to get staff accustomed to responding to community member feedback in their staff meetings as a normal reflective practice. Emerging conclusions should be addressed early and often so that staff get a chance to contribute to recommendations before they are presented to senior management.</td></tr><tr><td>6. Engage with recommendations</td><td>Revised conclusions and recommendations</td><td>Project Owner, Project Sponsor, Liaison, Project Owner, program staff</td><td>This may require multiple meetings with different interest groups, with revisions at each stage incorporating their feedback. The meetings should present only conclusions and recommendations to encourage discussion. Technical details should be available for questions and circulated to interested interest groups.</td></tr></tbody></table><hr>
+<p>Generated by LogicalOutcomes Evaluation Planner on 2025-10-06</p></section>
+            </div>
+        </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white mt-16">
+        <div class="max-w-6xl mx-auto px-6 py-8">
+            <div class="text-center">
+                <!-- Footer content removed -->
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function printLandscape() {
+            // Use the existing comprehensive landscape CSS in the main styles
+            window.print();
+        }
+    </script>
+</body>
+</html>
+      
