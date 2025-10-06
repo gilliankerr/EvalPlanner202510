@@ -179,7 +179,7 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
             content: planPrompt
           }
         ],
-        max_tokens: 100000,
+        max_tokens: 20000,
         step: 'report_template'  // Backend uses this to determine model/temperature from config
       };
       

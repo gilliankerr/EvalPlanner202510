@@ -308,12 +308,17 @@ app.post('/api/openrouter/chat/completions', async (req, res) => {
     }
     
     console.log(`Making OpenRouter API call for step: ${step}, model: ${model}, max_tokens: ${requestBody.max_tokens}`);
+    console.log('Request body:', JSON.stringify({...requestBody, messages: [{...requestBody.messages[0], content: requestBody.messages[0].content.substring(0, 200) + '...(truncated)'}]}, null, 2));
     
     // Make request to OpenRouter with extended timeout for large responses
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 300000); // 5 minute timeout
+    const timeout = setTimeout(() => {
+      console.error('Aborting request due to 5-minute timeout');
+      controller.abort();
+    }, 300000); // 5 minute timeout
     
     try {
+      console.log('Sending request to OpenRouter...');
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -325,6 +330,7 @@ app.post('/api/openrouter/chat/completions', async (req, res) => {
       });
       
       clearTimeout(timeout);
+      console.log(`OpenRouter response status: ${response.status}`);
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -334,10 +340,28 @@ app.post('/api/openrouter/chat/completions', async (req, res) => {
         });
       }
       
-      const data = await response.json();
+      console.log('Parsing OpenRouter response...');
+      const responseText = await response.text();
+      console.log(`Received response text of length: ${responseText.length}`);
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log(`Successfully parsed JSON response with ${data.choices?.[0]?.message?.content?.length || 0} characters`);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError.message);
+        console.error('Response text preview:', responseText.substring(0, 500));
+        throw new Error(`Failed to parse OpenRouter response: ${parseError.message}`);
+      }
+      
       res.json(data);
     } catch (fetchError) {
       clearTimeout(timeout);
+      console.error('Fetch error details:', {
+        name: fetchError.name,
+        message: fetchError.message,
+        stack: fetchError.stack
+      });
       if (fetchError.name === 'AbortError') {
         console.error('OpenRouter request timeout after 5 minutes');
         return res.status(408).json({ 
