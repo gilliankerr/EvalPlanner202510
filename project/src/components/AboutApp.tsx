@@ -19,8 +19,7 @@ const AboutApp: React.FC<AboutAppProps> = ({ onClose }) => {
         
         <div className={styles.content}>
           <p className={styles.paragraph}>
-            This AI-powered tool helps nonprofit organizations create customized evaluation plans 
-            for their programs. It's based on the{' '}
+            This tool creates evaluation plans for nonprofit programs. It's based on the{' '}
             <a 
               href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4815131" 
               target="_blank" 
@@ -29,35 +28,35 @@ const AboutApp: React.FC<AboutAppProps> = ({ onClose }) => {
             >
               LogicalOutcomes Evaluation Planning Handbook
             </a>
-            , a simplified evaluation framework designed specifically for nonprofit programs.
+            , a simplified evaluation framework for nonprofit programs.
           </p>
           
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>How it works:</h3>
             <ol className={styles.list}>
-              <li><strong>Enter your program details:</strong> Provide your organization name, program name, description, and relevant website URLs</li>
-              <li><strong>Automated web research:</strong> The system extracts and analyzes content from the websites you provide</li>
-              <li><strong>AI-powered analysis:</strong> Advanced AI analyzes your program model, identifies key components, activities, and outcomes</li>
-              <li><strong>Evaluation framework generation:</strong> A customized evaluation plan is created with specific indicators, data collection methods, and measurement strategies</li>
-              <li><strong>Report delivery:</strong> Your completed evaluation plan is emailed to you as a formatted HTML report (and accessible in your browser for 6 hours)</li>
+              <li>Enter your organization name, program name, description, and relevant website URLs</li>
+              <li>The system extracts content from the websites you provide</li>
+              <li>AI analyzes your program model and identifies key components, activities, and outcomes</li>
+              <li>An evaluation framework is generated with indicators, data collection methods, and measurement strategies</li>
+              <li>The completed evaluation plan is emailed to you as an HTML report</li>
             </ol>
           </section>
 
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Key features:</h3>
+            <h3 className={styles.sectionTitle}>What you get:</h3>
             <ul className={styles.list}>
-              <li><strong>Email delivery:</strong> Reports are automatically emailed to you when complete—no need to keep your browser open</li>
-              <li><strong>Privacy-focused:</strong> All your data is automatically deleted from our systems 6 hours after your report is generated</li>
-              <li><strong>AI-powered insights:</strong> Uses advanced AI models to provide tailored evaluation recommendations based on your specific program</li>
-              <li><strong>Professional output:</strong> Generates comprehensive, ready-to-use evaluation plans in HTML format</li>
+              <li><strong>Email delivery:</strong> The report is emailed to you when processing is complete (usually takes a few minutes)</li>
+              <li><strong>Browser access:</strong> Results are also available in your browser for 6 hours</li>
+              <li><strong>HTML format:</strong> The report can be imported into a Word document for further editing</li>
+              <li><strong>Automatic deletion:</strong> Your data is deleted from our systems 6 hours after the report is generated</li>
             </ul>
           </section>
 
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>About this service:</h3>
+            <h3 className={styles.sectionTitle}>About this tool:</h3>
             <p className={styles.paragraph}>
-              This tool is funded to serve Canadian nonprofit organizations, helping them develop 
-              effective evaluation strategies without requiring specialized expertise or extensive resources.
+              This tool is funded to serve Canadian nonprofit organizations. We collect organization 
+              names for internal monitoring but do not report them publicly.
             </p>
           </section>
         </div>
