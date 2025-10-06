@@ -27,6 +27,40 @@ This simplified design reduces visual clutter while maintaining transparency thr
 - **Changing colors/theme**: Edit the CSS custom properties at the top of CSS Module files (particularly `App.module.css`)
 - **Why no Tailwind**: The project previously had Tailwind but removed it in October 2025 because all styles were already in CSS Modules. Keeping Tailwind would create duplicate color definitions and unnecessary build complexity.
 
+**Systematic Pre-Styling Verification Checklist**:
+
+Before making ANY styling changes, follow this mandatory checklist:
+
+1. **Read Project Documentation** (MANDATORY)
+   - Read this replit.md file, especially the styling section above
+   - Check for explicit "DO NOT" statements about CSS frameworks
+   - Note any color variables or theming systems mentioned
+
+2. **Identify Existing Patterns** (MANDATORY)
+   - Search for .module.css files: `glob **/*.module.css`
+   - Read 2-3 existing CSS Module files to understand:
+     - How colors are defined (CSS custom properties)
+     - Naming conventions (camelCase vs kebab-case)
+     - Responsive patterns
+   - Look at similar components to the one being modified
+
+3. **Verify Component's Existing Styling**
+   - Check if component already has a .module.css file
+   - Read the component's imports to see what it's currently using
+   - Look at className usage in existing code
+
+4. **Make Changes Following Pattern**
+   - Use ONLY the styling approach identified in Steps 1-3
+   - For CSS Modules: create/edit .module.css file, import it, use styles.className
+   - Never default to Tailwind classes
+
+5. **Post-Change Verification**
+   - Run grep to search for Tailwind patterns: `bg-`, `text-`, `flex`, `items-`, `justify-`, `p-`, `m-`, `ml-`, `rounded`, etc.
+   - Check LSP diagnostics for any errors
+   - Verify the component still renders correctly
+
+**Why This Checklist Matters**: The critical mistake is jumping straight to implementation without gathering context first. This checklist forces pattern identification BEFORE making assumptions, preventing the introduction of incompatible styling approaches (like Tailwind) into a CSS Modules codebase.
+
 ### Backend and Core Functionality
 The application integrates with Supabase for backend services. Key features include URL extraction and robust web scraping with error handling, retry logic, and concurrent processing. AI-powered analysis and evaluation framework generation are central to the system. Prompts for AI models are managed through a comprehensive admin interface, stored in a PostgreSQL database. Email delivery of reports is handled by Resend.
 
