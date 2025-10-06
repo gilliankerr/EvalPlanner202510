@@ -30,11 +30,10 @@ const PORT = process.env.NODE_ENV === 'production' ? (process.env.PORT || 5000) 
 // ============================================================================
 // SESSION MANAGEMENT
 // ============================================================================
-// In-memory session store for admin authentication
+// Database-backed session store for admin authentication
 // Sessions expire after 24 hours and are automatically cleaned up
 // ============================================================================
 
-const sessions = new Map();
 const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 // Generate a cryptographically secure random token
@@ -43,47 +42,62 @@ function generateSessionToken() {
 }
 
 // Create a new session
-function createSession() {
+async function createSession() {
   const token = generateSessionToken();
-  const expiresAt = Date.now() + SESSION_DURATION;
+  const expiresAt = new Date(Date.now() + SESSION_DURATION);
   
-  sessions.set(token, {
-    createdAt: Date.now(),
-    expiresAt: expiresAt
-  });
+  await pool.query(
+    `INSERT INTO sessions (token, expires_at) 
+     VALUES ($1, $2)`,
+    [token, expiresAt]
+  );
   
-  return { token, expiresAt };
+  return { token, expiresAt: expiresAt.getTime() };
 }
 
 // Validate a session token
-function validateSession(token) {
-  const session = sessions.get(token);
+async function validateSession(token) {
+  const result = await pool.query(
+    `SELECT expires_at FROM sessions 
+     WHERE token = $1 AND expires_at > NOW()`,
+    [token]
+  );
   
-  if (!session) {
+  if (result.rows.length === 0) {
     return false;
   }
   
-  // Check if session has expired
-  if (Date.now() > session.expiresAt) {
-    sessions.delete(token);
-    return false;
-  }
+  // Update last_accessed_at for activity tracking
+  await pool.query(
+    `UPDATE sessions SET last_accessed_at = NOW() WHERE token = $1`,
+    [token]
+  );
   
   return true;
 }
 
 // Invalidate a session (for logout)
-function invalidateSession(token) {
-  return sessions.delete(token);
+async function invalidateSession(token) {
+  const result = await pool.query(
+    `DELETE FROM sessions WHERE token = $1 RETURNING token`,
+    [token]
+  );
+  
+  return result.rows.length > 0;
 }
 
 // Clean up expired sessions (runs periodically)
-function cleanupExpiredSessions() {
-  const now = Date.now();
-  for (const [token, session] of sessions.entries()) {
-    if (now > session.expiresAt) {
-      sessions.delete(token);
+async function cleanupExpiredSessions() {
+  try {
+    const result = await pool.query(
+      `DELETE FROM sessions WHERE expires_at < NOW() RETURNING id`
+    );
+    
+    if (result.rows.length > 0) {
+      console.log(`Cleaned up ${result.rows.length} expired sessions`);
     }
+  } catch (error) {
+    console.error('Error cleaning up expired sessions:', error);
   }
 }
 
