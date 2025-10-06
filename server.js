@@ -1008,52 +1008,71 @@ async function processNextJob() {
         [result, job.id]
       );
       
-      // Send email with results using email_delivery template
-      try {
-        // Fetch email template from database
-        const templateResult = await pool.query(
-          'SELECT content FROM prompts WHERE step_name = $1',
-          ['email_delivery']
-        );
-        
-        let emailBody = 'Your evaluation plan analysis is complete!';
-        
-        if (templateResult.rows.length > 0) {
-          // Get template content
-          let templateContent = templateResult.rows[0].content;
+      // Only send email for final report_template jobs (skip intermediate prompt1/prompt2 steps)
+      if (job.job_type === 'report_template') {
+        try {
+          // Fetch email template from database
+          const templateResult = await pool.query(
+            'SELECT content FROM prompts WHERE step_name = $1',
+            ['email_delivery']
+          );
+          
+          let emailBody = 'Your evaluation plan is complete!';
           
           // Extract metadata from input_data
           const metadata = inputData.metadata || {};
           const programName = metadata.programName || 'your program';
           const organizationName = metadata.organizationName || 'your organization';
-          const currentDateTime = new Date().toLocaleString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            timeZoneName: 'short'
+          
+          if (templateResult.rows.length > 0) {
+            // Get template content
+            let templateContent = templateResult.rows[0].content;
+            
+            const currentDateTime = new Date().toLocaleString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              timeZoneName: 'short'
+            });
+            
+            // Replace template variables
+            emailBody = templateContent
+              .replace(/\{\{programName\}\}/g, programName)
+              .replace(/\{\{organizationName\}\}/g, organizationName)
+              .replace(/\{\{currentDateTime\}\}/g, currentDateTime);
+          }
+          
+          // Create clean filename from metadata
+          const orgNameClean = (organizationName || 'Organization').replace(/[^a-zA-Z0-9]/g, '_');
+          const progNameClean = (programName || 'Program').replace(/[^a-zA-Z0-9]/g, '_');
+          const filename = `${orgNameClean}_${progNameClean}_Evaluation_Plan.html`;
+          
+          // Convert HTML result to base64 for attachment
+          const base64Content = Buffer.from(result, 'utf-8').toString('base64');
+          
+          const emailSubject = `Evaluation Plan for ${programName}`;
+          
+          await sendEmail({
+            to: job.email,
+            subject: emailSubject,
+            text: emailBody,
+            attachments: [{
+              filename: filename,
+              content: base64Content,
+              contentType: 'text/html',
+              encoding: 'base64'
+            }]
           });
           
-          // Replace template variables
-          emailBody = templateContent
-            .replace(/\{\{programName\}\}/g, programName)
-            .replace(/\{\{organizationName\}\}/g, organizationName)
-            .replace(/\{\{currentDateTime\}\}/g, currentDateTime);
+          console.log(`Email with HTML attachment sent to ${job.email} for job ${job.id}`);
+        } catch (emailError) {
+          console.error(`Failed to send email for job ${job.id}:`, emailError);
         }
-        
-        const emailSubject = `Your ${job.job_type.replace('_', ' ')} is ready`;
-        
-        await sendEmail({
-          to: job.email,
-          subject: emailSubject,
-          text: emailBody
-        });
-        
-        console.log(`Email sent to ${job.email} for job ${job.id}`);
-      } catch (emailError) {
-        console.error(`Failed to send email for job ${job.id}:`, emailError);
+      } else {
+        console.log(`Skipping email for intermediate step ${job.job_type} (job ${job.id})`);
       }
       
     } catch (processingError) {
