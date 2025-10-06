@@ -1058,7 +1058,7 @@ async function processNextJob() {
           await sendEmail({
             to: job.email,
             subject: emailSubject,
-            text: emailBody,
+            html: emailBody,
             attachments: [{
               filename: filename,
               content: base64Content,
