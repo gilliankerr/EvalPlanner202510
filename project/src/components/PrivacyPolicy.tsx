@@ -18,7 +18,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onClose }) => {
         </div>
         
         <div className={styles.content}>
-          <p className={styles.lastUpdated}>Last updated: October 2025</p>
+          <p className={styles.lastUpdated}>Last updated: October 6, 2025</p>
           
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>What information we collect</h3>
@@ -26,51 +26,62 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onClose }) => {
               <li>Organization and program details you provide (name, description, URLs)</li>
               <li>Email address (if you choose email delivery)</li>
               <li>Web content extracted from URLs you provide</li>
-              <li>System logs for troubleshooting purposes</li>
             </ul>
           </section>
 
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>How we use this information</h3>
+            <h3 className={styles.sectionTitle}>How we use your information</h3>
             <ul className={styles.list}>
-              <li>To generate your evaluation plan using AI analysis</li>
-              <li>To deliver reports via email (if selected)</li>
-              <li>To improve the tool's functionality and accuracy</li>
+              <li><strong>Email addresses:</strong> We use your email address only to send you the completed evaluation report and to track usage of the tool. We do not add you to mailing lists or share your email with anyone.</li>
+              <li><strong>Organization names:</strong> We capture organization names for internal monitoring purposes. Since we are funded to serve Canadian nonprofits, we use this information to track our reach and impact, but we will not report individual organization names publicly.</li>
+              <li><strong>Program information:</strong> Your program details and web content are sent to AI service providers (such as OpenAI or Anthropic) to generate your customized evaluation plan.</li>
             </ul>
           </section>
 
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Data storage and security</h3>
+            <h3 className={styles.sectionTitle}>Data retention and automatic deletion</h3>
             <ul className={styles.list}>
-              <li>Program information is stored in our database during the planning process</li>
-              <li>We use industry-standard security practices to protect your data</li>
-              <li>Emails are sent through Resend email service</li>
-              <li>AI analysis is performed by third-party AI providers (OpenAI, Anthropic, or others as configured)</li>
+              <li><strong>Your data is temporary:</strong> All job data (organization name, program details, AI-generated reports) is automatically deleted from our database 6 hours after completion or failure.</li>
+              <li><strong>No permanent storage:</strong> We do not keep your program information or reports beyond this 6-hour window.</li>
+              <li><strong>Email retention:</strong> Once we send your report via email, it exists in your inbox permanently (your choice). However, we delete it from our systems after 6 hours.</li>
+              <li><strong>Access window:</strong> You can access your results via the web interface for 6 hours after completion, after which the data is permanently removed.</li>
             </ul>
           </section>
 
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>Third-party services</h3>
+            <p className={styles.paragraph}>To provide this service, we share your information with the following third parties:</p>
             <ul className={styles.list}>
-              <li>AI model providers receive your program information to perform analysis</li>
-              <li>Resend receives your email address if you choose email delivery</li>
-              <li>These services operate under their own privacy policies</li>
+              <li><strong>AI providers (OpenRouter):</strong> Your program name, organization name, descriptions, and scraped website content are sent to AI providers to generate your evaluation plan. These services operate under their own privacy policies.</li>
+              <li><strong>Email service (Resend):</strong> If you choose email delivery, we send your email address, program name, organization name, and the completed report to Resend for delivery. Resend operates under its own privacy policy.</li>
+              <li><strong>Database (PostgreSQL/Neon):</strong> Your data is temporarily stored in our database with encryption in transit and at rest.</li>
+            </ul>
+          </section>
+
+          <section className={styles.section}>
+            <h3 className={styles.sectionTitle}>Data security</h3>
+            <ul className={styles.list}>
+              <li>All data is transmitted over secure HTTPS connections</li>
+              <li>Database connections use SSL encryption</li>
+              <li>We use industry-standard security practices to protect your information</li>
+              <li>Automatic cleanup processes run hourly to ensure timely data deletion</li>
             </ul>
           </section>
 
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>Your data rights</h3>
             <ul className={styles.list}>
-              <li>You control what information you provide</li>
-              <li>We do not share your data with third parties except as needed to operate the tool (AI providers, email service)</li>
-              <li>Contact your administrator for data deletion requests</li>
+              <li><strong>Control:</strong> You control what information you provide to the tool</li>
+              <li><strong>Access:</strong> You can access your data through the web interface for 6 hours after submission</li>
+              <li><strong>Deletion:</strong> Your data is automatically deleted after 6 hours. If you need immediate deletion, please contact your system administrator.</li>
+              <li><strong>No sharing:</strong> We do not sell or share your data with third parties except as necessary to operate the tool (AI processing, email delivery)</li>
             </ul>
           </section>
 
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Questions</h3>
+            <h3 className={styles.sectionTitle}>Questions or concerns</h3>
             <p className={styles.paragraph}>
-              For privacy questions or data requests, contact your system administrator.
+              For privacy questions, data requests, or concerns, please contact your system administrator.
             </p>
           </section>
         </div>
