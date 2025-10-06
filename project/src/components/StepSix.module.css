@@ -105,6 +105,12 @@
   padding: 3rem 0;
 }
 
+.spinner {
+  animation: spin 1s linear infinite;
+  color: var(--color-primary);
+  margin: 0 auto 1rem;
+}
+
 .loadingIcon {
   width: 2rem;
   height: 2rem;
@@ -123,6 +129,147 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Preview Container */
+.previewContainer {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Success Message */
+.successMessage {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.successMessage h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--color-text-dark);
+  margin-bottom: 1rem;
+}
+
+.emailNotification {
+  font-size: 1.125rem;
+  color: var(--color-text-gray);
+  line-height: 1.6;
+}
+
+.emailNotification strong {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* Action Buttons Container */
+.actionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+/* Modern Button Styling */
+.downloadButton,
+.emailButton {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border: none;
+  border-radius: 12px;
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  width: 100%;
+  text-align: left;
+}
+
+.downloadButton {
+  background: linear-gradient(135deg, #0085ca 0%, #006ba6 100%);
+  color: white;
+}
+
+.downloadButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 133, 202, 0.3), 0 6px 6px rgba(0, 133, 202, 0.2);
+}
+
+.downloadButton:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.emailButton {
+  background-color: white;
+  color: var(--color-text-dark);
+  border: 2px solid var(--color-slate-200);
+}
+
+.emailButton:hover {
+  background-color: var(--color-slate-50);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.05);
+}
+
+.emailButton:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Button Content */
+.downloadButton .buttonContent,
+.emailButton .buttonContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.downloadButton svg,
+.emailButton svg {
+  flex-shrink: 0;
+}
+
+.downloadButton .buttonTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.downloadButton .buttonSubtitle {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.emailButton .buttonTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  margin: 0;
+}
+
+.emailButton .buttonSubtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-gray);
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .actionButtons {
+    flex-direction: row;
+  }
+  
+  .downloadButton,
+  .emailButton {
+    flex: 1;
   }
 }
 

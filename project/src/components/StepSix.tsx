@@ -169,8 +169,10 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       {renderStatus === 'complete' && (
         <div className={styles.previewContainer}>
           <div className={styles.successMessage}>
-            <h2>✅ HTML Report Ready!</h2>
-            <p>Your evaluation plan has been successfully converted to HTML format.</p>
+            <h2>✅ Your Evaluation Plan is Ready!</h2>
+            <p className={styles.emailNotification}>
+              Download the report below. It has already been emailed to <strong>{programData.userEmail}</strong>.
+            </p>
           </div>
           
           <div className={styles.actionButtons}>
@@ -179,7 +181,10 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
               className={styles.downloadButton}
             >
               <Download size={20} />
-              Download HTML Report
+              <div className={styles.buttonContent}>
+                <span className={styles.buttonTitle}>Download Report</span>
+                <span className={styles.buttonSubtitle}>Can be printed to PDF, posted on the web or pasted into Word</span>
+              </div>
             </button>
             
             <button 
@@ -187,17 +192,11 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
               className={styles.emailButton}
             >
               <Mail size={20} />
-              Email Report
+              <div className={styles.buttonContent}>
+                <span className={styles.buttonTitle}>Email Report</span>
+                <span className={styles.buttonSubtitle}>Send a copy to your inbox</span>
+              </div>
             </button>
-          </div>
-          
-          <div className={styles.previewFrame}>
-            <h3>Report Preview</h3>
-            <iframe 
-              srcDoc={htmlContent}
-              title="Report Preview"
-              className={styles.iframe}
-            />
           </div>
         </div>
       )}
