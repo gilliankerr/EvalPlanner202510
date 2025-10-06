@@ -310,66 +310,98 @@ app.post('/api/openrouter/chat/completions', async (req, res) => {
     console.log(`Making OpenRouter API call for step: ${step}, model: ${model}, max_tokens: ${requestBody.max_tokens}`);
     console.log('Request body:', JSON.stringify({...requestBody, messages: [{...requestBody.messages[0], content: requestBody.messages[0].content.substring(0, 200) + '...(truncated)'}]}, null, 2));
     
-    // Make request to OpenRouter with extended timeout for large responses
-    const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      console.error('Aborting request due to 5-minute timeout');
-      controller.abort();
-    }, 300000); // 5 minute timeout
+    // Retry logic for handling truncated responses
+    let retries = 0;
+    const maxRetries = 3;
+    let lastError = null;
     
-    try {
-      console.log('Sending request to OpenRouter...');
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal
-      });
+    while (retries < maxRetries) {
+      // Make request to OpenRouter with extended timeout for large responses
+      const controller = new AbortController();
+      const timeout = setTimeout(() => {
+        console.error('Aborting request due to 5-minute timeout');
+        controller.abort();
+      }, 300000); // 5 minute timeout
       
-      clearTimeout(timeout);
-      console.log(`OpenRouter response status: ${response.status}`);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('OpenRouter API Error:', errorText);
-        return res.status(response.status).json({ 
-          error: `OpenRouter API error: ${response.status} - ${errorText}` 
-        });
-      }
-      
-      console.log('Parsing OpenRouter response...');
-      const responseText = await response.text();
-      console.log(`Received response text of length: ${responseText.length}`);
-      
-      let data;
       try {
-        data = JSON.parse(responseText);
-        console.log(`Successfully parsed JSON response with ${data.choices?.[0]?.message?.content?.length || 0} characters`);
-      } catch (parseError) {
-        console.error('JSON parse error:', parseError.message);
-        console.error('Response text preview:', responseText.substring(0, 500));
-        throw new Error(`Failed to parse OpenRouter response: ${parseError.message}`);
-      }
-      
-      res.json(data);
-    } catch (fetchError) {
-      clearTimeout(timeout);
-      console.error('Fetch error details:', {
-        name: fetchError.name,
-        message: fetchError.message,
-        stack: fetchError.stack
-      });
-      if (fetchError.name === 'AbortError') {
-        console.error('OpenRouter request timeout after 5 minutes');
-        return res.status(408).json({ 
-          error: 'Request timeout - the response took too long to generate. Please try again or use a smaller prompt.' 
+        if (retries > 0) {
+          const delay = Math.pow(2, retries) * 1000; // Exponential backoff: 2s, 4s, 8s
+          console.log(`Retry attempt ${retries}/${maxRetries} after ${delay}ms delay...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+        
+        console.log('Sending request to OpenRouter...');
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+          signal: controller.signal
         });
+        
+        clearTimeout(timeout);
+        console.log(`OpenRouter response status: ${response.status}`);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('OpenRouter API Error:', errorText);
+          return res.status(response.status).json({ 
+            error: `OpenRouter API error: ${response.status} - ${errorText}` 
+          });
+        }
+        
+        console.log('Parsing OpenRouter response...');
+        const responseText = await response.text();
+        console.log(`Received response text of length: ${responseText.length}`);
+        
+        // Check if response seems truncated (too short for a valid GPT response)
+        if (responseText.length < 500) {
+          throw new Error(`Response too short (${responseText.length} chars), likely truncated`);
+        }
+        
+        let data;
+        try {
+          data = JSON.parse(responseText);
+          console.log(`Successfully parsed JSON response with ${data.choices?.[0]?.message?.content?.length || 0} characters`);
+        } catch (parseError) {
+          console.error('JSON parse error:', parseError.message);
+          console.error('Response text preview:', responseText.substring(0, 500));
+          throw new Error(`Failed to parse OpenRouter response: ${parseError.message}`);
+        }
+        
+        // Success! Return the response
+        return res.json(data);
+        
+      } catch (fetchError) {
+        clearTimeout(timeout);
+        lastError = fetchError;
+        
+        console.error(`Attempt ${retries + 1} failed:`, {
+          name: fetchError.name,
+          message: fetchError.message
+        });
+        
+        if (fetchError.name === 'AbortError') {
+          console.error('OpenRouter request timeout after 5 minutes');
+          return res.status(408).json({ 
+            error: 'Request timeout - the response took too long to generate. Please try again or use a smaller prompt.' 
+          });
+        }
+        
+        retries++;
+        
+        // If we've exhausted retries, throw the error
+        if (retries >= maxRetries) {
+          console.error('Max retries reached, giving up');
+          throw lastError;
+        }
       }
-      throw fetchError;
     }
+    
+    // This should never be reached, but just in case
+    throw lastError || new Error('Unknown error occurred');
     
   } catch (error) {
     console.error('OpenRouter proxy error:', error);
