@@ -1318,7 +1318,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
                 </div>
                 <div className={styles.buttonContent}>
                   <p className={styles.buttonTitle}>Download Report</p>
-                  <p className={styles.buttonSubtitle}>HTML file that can be imported into Word</p>
+                  <p className={styles.buttonSubtitle}>Report that can be printed as a PDF or imported into Word</p>
                 </div>
               </button>
               
