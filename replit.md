@@ -99,7 +99,25 @@ The application implements a secure three-tier architecture that keeps API keys 
 - **Environment variable fallbacks**: `PROMPT1_MODEL`, `PROMPT2_MODEL`, `REPORT_TEMPLATE_MODEL`, `OPENROUTER_API_KEY`
 
 ### Deployment and Environment
-The project is configured for a Reserved VM deployment on Replit, running a two-server setup. The frontend serves on port 5000, and an internal Express.js server handles API requests and email functionality on port 3001, with Vite proxying `/api/*` requests.
+The project is configured for a Reserved VM deployment on Replit, using a unified server architecture for reliable production deployments:
+
+**Development Mode**:
+- Vite dev server runs on port 5000 (serves frontend with hot reload)
+- Express.js backend runs on port 3001 (handles API requests)
+- Vite proxies `/api/*` requests to the backend for seamless development
+
+**Production/Deployed Mode** (October 2025):
+- Single Express.js server runs on port 5000
+- Serves built frontend static files from `project/dist`
+- Handles all `/api/*` endpoints directly
+- SPA fallback routing for client-side navigation
+- Deployment commands: `npm run build` (builds frontend), `npm start` (runs `start-production.js`)
+
+**Why Unified Architecture?**
+- **Reliability**: No CORS issues or proxy complications in production
+- **Same-Origin**: Frontend and API share the same origin, eliminating cross-origin request failures
+- **Simplicity**: One server to manage in deployment means fewer failure points
+- **Fix for recurring deployment bug**: Previous two-server production setup failed because Vite's dev proxy doesn't exist in production builds, causing "Analysis Failed" errors when frontend couldn't reach backend API
 
 ### Admin Interface
 A secure, session-based authentication system protects the admin interface, which allows for managing AI prompts, viewing system configurations (LLM models, temperatures, web search settings, email settings), and managing email delivery templates. Prompts can be edited using a markdown editor, with support for version history and rollbacks. The configuration panel displays web search status for each prompt with clear visual indicators (🌐 Enabled/Disabled).
