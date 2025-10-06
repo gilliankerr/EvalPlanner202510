@@ -7,7 +7,7 @@ const path = require('path');
 const { Pool } = require('pg');
 const { Resend } = require('resend');
 const crypto = require('crypto');
-const { marked } = require('marked');
+const { convertMarkdownToHtml: mdToHtml, generateTOC, getReportStyles } = require('./reportRenderer');
 
 const app = express();
 // In development, backend runs on 3001 (Vite dev server uses 5000)
@@ -892,18 +892,18 @@ app.get('/api/jobs/:id', async (req, res) => {
   }
 });
 
-// Convert markdown to formatted HTML with embedded CSS
+// Convert markdown to formatted HTML with embedded CSS (using enhanced renderer)
 function convertMarkdownToHtml(markdown, programName, organizationName) {
-  // Configure marked for basic conversion
-  marked.setOptions({
-    breaks: true,
-    gfm: true
-  });
+  // Generate TOC
+  const tocHtml = generateTOC(markdown);
   
-  // Convert markdown to HTML
-  const contentHtml = marked.parse(markdown);
+  // Convert markdown content with all enhanced features
+  const contentHtml = mdToHtml(markdown, { programName, organizationName });
   
-  // Create complete HTML document with embedded CSS
+  // Get all report styles
+  const styles = getReportStyles();
+  
+  // Create complete HTML document
   const htmlDocument = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -911,157 +911,17 @@ function convertMarkdownToHtml(markdown, programName, organizationName) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${organizationName} — ${programName} Evaluation Plan</title>
     <style>
-        @media print {
-            .no-print { display: none; }
-            .page-break { page-break-before: always; }
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #1e293b;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin: 2rem 0 1rem 0;
-            padding-bottom: 1rem;
-            border-bottom: 3px solid #2563eb;
-        }
-        
-        h2 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin: 3rem 0 1.5rem 0;
-            padding-bottom: 0.75rem;
-            border-bottom: 2px solid #e2e8f0;
-        }
-        
-        h3 {
-            font-size: 1.375rem;
-            font-weight: 600;
-            color: #374151;
-            margin: 2.5rem 0 1rem 0;
-            padding-left: 1rem;
-            border-left: 4px solid #3b82f6;
-        }
-        
-        h4 {
-            font-size: 1.25rem;
-            font-weight: 500;
-            color: #4b5563;
-            margin: 2rem 0 0.75rem 0;
-        }
-        
-        p {
-            margin-bottom: 1.25rem;
-            line-height: 1.7;
-            color: #374151;
-        }
-        
-        ul, ol {
-            margin: 1rem 0 1.5rem 0;
-            padding-left: 2rem;
-        }
-        
-        li {
-            margin-bottom: 0.5rem;
-            line-height: 1.6;
-            color: #374151;
-        }
-        
-        strong {
-            font-weight: 600;
-            color: #1e293b;
-        }
-        
-        a {
-            color: #2563eb;
-            text-decoration: underline;
-            font-weight: 500;
-        }
-        
-        a:hover {
-            color: #1d4ed8;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 2rem 0;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
-        }
-        
-        th {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            padding: 1rem 1.5rem;
-            font-weight: 600;
-            text-align: left;
-            color: #1e293b;
-            border-bottom: 2px solid #e2e8f0;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.025em;
-        }
-        
-        td {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid #f1f5f9;
-            color: #374151;
-            vertical-align: top;
-        }
-        
-        tbody tr:hover {
-            background-color: #f8fafc;
-        }
-        
-        tbody tr:nth-child(even) {
-            background-color: #fafbfc;
-        }
-        
-        code {
-            background: #f1f5f9;
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-        }
-        
-        pre {
-            background: #f8fafc;
-            padding: 1.5rem;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            overflow-x: auto;
-            margin: 1.5rem 0;
-        }
-        
-        pre code {
-            background: none;
-            padding: 0;
-        }
-        
-        blockquote {
-            border-left: 4px solid #3b82f6;
-            padding-left: 1.5rem;
-            margin: 1.5rem 0;
-            color: #475569;
-            font-style: italic;
-        }
+        ${styles}
     </style>
 </head>
 <body>
-    ${contentHtml}
+    <div class="report-container">
+        <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 2rem;">
+            <h3 style="margin: 0 0 1rem 0; color: #1e293b; font-size: 1.25rem;">Table of Contents</h3>
+            ${tocHtml}
+        </div>
+        ${contentHtml}
+    </div>
 </body>
 </html>`;
   
