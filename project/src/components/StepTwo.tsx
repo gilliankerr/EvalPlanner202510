@@ -3,11 +3,7 @@ import { Globe, CheckCircle, AlertTriangle, Loader2, RotateCcw, Clock, Shield, X
 import type { ProgramData } from '../App';
 import { extractAndNormalizeUrls, extractLabeledUrls } from '../utils/url';
 import { scrapeUrls, type ScrapeResult, type LabeledScrapeResult } from '../utils/scrape';
-
-// TODO: Convert this component from Tailwind CSS to CSS Modules
-// This component currently uses ~50 Tailwind utility classes (flex, bg-slate-50, text-*, p-*, etc.)
-// When next modifying this component, follow the "Systematic Pre-Styling Verification Checklist" 
-// in replit.md to convert to CSS Modules pattern. See StepSix.tsx and StepSix.module.css as reference.
+import styles from './StepTwo.module.css';
 
 interface StepTwoProps {
   programData: ProgramData;
@@ -177,20 +173,20 @@ const StepTwo: React.FC<StepTwoProps> = ({ programData, updateProgramData, onCom
   const getStatusIcon = (status: ScrapeResult['status']) => {
     switch (status) {
       case 'success':
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
+        return <CheckCircle className={styles.iconSuccess} />;
       case 'timeout':
-        return <Clock className="h-5 w-5 text-orange-600" />;
+        return <Clock className={styles.iconTimeout} />;
       case 'rate_limited':
-        return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
+        return <AlertTriangle className={styles.iconRateLimited} />;
       case 'blocked':
-        return <Shield className="h-5 w-5 text-red-600" />;
+        return <Shield className={styles.iconBlocked} />;
       case 'not_found':
-        return <XCircle className="h-5 w-5 text-gray-600" />;
+        return <XCircle className={styles.iconNotFound} />;
       case 'unsupported_content':
-        return <AlertTriangle className="h-5 w-5 text-purple-600" />;
+        return <AlertTriangle className={styles.iconUnsupported} />;
       case 'network_error':
       default:
-        return <Loader2 className="h-5 w-5 animate-spin text-blue-600" />;
+        return <Loader2 className={styles.iconSpinning} />;
     }
   };
 
@@ -215,30 +211,30 @@ const StepTwo: React.FC<StepTwoProps> = ({ programData, updateProgramData, onCom
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="p-2 rounded-lg" style={{backgroundColor: '#e6f3ff'}}>
-            <Globe className="h-6 w-6" style={{color: '#0085ca'}} />
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.headerTop}>
+          <div className={styles.iconWrapper}>
+            <Globe className={styles.icon} />
           </div>
-          <div>
-            <h2 className="text-2xl font-bold" style={{color: '#30302f'}}>Web Content Extraction</h2>
-            <p className="text-gray-600">Extracting information from provided URLs</p>
+          <div className={styles.headerContent}>
+            <h2>Web Content Extraction</h2>
+            <p>Extracting information from provided URLs</p>
           </div>
         </div>
       </div>
 
       {validUrls.length === 0 ? (
-        <div className="text-center py-12">
-          <Globe className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2" style={{color: '#30302f'}}>No URLs to Process</h3>
-          <p className="text-gray-600">
+        <div className={styles.emptyState}>
+          <Globe className={styles.emptyIcon} />
+          <h3 className={styles.emptyTitle}>No URLs to Process</h3>
+          <p className={styles.emptyDescription}>
             No URLs were found in the URL fields or program description, proceeding with the text you entered.
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold mb-4" style={{color: '#30302f'}}>
+        <div className={styles.urlList}>
+          <h3 className={styles.urlListTitle}>
             Processing {validUrls.length} URL{validUrls.length > 1 ? 's' : ''}
           </h3>
           
@@ -248,13 +244,13 @@ const StepTwo: React.FC<StepTwoProps> = ({ programData, updateProgramData, onCom
             const urlsFromText = extractedUrls.filter(url => url.isValid).map(url => url.normalized);
             
             return urlsFromText.length > 0 && (
-              <div className="mb-4 p-3 rounded-lg border" style={{backgroundColor: '#e6f3ff', borderColor: '#0085ca'}}>
-                <p className="text-sm" style={{color: '#0085ca'}}>
+              <div className={styles.urlInfoBox}>
+                <p className={styles.urlInfoText}>
                   <strong>Found {urlsFromText.length} URL{urlsFromText.length > 1 ? 's' : ''} in program description:</strong>
                 </p>
-                <ul className="text-xs mt-1 ml-4" style={{color: '#006b9f'}}>
+                <ul className={styles.urlInfoList}>
                   {urlsFromText.map((url, index) => (
-                    <li key={index} className="truncate">{url}</li>
+                    <li key={index}>{url}</li>
                   ))}
                 </ul>
               </div>
@@ -270,43 +266,40 @@ const StepTwo: React.FC<StepTwoProps> = ({ programData, updateProgramData, onCom
             })();
             
             return (
-              <div
-                key={index}
-                className="flex items-start space-x-4 p-4 bg-slate-50 rounded-lg border border-slate-200"
-              >
-                <div className="flex-shrink-0 mt-0.5">
+              <div key={index} className={styles.urlResultCard}>
+                <div className={styles.urlResultIcon}>
                   {getStatusIcon(result.status)}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900 truncate">
+                <div className={styles.urlResultContent}>
+                  <p className={styles.urlResultUrl}>
                     {result.url}
                   </p>
-                  <p className="text-sm text-slate-500">
+                  <p className={styles.urlResultStatus}>
                     {getStatusText(result)}
                     {isFromDescription && (
-                      <span className="ml-2 text-xs text-blue-600">(from description)</span>
+                      <span className={styles.urlResultBadge}>(from description)</span>
                     )}
                   </p>
                   {result.error && result.status !== 'network_error' && result.status !== 'unsupported_content' && (
-                    <p className="text-xs text-red-600 mt-1">
+                    <p className={styles.urlResultError}>
                       {result.error}
                     </p>
                   )}
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className={styles.urlResultActions}>
                   {result.status === 'success' && result.content && (
-                    <div className="text-xs text-slate-400">
+                    <div className={styles.urlResultChars}>
                       {result.content.length} chars
-                      {result.truncated && <span className="text-orange-500 ml-1">truncated</span>}
+                      {result.truncated && <span className={styles.urlResultTruncated}>truncated</span>}
                     </div>
                   )}
                   {canRetry && !isLocalProcessing && (
                     <button
                       onClick={() => retryUrl(result.url)}
-                      className="flex items-center space-x-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                      className={styles.retryButton}
                       title="Retry this URL"
                     >
-                      <RotateCcw className="h-3 w-3" />
+                      <RotateCcw className={styles.retryIcon} />
                       <span>Retry</span>
                     </button>
                   )}
@@ -320,10 +313,10 @@ const StepTwo: React.FC<StepTwoProps> = ({ programData, updateProgramData, onCom
 
       {/* Preview of scraped content (if available) */}
       {programData.scrapedContent && (
-        <div className="mt-8">
-          <h4 className="text-sm font-medium text-slate-700 mb-3">Extracted Content Preview</h4>
-          <div className="bg-slate-50 rounded-lg p-4 max-h-48 overflow-y-auto border border-slate-200">
-            <pre className="text-xs text-slate-600 whitespace-pre-wrap font-mono">
+        <div className={styles.previewSection}>
+          <h4 className={styles.previewTitle}>Extracted Content Preview</h4>
+          <div className={styles.previewBox}>
+            <pre className={styles.previewContent}>
               {programData.scrapedContent.substring(0, 500)}
               {programData.scrapedContent.length > 500 && '...'}
             </pre>

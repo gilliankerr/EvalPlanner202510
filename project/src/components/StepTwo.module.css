@@ -1,0 +1,283 @@
+/* Container */
+.container {
+  padding: 2rem;
+}
+
+/* Header Section */
+.header {
+  margin-bottom: 2rem;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.iconWrapper {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background-color: #e6f3ff;
+}
+
+.icon {
+  height: 1.5rem;
+  width: 1.5rem;
+  color: #0085ca;
+}
+
+.headerContent h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #30302f;
+  margin: 0;
+}
+
+.headerContent p {
+  color: #4b5563;
+  margin: 0.25rem 0 0 0;
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.emptyIcon {
+  height: 3rem;
+  width: 3rem;
+  color: #9ca3af;
+  margin: 0 auto 1rem auto;
+}
+
+.emptyTitle {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #30302f;
+}
+
+.emptyDescription {
+  color: #4b5563;
+  margin: 0;
+}
+
+/* URL List Section */
+.urlList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.urlListTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #30302f;
+}
+
+/* URL Info Box */
+.urlInfoBox {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #0085ca;
+  background-color: #e6f3ff;
+}
+
+.urlInfoText {
+  font-size: 0.875rem;
+  color: #0085ca;
+  margin: 0 0 0.25rem 0;
+}
+
+.urlInfoText strong {
+  font-weight: 600;
+}
+
+.urlInfoList {
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  margin-left: 1rem;
+  color: #006b9f;
+  padding: 0;
+  list-style: disc;
+}
+
+.urlInfoList li {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* URL Result Card */
+.urlResultCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.urlResultIcon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.iconSuccess {
+  height: 1.25rem;
+  width: 1.25rem;
+  color: #10b981;
+}
+
+.iconTimeout {
+  height: 1.25rem;
+  width: 1.25rem;
+  color: #f97316;
+}
+
+.iconRateLimited {
+  height: 1.25rem;
+  width: 1.25rem;
+  color: #eab308;
+}
+
+.iconBlocked {
+  height: 1.25rem;
+  width: 1.25rem;
+  color: #ef4444;
+}
+
+.iconNotFound {
+  height: 1.25rem;
+  width: 1.25rem;
+  color: #4b5563;
+}
+
+.iconUnsupported {
+  height: 1.25rem;
+  width: 1.25rem;
+  color: #a855f7;
+}
+
+.iconSpinning {
+  height: 1.25rem;
+  width: 1.25rem;
+  color: #2563eb;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.urlResultContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.urlResultUrl {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0 0 0.25rem 0;
+}
+
+.urlResultStatus {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.urlResultBadge {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: #2563eb;
+}
+
+.urlResultError {
+  font-size: 0.75rem;
+  color: #dc2626;
+  margin-top: 0.25rem;
+}
+
+.urlResultActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.urlResultChars {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+}
+
+.urlResultTruncated {
+  color: #f97316;
+  margin-left: 0.25rem;
+}
+
+.retryButton {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: #2563eb;
+  background: none;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.retryButton:hover {
+  color: #1d4ed8;
+  background-color: #eff6ff;
+}
+
+.retryIcon {
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+/* Preview Section */
+.previewSection {
+  margin-top: 2rem;
+}
+
+.previewTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+  margin: 0 0 0.75rem 0;
+}
+
+.previewBox {
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  max-height: 12rem;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+}
+
+.previewContent {
+  font-size: 0.75rem;
+  color: #64748b;
+  white-space: pre-wrap;
+  font-family: monospace;
+  margin: 0;
+}
