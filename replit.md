@@ -70,7 +70,10 @@ The application uses an async job queue to handle long-running AI analysis tasks
 1. **Job Creation**: Frontend submits jobs to `POST /api/jobs` with job type (prompt1/prompt2/report_template), input data (including metadata: organizationName, programName), and user email
 2. **Immediate Response**: Backend creates a job record in PostgreSQL and returns job ID instantly
 3. **Background Processing**: Job processor picks up pending jobs, calls OpenRouter API with retry logic, and saves results
-4. **Email Delivery**: When complete, results are automatically emailed using the `email_delivery` template from the database. The template fetches metadata (organizationName, programName) from the job's input_data and replaces template variables ({{programName}}, {{organizationName}}, {{currentDateTime}}) to personalize each email.
+4. **Email Delivery** (final report only): Only `report_template` jobs send emails - intermediate AI steps (prompt1, prompt2) complete silently. When the final report is ready, the system sends an email with:
+   - **Body**: The `email_delivery` template from the database with variables replaced ({{programName}}, {{organizationName}}, {{currentDateTime}})
+   - **Attachment**: The complete HTML evaluation plan as `OrganizationName_ProgramName_Evaluation_Plan.html`
+   - **Subject**: "Evaluation Plan for [Program Name]"
 5. **Status Polling**: Frontend polls `GET /api/jobs/:id` every 3 seconds to check status and display results
 6. **Browser Independence**: Users can close the browser anytime - results will still be emailed
 7. **Cleanup**: Completed/failed jobs are auto-deleted after 6 hours to prevent database bloat
