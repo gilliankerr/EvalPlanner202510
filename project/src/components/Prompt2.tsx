@@ -14,6 +14,7 @@ interface Prompt2Props {
 const Prompt2: React.FC<Prompt2Props> = ({ programData, updateProgramData, onComplete, setIsProcessing }) => {
   const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'complete' | 'error'>('idle');
   const [analysisResult, setAnalysisResult] = useState<string>('');
+  const [jobId, setJobId] = useState<number | null>(null);
 
   useEffect(() => {
     analyzeProgram();
@@ -35,46 +36,91 @@ const Prompt2: React.FC<Prompt2Props> = ({ programData, updateProgramData, onCom
         programAnalysis: programData.programAnalysis
       });
 
-      const requestBody: any = {
-        messages: [
-          {
-            role: 'user',
-            content: analysisPrompt
-          }
-        ],
-        max_tokens: 4000,
-        step: 'prompt2'
+      const jobData = {
+        job_type: 'prompt2',
+        input_data: {
+          messages: [
+            {
+              role: 'user',
+              content: analysisPrompt
+            }
+          ],
+          max_tokens: 4000
+        },
+        email: programData.userEmail
       };
       
-      const response = await fetch('/api/openrouter/chat/completions', {
+      const response = await fetch('/api/jobs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(jobData)
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
+        throw new Error(`Job creation failed: ${response.status}`);
       }
 
       const data = await response.json();
-      const framework = data.choices[0].message.content;
-
-      setAnalysisResult(framework);
-      updateProgramData({ evaluationFramework: framework });
-      setAnalysisStatus('complete');
-
-      setTimeout(() => {
-        setIsProcessing(false);
-        onComplete();
-      }, 2000);
+      const createdJobId = data.job_id;
+      setJobId(createdJobId);
+      
+      console.log(`Job ${createdJobId} created, polling for results...`);
+      
+      pollJobStatus(createdJobId);
 
     } catch (error) {
-      console.error('Error analyzing program:', error);
+      console.error('Error creating job:', error);
       setAnalysisStatus('error');
       setIsProcessing(false);
     }
+  };
+
+  const pollJobStatus = async (jobId: number) => {
+    const maxAttempts = 200;
+    let attempts = 0;
+
+    const poll = async () => {
+      try {
+        const response = await fetch(`/api/jobs/${jobId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Job status check failed: ${response.status}`);
+        }
+
+        const job = await response.json();
+        
+        if (job.status === 'completed') {
+          const framework = job.result;
+          
+          setAnalysisResult(framework);
+          updateProgramData({ evaluationFramework: framework });
+          setAnalysisStatus('complete');
+
+          setTimeout(() => {
+            setIsProcessing(false);
+            onComplete();
+          }, 2000);
+          
+        } else if (job.status === 'failed') {
+          throw new Error(job.error || 'Job processing failed');
+        } else if (job.status === 'pending' || job.status === 'processing') {
+          attempts++;
+          if (attempts < maxAttempts) {
+            setTimeout(poll, 3000);
+          } else {
+            throw new Error('Job timeout - processing took too long');
+          }
+        }
+      } catch (error) {
+        console.error('Error polling job status:', error);
+        setAnalysisStatus('error');
+        setIsProcessing(false);
+      }
+    };
+
+    poll();
   };
 
   return (
@@ -112,7 +158,12 @@ const Prompt2: React.FC<Prompt2Props> = ({ programData, updateProgramData, onCom
                 {analysisStatus === 'idle' && 'Preparing Analysis...'}
               </h3>
               <p className={styles.statusDescription}>
-                {analysisStatus === 'analyzing' && 'Using AI to define program terms, goals, activities, and intended outcomes'}
+                {analysisStatus === 'analyzing' && (
+                  <>
+                    Processing in background... You can close this browser tab - results will be emailed to {programData.userEmail}
+                    {jobId && <span style={{ display: 'block', marginTop: '8px', fontSize: '0.9em', opacity: 0.8 }}>Job ID: {jobId}</span>}
+                  </>
+                )}
                 {analysisStatus === 'complete' && 'Program model analysis completed successfully'}
                 {analysisStatus === 'error' && 'An error occurred during analysis'}
                 {analysisStatus === 'idle' && 'Setting up analysis parameters'}
