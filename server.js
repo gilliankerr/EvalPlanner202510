@@ -3,12 +3,13 @@
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { Pool } = require('pg');
 const { Resend } = require('resend');
 const crypto = require('crypto');
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 5000;
 
 // ============================================================================
 // EMAIL CONFIGURATION
@@ -730,6 +731,25 @@ app.get('/api/config', async (req, res) => {
     console.error('Error fetching config:', error);
     res.status(500).json({ error: 'Failed to fetch configuration' });
   }
+});
+
+// ============================================================================
+// STATIC FILE SERVING (PRODUCTION)
+// ============================================================================
+// Serve the built Vite frontend from project/dist
+// This allows the frontend and backend to run from the same server/port
+const distPath = path.join(__dirname, 'project', 'dist');
+app.use(express.static(distPath));
+
+// SPA fallback - serve index.html for all non-API routes
+// This ensures React Router works correctly
+app.get('*', (req, res) => {
+  // Skip if this is an API route
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  res.sendFile(path.join(distPath, 'index.html'));
 });
 
 async function startServer() {
