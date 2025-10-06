@@ -8,7 +8,8 @@ const { Pool } = require('pg');
 const { Resend } = require('resend');
 const crypto = require('crypto');
 const { marked } = require('marked');
-const { convertMarkdownToHtml: mdToHtml, generateTOC, getReportStyles } = require('./reportRenderer');
+// Import the unified report generator
+const { generateFullHtmlDocument } = require('./project/src/utils/reportGenerator');
 
 const app = express();
 // In development, backend runs on 3001 (Vite dev server uses 5000)
@@ -949,40 +950,14 @@ app.get('/api/jobs/:id', async (req, res) => {
   }
 });
 
-// Convert markdown to formatted HTML with embedded CSS (using enhanced renderer)
+// Convert markdown to formatted HTML using the unified generator
 function convertMarkdownToHtml(markdown, programName, organizationName) {
-  // Generate TOC
-  const tocHtml = generateTOC(markdown);
-  
-  // Convert markdown content with all enhanced features
-  const contentHtml = mdToHtml(markdown, { programName, organizationName });
-  
-  // Get all report styles
-  const styles = getReportStyles();
-  
-  // Create complete HTML document
-  const htmlDocument = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${organizationName} — ${programName} Evaluation Plan</title>
-    <style>
-        ${styles}
-    </style>
-</head>
-<body>
-    <div class="report-container">
-        <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 2rem;">
-            <h3 style="margin: 0 0 1rem 0; color: #1e293b; font-size: 1.25rem;">Table of Contents</h3>
-            ${tocHtml}
-        </div>
-        ${contentHtml}
-    </div>
-</body>
-</html>`;
-  
-  return htmlDocument;
+  // Use the unified HTML generation function
+  return generateFullHtmlDocument(markdown, {
+    programName,
+    organizationName,
+    includePrintButton: false  // No print button for emails
+  });
 }
 
 // Background job processor
