@@ -52,12 +52,11 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
       newErrors.aboutProgram = 'Program description is required';
     }
 
-    if (programData.deliveryMethod === 'email') {
-      if (!programData.userEmail.trim()) {
-        newErrors.userEmail = 'Email address is required for email delivery';
-      } else if (!/\S+@\S+\.\S+/.test(programData.userEmail)) {
-        newErrors.userEmail = 'Please enter a valid email address';
-      }
+    // Email is always required for async job processing
+    if (!programData.userEmail.trim()) {
+      newErrors.userEmail = 'Email address is required';
+    } else if (!/\S+@\S+\.\S+/.test(programData.userEmail)) {
+      newErrors.userEmail = 'Please enter a valid email address';
     }
 
     setErrors(newErrors);
@@ -165,70 +164,28 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
           )}
         </div>
 
-        {/* Delivery Method */}
+        {/* Email Address - Always required for async job processing */}
         <div className={styles.fieldGroup}>
           <label className={styles.staticLabel}>
-            How would you like to receive your evaluation plan?
+            Email address<span className={styles.requiredStar}>*</span>
           </label>
           <p className={styles.processingNote}>
-            Report generation takes 5-10 minutes depending on program complexity. You can choose to download immediately or receive by email.
+            Your evaluation plan will be generated in the background and emailed to you. You can close your browser anytime - results will arrive within 10 minutes.
           </p>
-          <div className={styles.radioGroup}>
-            <label className={styles.radioOption}>
-              <input
-                type="radio"
-                value="download"
-                checked={programData.deliveryMethod === 'download'}
-                onChange={(e) => updateProgramData({ deliveryMethod: e.target.value })}
-                className={styles.radioInput}
-              />
-              <div className={styles.radioContent}>
-                <span className={styles.radioLabel}>Download when ready</span>
-                <p className={styles.radioDescription}>
-                  Keep your browser open while the report generates
-                </p>
-              </div>
-            </label>
-            
-            <label className={styles.radioOption}>
-              <input
-                type="radio"
-                value="email"
-                checked={programData.deliveryMethod === 'email'}
-                onChange={(e) => updateProgramData({ deliveryMethod: e.target.value })}
-                className={styles.radioInput}
-              />
-              <div className={styles.radioContent}>
-                <span className={styles.radioLabel}>Email me when complete</span>
-                <p className={styles.radioDescription}>
-                  Close your browser anytime - you'll receive the report via email within 10 minutes
-                </p>
-              </div>
-            </label>
-          </div>
+          <input
+            type="email"
+            value={programData.userEmail}
+            onChange={(e) => updateProgramData({ userEmail: e.target.value })}
+            className={`${styles.input} ${errors.userEmail ? styles.inputError : ''}`}
+            placeholder="your@email.com"
+          />
+          {errors.userEmail && (
+            <p className={styles.errorMessage}>
+              <AlertCircle className={styles.errorIcon} />
+              {errors.userEmail}
+            </p>
+          )}
         </div>
-
-        {/* Email Address - Only show when email delivery is selected */}
-        {programData.deliveryMethod === 'email' && (
-          <div className={styles.fieldGroup}>
-            <label className={styles.staticLabel}>
-              Email address<span className={styles.requiredStar}>*</span>
-            </label>
-            <input
-              type="email"
-              value={programData.userEmail}
-              onChange={(e) => updateProgramData({ userEmail: e.target.value })}
-              className={`${styles.input} ${errors.userEmail ? styles.inputError : ''}`}
-              placeholder="your@email.com"
-            />
-            {errors.userEmail && (
-              <p className={styles.errorMessage}>
-                <AlertCircle className={styles.errorIcon} />
-                {errors.userEmail}
-              </p>
-            )}
-          </div>
-        )}
 
         {/* Submit Button */}
         <button
