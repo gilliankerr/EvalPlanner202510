@@ -1211,11 +1211,18 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       });
 
       // Fetch email template from database and replace variables
-      const emailBody = await getProcessedPrompt('email_delivery', {
+      const emailBodyMarkdown = await getProcessedPrompt('email_delivery', {
         programName: programData.programName,
         organizationName: programData.organizationName,
         currentDateTime: currentDateTime
       });
+
+      // Convert markdown to HTML for proper email formatting
+      marked.setOptions({
+        breaks: true, // Convert line breaks to <br>
+        gfm: true // GitHub Flavored Markdown
+      });
+      const emailBodyHtml = await marked.parse(emailBodyMarkdown);
 
       // Create filename
       const filename = `${programData.organizationName}_${programData.programName}_Evaluation_Plan.html`.replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -1227,7 +1234,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       const result = await sendEmail({
         to: programData.userEmail,
         subject: `Evaluation Plan for ${programData.programName} - ${programData.organizationName}`,
-        text: emailBody,
+        html: emailBodyHtml,
         attachments: [{
           filename: filename,
           content: base64Content,
