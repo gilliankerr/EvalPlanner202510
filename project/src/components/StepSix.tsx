@@ -1302,7 +1302,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
           <div className={styles.reportContainer}>
             <p className={styles.statusMessage}>
               {programData.deliveryMethod === 'email' ? (
-                <>Your evaluation plan has been sent to {programData.userEmail}.</>
+                <>Download the report below. It has already been sent to {programData.userEmail}.</>
               ) : (
                 <>Your evaluation plan is ready to download.</>
               )}
@@ -1318,7 +1318,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
                 </div>
                 <div className={styles.buttonContent}>
                   <p className={styles.buttonTitle}>Download Report</p>
-                  <p className={styles.buttonSubtitle}>Save as HTML file</p>
+                  <p className={styles.buttonSubtitle}>HTML file that can be imported into Word</p>
                 </div>
               </button>
               
