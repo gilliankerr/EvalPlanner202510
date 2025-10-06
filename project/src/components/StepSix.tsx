@@ -275,6 +275,14 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       }
     };
 
+    // Link renderer - ensures markdown links become clickable hyperlinks
+    renderer.link = function(token: Tokens.Link) {
+      const href = token.href;
+      const title = token.title ? ` title="${token.title}"` : '';
+      const text = this.parser.parseInline(token.tokens);
+      return `<a href="${href}"${title}>${text}</a>`;
+    };
+
     // Configure marked with custom renderer
     marked.use({ 
       renderer,
