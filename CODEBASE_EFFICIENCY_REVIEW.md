@@ -125,6 +125,21 @@ After careful verification of the actual codebase, this is a well-architected ap
 - **Effort:** Low (1 hour)
 - **Recommendation:** Add retry wrapper for external API calls
 
+### 12. Convert Tailwind Components to CSS Modules
+- **Location:** 
+  - `StepTwo.tsx` - ~50 Tailwind utility classes (flex, bg-slate-50, text-*, p-*, etc.)
+  - `ReportTemplate.tsx` - ~80 Tailwind utility classes (grid, gap-*, bg-*, hover:*, animate-*, etc.)
+- **Issue:** Legacy Tailwind classes remain after project switched to CSS Modules (Oct 2025)
+- **Impact:** Inconsistent styling approach, confusing for maintenance
+- **Effort:** Medium (3-4 hours total, ~1.5-2 hours per component)
+- **Recommendation:** 
+  - Follow "Systematic Pre-Styling Verification Checklist" from `replit.md`
+  - Create corresponding CSS Module files (`StepTwo.module.css`, `ReportTemplate.module.css`)
+  - Convert each Tailwind class to CSS Module style
+  - Test responsive behavior matches original
+  - Remove TODO comments once complete
+- **Note:** Project intentionally removed Tailwind in October 2025 for cleaner architecture
+
 ---
 
 ## ✅ What's Actually Good
@@ -151,13 +166,16 @@ After careful verification of the actual codebase, this is a well-architected ap
 
 **Recommended Implementation Order:**
 
-1. **Database indexes** (30 min) → Immediate performance boost
-2. **Error monitoring** (1-2 hours) → Catch production issues
-3. **Rate limiting** (1-2 hours) → Protect against abuse
-4. **Job cleanup automation** (30 min) → Prevent database bloat
+1. **Error monitoring** (1-2 hours) → Catch production issues proactively
+2. **Rate limiting** (1-2 hours) → Protect expensive AI endpoints from abuse
+3. **Exponential backoff polling** (30 min) → Reduce server load during long jobs
 
-**Total Time for Quick Wins:** ~4-5 hours  
-**Impact:** Significant production readiness improvement
+**Total Time for Quick Wins:** ~3-4 hours  
+**Impact:** Improved production monitoring, security, and performance
+
+**Additional Cleanup (Low-Medium Priority):**
+4. **Tailwind component conversion** (3-4 hours) → Consistent styling architecture
+5. **TypeScript type safety** (2-3 hours) → Remove `any` types
 
 ---
 
@@ -183,9 +201,11 @@ After careful verification of the actual codebase, this is a well-architected ap
 This is a **well-designed application** with solid architecture. The main work needed is **production hardening** rather than refactoring. The async job queue, security architecture, and unified server design are all excellent choices that show good engineering judgment.
 
 **Priority Order:**
-1. Add database indexes (critical for scale)
-2. Implement persistent sessions (critical for UX)
-3. Add error monitoring (essential for production)
-4. Then work through medium/low priority items as time permits
+1. Add error monitoring (essential for production operations)
+2. Add rate limiting (protect expensive AI endpoints)
+3. Implement exponential backoff for polling (reduce server load)
+4. Convert Tailwind components to CSS Modules (code consistency)
+5. Then work through remaining medium/low priority items as time permits
 
-**Estimated Total Effort for Critical + High Priority:** 10-15 hours
+**Estimated Total Effort for High Priority Items:** 6-8 hours  
+**Estimated Total Effort Including Tailwind Cleanup:** 9-12 hours
