@@ -97,7 +97,19 @@ const pool = new Pool({
 
 // Handle pool errors to prevent crashes
 pool.on('error', (err, client) => {
-  console.error('Unexpected error on idle client', err);
+  console.error('Unexpected error on idle client:', err);
+  // Don't crash the server, just log the error
+});
+
+// Handle uncaught errors to prevent server crashes
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  // Log but don't exit - keep server running
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Log but don't exit - keep server running
 });
 
 // Middleware
@@ -930,9 +942,11 @@ function convertMarkdownToHtml(markdown, programName, organizationName) {
 
 // Background job processor
 async function processNextJob() {
-  const client = await pool.connect();
+  let client;
   
   try {
+    // Try to get a connection
+    client = await pool.connect();
     await client.query('BEGIN');
     
     // Get the next pending job (with row lock)
@@ -1147,10 +1161,24 @@ async function processNextJob() {
     processNextJob().catch(err => console.error('Error in job chain:', err));
     
   } catch (error) {
-    await client.query('ROLLBACK');
     console.error('Error in processNextJob:', error);
+    // Try to rollback if we have a client
+    if (client) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackError) {
+        console.error('Error during rollback:', rollbackError);
+      }
+    }
   } finally {
-    client.release();
+    // Release client if we have one
+    if (client) {
+      try {
+        client.release();
+      } catch (releaseError) {
+        console.error('Error releasing client:', releaseError);
+      }
+    }
   }
 }
 
