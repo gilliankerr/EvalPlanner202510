@@ -508,7 +508,7 @@ app.post('/api/verify-admin-password', async (req, res) => {
 });
 
 // Admin logout endpoint
-app.post('/api/admin-logout', (req, res) => {
+app.post('/api/admin-logout', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
     
@@ -520,7 +520,7 @@ app.post('/api/admin-logout', (req, res) => {
     }
     
     const token = authHeader.substring(7);
-    const invalidated = invalidateSession(token);
+    const invalidated = await invalidateSession(token);
     
     res.json({ 
       success: true,
