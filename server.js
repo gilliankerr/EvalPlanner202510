@@ -200,63 +200,7 @@ async function getSetting(key, envVarName = null) {
 // ============================================================================
 // OPENROUTER PROXY
 // ============================================================================
-// Proxy endpoint for OpenRouter API calls
-// This keeps the API key secure on the backend
-app.post('/openrouter-proxy', async (req, res) => {
-  try {
-    const { model, messages, max_tokens, temperature } = req.body;
-    
-    // Get API key from database, fallback to environment variable
-    const apiKey = await getSetting('openrouter_api_key', 'OPENROUTER_API_KEY');
-    
-    if (!apiKey) {
-      return res.status(500).json({ 
-        error: 'OpenRouter API key not configured. Please set it in the admin settings or as an environment variable.' 
-      });
-    }
-    
-    // Build request body
-    const requestBody = {
-      model,
-      messages,
-      max_tokens: max_tokens || 4000
-    };
-    
-    // Add temperature if provided
-    if (temperature !== undefined) {
-      requestBody.temperature = temperature;
-    }
-    
-    // Make request to OpenRouter
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody)
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenRouter API Error:', errorText);
-      return res.status(response.status).json({ 
-        error: `OpenRouter API error: ${response.status} - ${errorText}` 
-      });
-    }
-    
-    const data = await response.json();
-    res.json(data);
-    
-  } catch (error) {
-    console.error('OpenRouter proxy error:', error);
-    res.status(500).json({ 
-      error: error.message || 'Failed to proxy request to OpenRouter' 
-    });
-  }
-});
-
-// New OpenRouter proxy endpoint that reads model/temperature from settings
+// OpenRouter proxy endpoint that reads model/temperature from settings
 // Frontend calls this endpoint with a 'step' parameter (prompt1, prompt2, or report_template)
 app.post('/api/openrouter/chat/completions', async (req, res) => {
   try {
