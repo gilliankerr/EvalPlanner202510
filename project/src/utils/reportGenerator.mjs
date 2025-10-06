@@ -1,19 +1,10 @@
-// Unified report generator that works in both browser and Node.js environments
-const marked = require('marked');
-const hljs = require('highlight.js');
-const DOMPurify = require('dompurify');
+// Unified report generator for browser environments
+import { marked } from 'marked';
+import hljs from 'highlight.js';
+import DOMPurify from 'dompurify';
 
-// Environment detection and DOMPurify initialization
-let purify;
-if (typeof window !== 'undefined') {
-  // Browser environment
-  purify = DOMPurify(window);
-} else {
-  // Node.js environment - use jsdom
-  const { JSDOM } = require('jsdom');
-  const window = new JSDOM('').window;
-  purify = DOMPurify(window);
-}
+// Browser-only initialization (no jsdom needed)
+const purify = DOMPurify(window);
 
 // Helper functions
 function createSlugger() {
@@ -772,12 +763,10 @@ function generateFullHtmlDocument(markdown, options = {}) {
   return htmlDocument;
 }
 
-// Export functions for both environments (CommonJS)
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    convertMarkdownToHtml,
-    generateTOC,
-    getReportStyles,
-    generateFullHtmlDocument
-  };
-}
+// ES6 module exports
+export {
+  convertMarkdownToHtml,
+  generateTOC,
+  getReportStyles,
+  generateFullHtmlDocument
+};

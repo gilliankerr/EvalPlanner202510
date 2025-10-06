@@ -9,7 +9,7 @@ const { Resend } = require('resend');
 const crypto = require('crypto');
 const { marked } = require('marked');
 // Import the unified report generator
-const { generateFullHtmlDocument } = require('./project/src/utils/reportGenerator.cjs');
+const { generateFullHtmlDocument } = require('./reportGeneratorServer.cjs');
 
 const app = express();
 // In development, backend runs on 3001 (Vite dev server uses 5000)
