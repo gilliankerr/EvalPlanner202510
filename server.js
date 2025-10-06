@@ -536,7 +536,7 @@ app.post('/api/admin-logout', (req, res) => {
 });
 
 // Session-based authentication middleware for admin routes
-const authenticateAdmin = (req, res, next) => {
+const authenticateAdmin = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -545,11 +545,16 @@ const authenticateAdmin = (req, res, next) => {
   
   const token = authHeader.substring(7);
   
-  if (!validateSession(token)) {
-    return res.status(401).json({ error: 'Unauthorized - Session expired or invalid' });
+  try {
+    const isValid = await validateSession(token);
+    if (!isValid) {
+      return res.status(401).json({ error: 'Unauthorized - Session expired or invalid' });
+    }
+    next();
+  } catch (error) {
+    console.error('Session validation error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
-  
-  next();
 };
 
 // Prompt Management API Routes
