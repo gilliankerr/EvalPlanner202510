@@ -14,6 +14,7 @@ interface Prompt1Props {
 const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onComplete, setIsProcessing }) => {
   const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'complete' | 'error'>('idle');
   const [analysisResult, setAnalysisResult] = useState<string>('');
+  const [jobId, setJobId] = useState<number | null>(null);
 
   useEffect(() => {
     analyzeProgram();
@@ -34,73 +35,118 @@ const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onCom
         labeledScrapedContent: programData.labeledScrapedContent
       });
 
-      const requestBody: any = {
-        messages: [
-          {
-            role: 'user',
-            content: analysisPrompt
-          }
-        ],
-        max_tokens: 4000,
-        step: 'prompt1'
+      const jobData = {
+        job_type: 'prompt1',
+        input_data: {
+          messages: [
+            {
+              role: 'user',
+              content: analysisPrompt
+            }
+          ],
+          max_tokens: 4000
+        },
+        email: programData.userEmail
       };
       
-      const response = await fetch('/api/openrouter/chat/completions', {
+      const response = await fetch('/api/jobs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(jobData)
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
+        throw new Error(`Job creation failed: ${response.status}`);
       }
 
       const data = await response.json();
-      const analysis = data.choices[0].message.content;
-
-      let programTypePlural = '';
-      let targetPopulation = '';
+      const createdJobId = data.job_id;
+      setJobId(createdJobId);
       
-      try {
-        const jsonMatch = analysis.match(/```json\s*({[\s\S]*?})\s*```/);
-        if (jsonMatch) {
-          const extractedData = JSON.parse(jsonMatch[1]);
-          programTypePlural = extractedData.program_type_plural || '';
-          targetPopulation = extractedData.target_population || '';
-        } else {
-          const jsonObjectMatch = analysis.match(/{[\s\S]*?"program_type_plural"[\s\S]*?"target_population"[\s\S]*?}/);
-          if (jsonObjectMatch) {
-            const extractedData = JSON.parse(jsonObjectMatch[0]);
-            programTypePlural = extractedData.program_type_plural || '';
-            targetPopulation = extractedData.target_population || '';
-          }
-        }
-      } catch (error) {
-        console.warn('Could not extract structured data from analysis:', error);
-        programTypePlural = 'programs of this type';
-        targetPopulation = 'the target population described in this evaluation plan';
-      }
-
-      setAnalysisResult(analysis);
-      updateProgramData({ 
-        programAnalysis: analysis,
-        programTypePlural: programTypePlural,
-        targetPopulation: targetPopulation
-      });
-      setAnalysisStatus('complete');
-
-      setTimeout(() => {
-        setIsProcessing(false);
-        onComplete();
-      }, 2000);
+      console.log(`Job ${createdJobId} created, polling for results...`);
+      
+      pollJobStatus(createdJobId);
 
     } catch (error) {
-      console.error('Error analyzing program:', error);
+      console.error('Error creating job:', error);
       setAnalysisStatus('error');
       setIsProcessing(false);
     }
+  };
+
+  const pollJobStatus = async (jobId: number) => {
+    const maxAttempts = 200;
+    let attempts = 0;
+
+    const poll = async () => {
+      try {
+        const response = await fetch(`/api/jobs/${jobId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Job status check failed: ${response.status}`);
+        }
+
+        const job = await response.json();
+        
+        if (job.status === 'completed') {
+          const analysis = job.result;
+          
+          let programTypePlural = '';
+          let targetPopulation = '';
+          
+          try {
+            const jsonMatch = analysis.match(/```json\s*({[\s\S]*?})\s*```/);
+            if (jsonMatch) {
+              const extractedData = JSON.parse(jsonMatch[1]);
+              programTypePlural = extractedData.program_type_plural || '';
+              targetPopulation = extractedData.target_population || '';
+            } else {
+              const jsonObjectMatch = analysis.match(/{[\s\S]*?"program_type_plural"[\s\S]*?"target_population"[\s\S]*?}/);
+              if (jsonObjectMatch) {
+                const extractedData = JSON.parse(jsonObjectMatch[0]);
+                programTypePlural = extractedData.program_type_plural || '';
+                targetPopulation = extractedData.target_population || '';
+              }
+            }
+          } catch (error) {
+            console.warn('Could not extract structured data from analysis:', error);
+            programTypePlural = 'programs of this type';
+            targetPopulation = 'the target population described in this evaluation plan';
+          }
+
+          setAnalysisResult(analysis);
+          updateProgramData({ 
+            programAnalysis: analysis,
+            programTypePlural: programTypePlural,
+            targetPopulation: targetPopulation
+          });
+          setAnalysisStatus('complete');
+
+          setTimeout(() => {
+            setIsProcessing(false);
+            onComplete();
+          }, 2000);
+          
+        } else if (job.status === 'failed') {
+          throw new Error(job.error || 'Job processing failed');
+        } else if (job.status === 'pending' || job.status === 'processing') {
+          attempts++;
+          if (attempts < maxAttempts) {
+            setTimeout(poll, 3000);
+          } else {
+            throw new Error('Job timeout - processing took too long');
+          }
+        }
+      } catch (error) {
+        console.error('Error polling job status:', error);
+        setAnalysisStatus('error');
+        setIsProcessing(false);
+      }
+    };
+
+    poll();
   };
 
   return (
@@ -138,7 +184,12 @@ const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onCom
                 {analysisStatus === 'idle' && 'Preparing Analysis...'}
               </h3>
               <p className={styles.statusDescription}>
-                {analysisStatus === 'analyzing' && 'Using AI to define program terms, goals, activities, and intended outcomes'}
+                {analysisStatus === 'analyzing' && (
+                  <>
+                    Processing in background... You can close this browser tab - results will be emailed to {programData.userEmail}
+                    {jobId && <span style={{ display: 'block', marginTop: '8px', fontSize: '0.9em', opacity: 0.8 }}>Job ID: {jobId}</span>}
+                  </>
+                )}
                 {analysisStatus === 'complete' && 'Program model analysis completed successfully'}
                 {analysisStatus === 'error' && 'An error occurred during analysis'}
                 {analysisStatus === 'idle' && 'Setting up analysis parameters'}
