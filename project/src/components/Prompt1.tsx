@@ -190,7 +190,7 @@ const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onCom
               <p className={styles.statusDescription}>
                 {analysisStatus === 'analyzing' && (
                   <>
-                    Processing in background... You can close this browser tab - results will be emailed to {programData.userEmail}
+                    Processing... Please keep this window open until complete. Results will be emailed to {programData.userEmail}
                     {jobId && <span style={{ display: 'block', marginTop: '8px', fontSize: '0.9em', opacity: 0.8 }}>Job ID: {jobId}</span>}
                   </>
                 )}

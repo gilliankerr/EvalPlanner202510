@@ -309,7 +309,7 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
               <p className={styles.statusDescription}>
                 {planStatus === 'generating' && jobId && (
                   <>
-                    Processing in background... You can close this browser tab - results will be emailed to {programData.userEmail}
+                    Processing... Please keep this window open until complete. Results will be emailed to {programData.userEmail}
                     <span className={styles.jobIdText}>Job ID: {jobId}</span>
                   </>
                 )}

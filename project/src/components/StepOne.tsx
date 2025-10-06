@@ -170,7 +170,7 @@ const StepOne: React.FC<StepOneProps> = ({ programData, updateProgramData, onCom
             Email address<span className={styles.requiredStar}>*</span>
           </label>
           <p className={styles.processingNote}>
-            Your evaluation plan will be generated in the background and emailed to you. You can close your browser anytime - results will arrive within 10 minutes. Your email address will not be shared or used for a mailing list. You may have to check your spam folder.
+            Your evaluation plan will be generated and emailed to you within 10 minutes. Please keep this window open until generation is complete. Your email address will not be shared or used for a mailing list. You may have to check your spam folder.
           </p>
           <input
             type="email"
