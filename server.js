@@ -307,28 +307,45 @@ app.post('/api/openrouter/chat/completions', async (req, res) => {
       requestBody.temperature = temperature;
     }
     
-    console.log(`Making OpenRouter API call for step: ${step}, model: ${model}`);
+    console.log(`Making OpenRouter API call for step: ${step}, model: ${model}, max_tokens: ${requestBody.max_tokens}`);
     
-    // Make request to OpenRouter
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody)
-    });
+    // Make request to OpenRouter with extended timeout for large responses
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 300000); // 5 minute timeout
     
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenRouter API Error:', errorText);
-      return res.status(response.status).json({ 
-        error: `OpenRouter API error: ${response.status} - ${errorText}` 
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeout);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('OpenRouter API Error:', errorText);
+        return res.status(response.status).json({ 
+          error: `OpenRouter API error: ${response.status} - ${errorText}` 
+        });
+      }
+      
+      const data = await response.json();
+      res.json(data);
+    } catch (fetchError) {
+      clearTimeout(timeout);
+      if (fetchError.name === 'AbortError') {
+        console.error('OpenRouter request timeout after 5 minutes');
+        return res.status(408).json({ 
+          error: 'Request timeout - the response took too long to generate. Please try again or use a smaller prompt.' 
+        });
+      }
+      throw fetchError;
     }
-    
-    const data = await response.json();
-    res.json(data);
     
   } catch (error) {
     console.error('OpenRouter proxy error:', error);

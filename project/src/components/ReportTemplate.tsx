@@ -179,17 +179,23 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
             content: planPrompt
           }
         ],
-        max_tokens: 12000,
+        max_tokens: 100000,
         step: 'report_template'  // Backend uses this to determine model/temperature from config
       };
+      
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 300000); // 5 minute timeout to match backend
       
       const response = await fetch('/api/openrouter/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeout);
 
       if (!response.ok) {
         const errorText = await response.text();
