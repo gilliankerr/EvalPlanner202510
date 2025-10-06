@@ -43,37 +43,48 @@ function generateSessionToken() {
 
 // Create a new session
 async function createSession() {
-  const token = generateSessionToken();
-  const expiresAt = new Date(Date.now() + SESSION_DURATION);
-  
-  await pool.query(
-    `INSERT INTO sessions (token, expires_at) 
-     VALUES ($1, $2)`,
-    [token, expiresAt]
-  );
-  
-  return { token, expiresAt: expiresAt.getTime() };
+  try {
+    const token = generateSessionToken();
+    const expiresAt = new Date(Date.now() + SESSION_DURATION);
+    
+    await pool.query(
+      `INSERT INTO sessions (token, expires_at) 
+       VALUES ($1, $2)`,
+      [token, expiresAt]
+    );
+    
+    console.log(`Session created: ${token.substring(0, 8)}... (expires: ${expiresAt.toISOString()})`);
+    return { token, expiresAt: expiresAt.getTime() };
+  } catch (error) {
+    console.error('Error creating session:', error);
+    throw error;
+  }
 }
 
 // Validate a session token
 async function validateSession(token) {
-  const result = await pool.query(
-    `SELECT expires_at FROM sessions 
-     WHERE token = $1 AND expires_at > NOW()`,
-    [token]
-  );
-  
-  if (result.rows.length === 0) {
-    return false;
+  try {
+    const result = await pool.query(
+      `SELECT expires_at FROM sessions 
+       WHERE token = $1 AND expires_at > NOW()`,
+      [token]
+    );
+    
+    if (result.rows.length === 0) {
+      return false;
+    }
+    
+    // Update last_accessed_at for activity tracking
+    await pool.query(
+      `UPDATE sessions SET last_accessed_at = NOW() WHERE token = $1`,
+      [token]
+    );
+    
+    return true;
+  } catch (error) {
+    console.error('Error validating session:', error);
+    throw error;
   }
-  
-  // Update last_accessed_at for activity tracking
-  await pool.query(
-    `UPDATE sessions SET last_accessed_at = NOW() WHERE token = $1`,
-    [token]
-  );
-  
-  return true;
 }
 
 // Invalidate a session (for logout)
@@ -1271,6 +1282,9 @@ async function startServer() {
     console.log('\nChecking prompts table...');
     const promptsCheck = await pool.query('SELECT COUNT(*) FROM prompts');
     console.log(`✓ Prompts table accessible (${promptsCheck.rows[0].count} prompts found)`);
+
+    console.log('\nCleaning up expired sessions...');
+    await cleanupExpiredSessions();
 
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`\n✓ Email server running on port ${PORT}`);
