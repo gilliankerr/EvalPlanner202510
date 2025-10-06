@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Loader2, Download, Mail } from 'lucide-react';
-import { marked, Tokens } from 'marked';
-import hljs from 'highlight.js';
-import DOMPurify from 'dompurify';
 import { sendEmail } from '../utils/email';
 import { getProcessedPrompt } from '../utils/promptApi';
 import type { ProgramData } from '../App';
 import styles from './StepSix.module.css';
+// Import the unified report generator
+import { generateFullHtmlDocument } from '../utils/reportGenerator';
 
 interface StepSixProps {
   programData: ProgramData;
@@ -24,338 +23,6 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
     renderHtmlReport();
   }, []);
 
-  // Detect table type for enhanced styling
-  const detectTableType = useCallback((headerText: string): string => {
-    const header = headerText.toLowerCase();
-    if (header.includes('timeline') || header.includes('phase') || header.includes('month') || header.includes('quarter')) {
-      return 'timeline-table';
-    }
-    if (header.includes('stakeholder') || header.includes('role') || header.includes('responsibility')) {
-      return 'stakeholder-table';
-    }
-    if (header.includes('evaluation') || header.includes('method') || header.includes('approach')) {
-      return 'evaluation-table';
-    }
-    if (header.includes('metric') || header.includes('indicator') || header.includes('measure')) {
-      return 'metrics-table';
-    }
-    return 'standard-table';
-  }, []);
-
-  // Detect if table represents a logic model
-  const isLogicModelTable = useCallback((headerText: string): boolean => {
-    const header = headerText.toLowerCase();
-    const logicModelKeywords = ['inputs', 'activities', 'outputs', 'outcomes', 'impact'];
-    return logicModelKeywords.some(keyword => header.includes(keyword));
-  }, []);
-
-
-
-  // Post-process HTML to properly close section tags
-  const postProcessHTML = useCallback((html: string): string => {
-    // Close any unclosed section tags before new sections or end of content
-    let processed = html.replace(/<section class="content-section"><h2([^>]*)>([^<]*)<\/h2>/g, 
-      '</section><section class="content-section"><h2$1>$2</h2>');
-    
-    // Remove the first closing section tag if it appears at the beginning
-    processed = processed.replace(/^<\/section>/, '');
-    
-    // Add closing section tag at the end if we have any sections
-    if (processed.includes('<section class="content-section">')) {
-      processed += '</section>';
-    }
-    
-    return processed;
-  }, []);
-
-  // Shared slugger for consistent ID generation - use manual implementation
-  const slugger = React.useMemo(() => {
-    const slugs: { [key: string]: number } = {};
-    return {
-      reset: () => {
-        Object.keys(slugs).forEach(key => delete slugs[key]);
-      },
-      slug: (text: string): string => {
-        const baseSlug = text.toLowerCase()
-          .replace(/[^\w\s-]/g, '')
-          .replace(/\s+/g, '-')
-          .replace(/^-+|-+$/g, '')
-          .replace(/--+/g, '-');
-        
-        if (!slugs[baseSlug]) {
-          slugs[baseSlug] = 0;
-          return baseSlug;
-        } else {
-          slugs[baseSlug]++;
-          return `${baseSlug}-${slugs[baseSlug]}`;
-        }
-      }
-    };
-  }, []);
-  
-  // Initialize marked with custom renderer and options (memoized)
-  const initializeMarked = React.useCallback(() => {
-    // Reset slugger for fresh ID generation
-    slugger.reset();
-    
-    // Create custom renderer for enhanced features
-    const renderer = new marked.Renderer();
-
-    // Custom heading renderer with IDs - preserves inline formatting
-    renderer.heading = function(token: Tokens.Heading) {
-      const text = this.parser.parseInline(token.tokens);
-      const rawText = token.tokens.map(t => t.type === 'text' ? (t as Tokens.Text).text : '').join('');
-      const level = token.depth;
-      const id = slugger.slug(rawText);
-      
-      // Add content-section wrapper for h2 elements
-      if (level === 2) {
-        return `<section class="content-section"><h2 id="${id}">${text}</h2>`;
-      }
-      
-      return `<h${level} id="${id}">${text}</h${level}>`;
-    };
-
-    // Enhanced table renderer with logic model detection - preserves inline formatting
-    renderer.table = function(token: Tokens.Table) {
-      const header = token.header.map(cell => {
-        const cellContent = this.parser.parseInline(cell.tokens);
-        return `<th>${cellContent}</th>`;
-      }).join('');
-      
-      const body = token.rows.map(row => 
-        `<tr>${row.map(cell => {
-          const cellContent = this.parser.parseInline(cell.tokens);
-          return `<td>${cellContent}</td>`;
-        }).join('')}</tr>`
-      ).join('');
-      
-      // Detect logic model tables (flatten ALL header tokens for detection)
-      const flattenHeaderTokens = (tokens: any[]): string => {
-        return tokens.map(t => {
-          if (t.type === 'text') return (t as Tokens.Text).text;
-          if (t.type === 'strong') return flattenHeaderTokens((t as Tokens.Strong).tokens);
-          if (t.type === 'em') return flattenHeaderTokens((t as Tokens.Em).tokens);
-          if (t.type === 'link') return flattenHeaderTokens((t as Tokens.Link).tokens);
-          if (t.type === 'codespan') return (t as Tokens.Codespan).text;
-          return '';
-        }).join('');
-      };
-      
-      const headerRawText = token.header.map(cell => 
-        flattenHeaderTokens(cell.tokens)
-      ).join(' ');
-      
-      
-      if (isLogicModelTable(headerRawText)) {
-        // Robust recursive token flattener for all token types
-        const flattenTokensToText = (tokens: any[]): string => {
-          return tokens.map(t => {
-            if (t.type === 'text') return (t as Tokens.Text).text;
-            if (t.type === 'strong') return flattenTokensToText((t as Tokens.Strong).tokens);
-            if (t.type === 'em') return flattenTokensToText((t as Tokens.Em).tokens);
-            if (t.type === 'link') return flattenTokensToText((t as Tokens.Link).tokens);
-            if (t.type === 'codespan') return (t as Tokens.Codespan).text;
-            if (t.type === 'br') return '\n';
-            if (t.type === 'html') {
-              // Strip tags except <br>, convert <br> to newlines
-              const htmlText = (t as Tokens.HTML).text;
-              return htmlText.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
-            }
-            return ''; // Unknown token types
-          }).join('')
-            .replace(/[\t\r\f\v ]+/g, ' ')    // collapse spaces/tabs only, preserve \n
-            .replace(/\s*\n\s*/g, '\n')       // normalize whitespace around newlines
-            .replace(/\n{3,}/g, '\n\n')        // collapse excessive newlines
-            .trim();
-        };
-        
-        // Extract comprehensive plain text data
-        const tokenTextData = token.rows.map(row => 
-          row.map(cell => flattenTokensToText(cell.tokens))
-        );
-        
-        // Extract comprehensive plain text data for processing
-        
-        
-        // Enhanced table fallback with comprehensive separator handling
-        const enhancedBody = tokenTextData.map(row => 
-          `<tr>${row.map(cellText => {
-            if (!cellText.trim()) {
-              return '<td><em>No content specified</em></td>';
-            }
-            
-            // Split on semicolons OR line breaks, process all separators
-            const semicolonItems = cellText.split(/;\s*/);
-            const allItems: string[] = [];
-            
-            semicolonItems.forEach(item => {
-              const lineItems = item.split(/\n+/).map(s => s.trim()).filter(s => s.length > 0);
-              allItems.push(...lineItems);
-            });
-            
-            const finalItems = allItems.filter(item => item.length > 0);
-            
-            // Render bullets only when multiple items exist
-            const bulletedHtml = finalItems.length > 1 
-              ? finalItems.map(item => `• ${item}`).join('<br>')
-              : (finalItems[0] || '<em>No content</em>');
-              
-            return `<td>${bulletedHtml}</td>`;
-          }).join('')}</tr>`
-        ).join('');
-        
-        return `<div class="logic-model-container">
-          <h4 style="margin: 0 0 1rem 0; color: #1e40af; text-align: center;">${programData.programName} Logic Model</h4>
-          <table class="logic-model-table">
-            <thead><tr>${header}</tr></thead>
-            <tbody>${enhancedBody}</tbody>
-          </table>
-        </div>`;
-      }
-      
-      // Detect table type for styling
-      const tableClass = detectTableType(headerRawText);
-      
-      return `<table class="${tableClass}"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>`;
-    };
-
-    // Enhanced paragraph renderer with callout detection - preserves inline formatting
-    renderer.paragraph = function(token: Tokens.Paragraph) {
-      const text = this.parser.parseInline(token.tokens);
-      const rawText = token.tokens.map(t => {
-        if (t.type === 'text') return (t as Tokens.Text).text;
-        if (t.type === 'strong') return (t as Tokens.Strong).tokens.map(st => st.type === 'text' ? (st as Tokens.Text).text : '').join('');
-        return '';
-      }).join('');
-      
-      // Detect callouts and special sections using raw text
-      // Removed intro-section formatting for first paragraph
-      
-      if (rawText.startsWith('Key Insight:') || rawText.startsWith('Important:')) {
-        return `<div class="highlight-box">${text}</div>`;
-      }
-      
-      if (rawText.startsWith('Warning:') || rawText.startsWith('Note:')) {
-        return `<div class="warning-box">${text}</div>`;
-      }
-      
-      if (rawText.includes('Created on') && rawText.includes('LogicalOutcomes Evaluation Planner')) {
-        return `<p class="subtitle">${text}</p>`;
-      }
-      
-      return `<p>${text}</p>`;
-    };
-
-    // Enhanced list renderer - preserves inline formatting
-    renderer.list = function(token: Tokens.List) {
-      const tag = token.ordered ? 'ol' : 'ul';
-      const body = token.items.map(item => {
-        const itemContent = item.tokens.map(t => {
-          if (t.type === 'text') return this.parser.parseInline([t]);
-          if (t.type === 'paragraph') return this.parser.parseInline((t as Tokens.Paragraph).tokens);
-          if (t.type === 'list') return this.list(t as Tokens.List);
-          return '';
-        }).join('');
-        return `<li>${itemContent}</li>`;
-      }).join('');
-      return `<${tag}>${body}</${tag}>`;
-    };
-
-    // Code block renderer with syntax highlighting
-    renderer.code = function(token: Tokens.Code) {
-      const code = token.text;
-      const language = token.lang || '';
-      const validLanguage = language && hljs.getLanguage(language) ? language : 'plaintext';
-      try {
-        const highlighted = hljs.highlight(code, { language: validLanguage }).value;
-        return `<pre class="hljs"><code class="language-${validLanguage}">${highlighted}</code></pre>`;
-      } catch (err) {
-        return `<pre class="hljs"><code>${token.text}</code></pre>`;
-      }
-    };
-
-    // Link renderer - ensures markdown links become clickable hyperlinks
-    renderer.link = function(token: Tokens.Link) {
-      const href = token.href;
-      const title = token.title ? ` title="${token.title}"` : '';
-      const text = this.parser.parseInline(token.tokens);
-      return `<a href="${href}"${title}>${text}</a>`;
-    };
-
-    // Configure marked with custom renderer
-    marked.use({ 
-      renderer,
-      breaks: true,
-      gfm: true
-    });
-  }, [slugger, detectTableType, isLogicModelTable]);
-
-  // Convert markdown to HTML using initialized marked with security
-  const convertMarkdownToHtml = useCallback((markdown: string): string => {
-    try {
-      // Initialize marked with custom renderer
-      initializeMarked();
-      
-      // Convert markdown to HTML
-      const rawHtml = marked.parse(markdown) as string;
-      
-      // Post-process HTML for section closures
-      const processedHtml = postProcessHTML(rawHtml);
-      
-      // Sanitize HTML for security
-      const sanitizedHtml = DOMPurify.sanitize(processedHtml, {
-        ALLOWED_TAGS: [
-          'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'div', 'span', 'a', 'ul', 'ol', 'li',
-          'table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption', 'strong', 'em', 'code',
-          'pre', 'blockquote', 'br', 'hr', 'img', 'figure', 'figcaption', 'section'
-        ],
-        ALLOWED_ATTR: [
-          'id', 'class', 'href', 'title', 'alt', 'src', 'width', 'height', 'style'
-        ],
-        ALLOW_DATA_ATTR: false
-      });
-      
-      return sanitizedHtml;
-    } catch (error) {
-      console.error('Error converting markdown to HTML:', error);
-      return `<div class="error-message">Error processing evaluation plan content. Please try regenerating the plan.</div>`;
-    }
-  }, [initializeMarked, postProcessHTML]);
-
-  // Generate table of contents from markdown headings
-  const generateTOC = useCallback((markdown: string): string => {
-    try {
-      // Reset slugger to match heading rendering
-      slugger.reset();
-      
-      const tokens = marked.lexer(markdown);
-      const tocItems: string[] = [];
-      
-      tokens.forEach(token => {
-        if (token.type === 'heading' && (token as Tokens.Heading).depth <= 3) {
-          const headingToken = token as Tokens.Heading;
-          const rawText = headingToken.tokens
-            .map(t => t.type === 'text' ? (t as Tokens.Text).text : '')
-            .join('');
-          const id = slugger.slug(rawText);
-          const level = headingToken.depth;
-          const levelClass = level === 1 ? 'toc-level-1' : level === 2 ? 'toc-level-2' : 'toc-level-3';
-          
-          // Sanitize display text
-          const displayText = DOMPurify.sanitize(rawText, { ALLOWED_TAGS: [] });
-          
-          tocItems.push(`<div class="toc-item ${levelClass}"><a href="#${id}">${displayText}</a></div>`);
-        }
-      });
-      
-      return tocItems.join('');
-    } catch (error) {
-      console.error('Error generating TOC:', error);
-      return '<div class="error-message">Error generating table of contents</div>';
-    }
-  }, [slugger]);
-
   const renderHtmlReport = async () => {
     setIsProcessing(true);
     setRenderStatus('rendering');
@@ -364,790 +31,13 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     try {
-      // Generate table of contents first
-      const tocHtml = generateTOC(programData.evaluationPlan);
+      // Use the unified HTML generation function
+      const htmlReport = generateFullHtmlDocument(programData.evaluationPlan, {
+        programName: programData.programName,
+        organizationName: programData.organizationName,
+        includePrintButton: true  // Include print button for downloads
+      });
       
-      // Convert markdown content 
-      const contentHtml = convertMarkdownToHtml(programData.evaluationPlan);
-      
-      // Create complete HTML report with sanitized content
-      const htmlReport = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${DOMPurify.sanitize(programData.organizationName)} — ${DOMPurify.sanitize(programData.programName)} Evaluation Plan</title>
-    <style>
-        @media print {
-            .no-print { display: none; }
-            .page-break { page-break-before: always; }
-        }
-        
-        /* Typography System */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #1e293b;
-        }
-        
-        /* Main Title */
-        h1:first-of-type {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin: 2rem 0 1rem 0;
-            padding-bottom: 1rem;
-            border-bottom: 3px solid #2563eb;
-            text-align: center;
-        }
-        
-        /* Subtitle */
-        .subtitle {
-            text-align: center;
-            color: #64748b;
-            font-size: 1.1rem;
-            margin-bottom: 3rem;
-            font-weight: 400;
-        }
-        
-        /* Section Headings */
-        h2 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin: 3rem 0 1.5rem 0;
-            padding-bottom: 0.75rem;
-            border-bottom: 2px solid #e2e8f0;
-            position: relative;
-        }
-        
-        h2::before {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 60px;
-            height: 2px;
-            background: #2563eb;
-        }
-        
-        /* Subsection Headings */
-        h3 {
-            font-size: 1.375rem;
-            font-weight: 600;
-            color: #374151;
-            margin: 2.5rem 0 1rem 0;
-            padding-left: 1rem;
-            border-left: 4px solid #3b82f6;
-        }
-        
-        h4 {
-            font-size: 1.25rem;
-            font-weight: 500;
-            color: #4b5563;
-            margin: 2rem 0 0.75rem 0;
-        }
-        
-        /* Paragraphs */
-        p {
-            margin-bottom: 1.25rem;
-            line-height: 1.7;
-            color: #374151;
-        }
-        
-        /* Lists */
-        ul, ol {
-            margin: 1rem 0 1.5rem 0;
-            padding-left: 2rem;
-        }
-        
-        li {
-            margin-bottom: 0.5rem;
-            line-height: 1.6;
-            color: #374151;
-        }
-        
-        /* Strong text */
-        strong {
-            font-weight: 600;
-            color: #1e293b;
-        }
-        
-        /* Links styling - underlined and visible */
-        a {
-            color: #2563eb;
-            text-decoration: underline;
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-        
-        a:hover {
-            color: #1d4ed8;
-            text-decoration: underline;
-        }
-        
-        a:visited {
-            color: #7c3aed;
-        }
-        
-        
-        /* Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 2rem 0;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border: 1px solid #e5e7eb;
-        }
-        
-        /* Logic Model Table Styling */
-        .logic-model-container {
-            margin: 2.5rem 0;
-            padding: 1rem;
-            background: #f8fafc;
-            border-radius: 16px;
-            border: 2px solid #3b82f6;
-            overflow-x: auto;
-        }
-        
-        .logic-model-table {
-            margin: 0;
-            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1);
-            border: 2px solid #3b82f6;
-            table-layout: fixed;
-            width: 100%;
-        }
-        
-        .logic-model-table th {
-            padding: 0.6rem 0.8rem;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-        
-        .logic-model-table td {
-            padding: 0.75rem 0.8rem;
-            vertical-align: top;
-            line-height: 1.4;
-            background: white;
-            border-right: 1px solid #e2e8f0;
-            font-size: 0.75rem;
-            word-wrap: break-word;
-        }
-        
-        .logic-model-table td:last-child {
-            border-right: none;
-        }
-        
-        .logic-model-table tbody tr:hover {
-            background: #f1f5f9;
-        }
-        
-        th {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            padding: 1rem 1.5rem;
-            font-weight: 600;
-            text-align: left;
-            color: #1e293b;
-            border-bottom: 2px solid #e2e8f0;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.025em;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        
-        td {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid #f1f5f9;
-            color: #374151;
-            vertical-align: top;
-            line-height: 1.5;
-            font-size: 0.875rem;
-        }
-        
-        tbody tr:hover {
-            background-color: #f8fafc;
-            transition: background-color 0.15s ease;
-        }
-        
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-        
-        /* Alternating row colors for better readability */
-        tbody tr:nth-child(even) {
-            background-color: #fafbfc;
-        }
-        
-        tbody tr:nth-child(even):hover {
-            background-color: #f1f5f9;
-        }
-
-        /* Table captions */
-        caption {
-            caption-side: top;
-            padding: 1rem 0;
-            font-weight: 600;
-            color: #1e293b;
-            font-size: 1.1rem;
-        }
-
-        /* Introduction section styling */
-        .intro-section {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            padding: 2rem;
-            border-radius: 12px;
-            margin: 2rem 0;
-            border-left: 4px solid #0ea5e9;
-        }
-
-        /* Content sections */
-        .content-section {
-            margin: 3rem 0;
-            padding: 0 1rem;
-        }
-
-        /* Responsive design */
-        @media (max-width: 768px) {
-            h1:first-of-type {
-                font-size: 2rem;
-            }
-            
-            h2 {
-                font-size: 1.5rem;
-            }
-            
-            h3 {
-                font-size: 1.25rem;
-            }
-            
-            table {
-                font-size: 0.875rem;
-            }
-            
-            th, td {
-                padding: 0.75rem 1rem;
-            }
-            
-            .content-section {
-                padding: 0 0.5rem;
-            }
-        }
-
-        .toc-item {
-            padding: 0.5rem 0.75rem;
-            border-radius: 6px;
-            transition: all 0.15s ease;
-        }
-        
-        .toc-level-1 {
-            margin-left: 0;
-        }
-        
-        .toc-level-2 {
-            margin-left: 0.5rem;
-        }
-        
-        .toc-level-3 {
-            margin-left: 1rem;
-        }
-        
-        .toc-item:hover {
-            background-color: #f1f5f9;
-            transform: translateX(4px);
-        }
-        
-        .toc-item a {
-            color: #475569;
-            text-decoration: underline;
-            font-weight: 500;
-        }
-        
-        .toc-item a:hover {
-            color: #2563eb;
-        }
-        
-        .highlight-box {
-            background: #eff6ff;
-            border-left: 4px solid #2563eb;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            border-radius: 0 8px 8px 0;
-        }
-        
-        .warning-box {
-            background: #fffbeb;
-            border-left: 4px solid #d97706;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            border-radius: 0 8px 8px 0;
-        }
-        
-        /* Syntax Highlighting Styles */
-        .hljs {
-            background: #f8fafc;
-            color: #1e293b;
-            padding: 1.5rem;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            margin: 1.5rem 0;
-            overflow-x: auto;
-            line-height: 1.5;
-        }
-        
-        .hljs-comment { color: #64748b; font-style: italic; }
-        .hljs-keyword { color: #7c3aed; font-weight: 600; }
-        .hljs-string { color: #059669; }
-        .hljs-number { color: #dc2626; }
-        .hljs-function { color: #2563eb; }
-        .hljs-variable { color: #b45309; }
-        
-        
-        /* Enhanced Table Styles - Using Theme Colors */
-        .timeline-table,
-        .stakeholder-table,
-        .evaluation-table,
-        .metrics-table {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border-left: 4px solid #2563eb;
-        }
-        
-        .timeline-table th,
-        .stakeholder-table th,
-        .evaluation-table th,
-        .metrics-table th {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            color: #1e293b;
-        }
-        
-        .standard-table {
-            background: white;
-            border-left: 4px solid #6b7280;
-        }
-        
-        .standard-table th {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            color: #1e293b;
-        }
-        
-        /* Enhanced Callout Boxes */
-        .highlight-box {
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border-left: 4px solid #2563eb;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            border-radius: 0 12px 12px 0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-        
-        .highlight-box::before {
-            content: "💡";
-            position: absolute;
-            top: 1rem;
-            left: -0.75rem;
-            background: #2563eb;
-            color: white;
-            width: 1.5rem;
-            height: 1.5rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-        }
-        
-        .warning-box {
-            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-            border-left: 4px solid #d97706;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            border-radius: 0 12px 12px 0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-        
-        .warning-box::before {
-            content: "⚠️";
-            position: absolute;
-            top: 1rem;
-            left: -0.75rem;
-            background: #d97706;
-            color: white;
-            width: 1.5rem;
-            height: 1.5rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-        }
-        
-        .intro-section {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            padding: 2rem;
-            border-radius: 12px;
-            margin: 2rem 0;
-            border-left: 4px solid #0ea5e9;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-        
-        .intro-section::before {
-            content: "📋";
-            position: absolute;
-            top: 1.5rem;
-            left: -0.75rem;
-            background: #0ea5e9;
-            color: white;
-            width: 1.5rem;
-            height: 1.5rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-        }
-        
-        /* Error message styling */
-        .error-message {
-            background: #fee2e2;
-            border: 1px solid #fca5a5;
-            color: #dc2626;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-        }
-        
-        /* Responsive Improvements */
-        @media (max-width: 768px) {
-            .logic-model-diagram {
-                padding: 1rem;
-                margin: 2rem 0;
-            }
-            
-            .logic-model-svg {
-                width: 100%;
-                height: auto;
-            }
-            
-            /* Enhanced table responsive design */
-            table {
-                display: block;
-                overflow-x: auto;
-                white-space: nowrap;
-                border-radius: 8px;
-                margin: 1rem 0;
-            }
-            
-            table.timeline-table,
-            table.stakeholder-table,
-            table.evaluation-table,
-            table.metrics-table,
-            table.standard-table {
-                min-width: 600px;
-            }
-            
-            .highlight-box,
-            .warning-box,
-            .intro-section {
-                margin: 1rem 0;
-                padding: 1rem;
-                border-radius: 0 8px 8px 0;
-            }
-            
-            .highlight-box::before,
-            .warning-box::before,
-            .intro-section::before {
-                display: none;
-            }
-            
-            .hljs {
-                padding: 1rem;
-                font-size: 0.875rem;
-                margin: 1rem 0;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .logic-model-diagram {
-                padding: 0.75rem;
-            }
-            
-            .logic-model-diagram h4 {
-                font-size: 1rem;
-                margin-bottom: 1rem;
-            }
-            
-            table {
-                font-size: 0.75rem;
-            }
-            
-            th, td {
-                padding: 0.5rem 0.75rem;
-            }
-            
-            .highlight-box,
-            .warning-box,
-            .intro-section {
-                padding: 0.75rem;
-                margin: 0.75rem 0;
-            }
-        }
-        
-        /* Left Column Layout CSS - Replace Tailwind classes */
-        .flex {
-            display: flex;
-        }
-        
-        .max-w-6xl {
-            max-width: 1200px;
-        }
-        
-        .report-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-        
-        .mx-auto {
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .w-80 {
-            width: 20rem;
-            min-width: 200px;
-        }
-        
-        .bg-slate-50 {
-            background-color: #f8fafc;
-        }
-        
-        .min-h-screen {
-            min-height: 100vh;
-        }
-        
-        .p-6 {
-            padding: 1.5rem;
-        }
-        
-        .flex-1 {
-            flex: 1 1 0%;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        
-        .no-print {
-            /* Hide when printing */
-        }
-        
-        @media print {
-            .no-print {
-                display: none !important;
-            }
-            
-            /* Expand content to use full landscape width when printing */
-            .report-container {
-                max-width: 100%;
-                padding: 0;
-            }
-            
-            .flex-1 {
-                max-width: 100%;
-                margin: 0;
-            }
-        }
-        
-        /* TOC Specific Styling */
-        aside h3 {
-            font-weight: 600;
-            color: #0f172a;
-            margin-bottom: 1rem;
-        }
-        
-        aside nav {
-            font-size: 0.875rem;
-        }
-        
-        aside nav a {
-            display: block;
-            padding: 0.25rem 0;
-            color: #64748b;
-            text-decoration: none !important;
-            transition: color 0.2s;
-        }
-        
-        aside nav a:hover {
-            color: #1e293b;
-        }
-        
-        /* Print/Save PDF Button Styling */
-        .text-xs {
-            font-size: 0.75rem;
-        }
-        
-        .px-3 {
-            padding-left: 0.75rem;
-            padding-right: 0.75rem;
-        }
-        
-        .py-1 {
-            padding-top: 0.25rem;
-            padding-bottom: 0.25rem;
-        }
-        
-        .rounded {
-            border-radius: 0.25rem;
-        }
-        
-        .bg-blue-600 {
-            background-color: #2563eb;
-        }
-        
-        .hover\:bg-blue-700:hover {
-            background-color: #1d4ed8;
-        }
-        
-        .transition-colors {
-            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
-        }
-        
-        .text-right {
-            text-align: right;
-        }
-        
-        .mb-2 {
-            margin-bottom: 0.5rem;
-        }
-        
-        /* Print Button Styling */
-        .print-btn {
-            background-color: #dbeafe;
-            color: #1f2937;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            border: 1px solid #93c5fd;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 1.5rem;
-            display: block;
-            width: 100%;
-            text-align: center;
-        }
-        
-        .print-btn:hover {
-            background-color: #bfdbfe;
-            border-color: #60a5fa;
-        }
-        
-        /* Print Styles - Comprehensive Landscape Print Setup */
-        @page {
-            size: landscape;
-            margin: 0.5in;
-        }
-        
-        @media print {
-            .no-print { 
-                display: none !important; 
-            }
-            .page-break { 
-                page-break-before: always; 
-            }
-            @page {
-                size: landscape;
-                margin: 0.5in;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            * {
-                print-color-adjust: exact;
-                -webkit-print-color-adjust: exact;
-                color-adjust: exact;
-            }
-            html, body {
-                print-color-adjust: exact;
-                -webkit-print-color-adjust: exact;
-                color-adjust: exact;
-                font-size: 12pt;
-                line-height: 1.4;
-            }
-            table, th, td {
-                print-color-adjust: exact;
-                -webkit-print-color-adjust: exact;
-            }
-        }
-        
-        /* Responsive: Stack on smaller screens */
-        @media (max-width: 768px) {
-            .flex {
-                display: block;
-            }
-            
-            .w-80 {
-                width: 100%;
-                min-height: auto;
-                margin-bottom: 1rem;
-                padding: 1rem;
-                border-radius: 0.5rem;
-            }
-        }
-    </style>
-</head>
-<body class="bg-white">
-    <!-- Table of Contents Layout -->
-    <div class="report-container">
-        <div class="flex">
-        <!-- TOC Sidebar: Always visible on left -->
-        <aside class="w-80 bg-slate-50 min-h-screen p-6 no-print">
-            <button onclick="printLandscape()" class="print-btn">
-                Print / Save PDF
-            </button>
-            <p class="text-xs text-slate-600 mb-4 px-2 py-1 bg-blue-50 border border-blue-200 rounded text-center">
-                💡 For best results, select <strong>Landscape</strong> orientation in your print dialog
-            </p>
-            <h3 class="font-semibold text-slate-900 mb-4">Table of Contents</h3>
-            <nav class="space-y-1 text-sm">
-                ${tocHtml}
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="flex-1 p-6">
-            
-            <div class="max-w-none">
-                ${contentHtml}
-            </div>
-        </main>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="bg-slate-900 text-white mt-16">
-        <div class="max-w-6xl mx-auto px-6 py-8">
-            <div class="text-center">
-                <!-- Footer content removed -->
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        function printLandscape() {
-            // Use the existing comprehensive landscape CSS in the main styles
-            window.print();
-        }
-    </script>
-</body>
-</html>
-      `;
-
       setHtmlContent(htmlReport);
       setRenderStatus('complete');
       setIsProcessing(false);
@@ -1196,22 +86,21 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
   // Email sending function using Replit Mail integration
   const sendEmailReport = useCallback(async () => {
     try {
-      if (!htmlContent || htmlContent.trim().length === 0) {
-        alert('No HTML content available to send. Please try regenerating the report.');
-        return;
-      }
-
-      if (!programData.userEmail) {
-        alert('No email address provided. Please ensure an email address was entered.');
-        return;
-      }
-
       setEmailStatus('sending');
 
-      // Get current date and time
-      const currentDateTime = new Date().toLocaleString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
+      // Get the processed email template from the backend
+      const templateResponse = await getProcessedPrompt('email_delivery');
+      
+      if (!templateResponse.success) {
+        throw new Error('Failed to fetch email template');
+      }
+
+      // Format the email body with proper HTML
+      let emailBody = templateResponse.content;
+      const currentDateTime = new Date().toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
@@ -1219,128 +108,98 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         timeZone: 'America/Toronto'
       });
 
-      // Fetch email template from database and replace variables
-      const emailBodyMarkdown = await getProcessedPrompt('email_delivery', {
-        programName: programData.programName,
-        organizationName: programData.organizationName,
-        currentDateTime: currentDateTime
-      });
+      // Replace template variables
+      emailBody = emailBody
+        .replace(/\{\{programName\}\}/g, programData.programName)
+        .replace(/\{\{organizationName\}\}/g, programData.organizationName)
+        .replace(/\{\{currentDateTime\}\}/g, currentDateTime);
 
-      // Convert markdown to HTML for proper email formatting
-      marked.setOptions({
-        breaks: true, // Convert line breaks to <br>
-        gfm: true // GitHub Flavored Markdown
-      });
-      const emailBodyHtml = await marked.parse(emailBodyMarkdown);
+      // Create clean filename
+      const orgNameClean = (programData.organizationName || 'Organization').replace(/[^a-zA-Z0-9]/g, '_');
+      const progNameClean = (programData.programName || 'Program').replace(/[^a-zA-Z0-9]/g, '_');
+      const filename = `${orgNameClean}_${progNameClean}_Evaluation_Plan.html`;
 
-      // Create filename
-      const filename = `${programData.organizationName}_${programData.programName}_Evaluation_Plan.html`.replace(/[^a-zA-Z0-9._-]/g, '_');
+      // Convert emailBody from markdown to HTML if it's in markdown format
+      const isMarkdown = emailBody.includes('#') || emailBody.includes('**') || emailBody.includes('*');
+      const processedEmailBody = isMarkdown ? 
+        `<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">${emailBody.replace(/\n/g, '<br>')}</div>` : 
+        emailBody;
 
-      // Convert HTML content to base64 for attachment
+      // Convert HTML to base64 for attachment
       const base64Content = btoa(unescape(encodeURIComponent(htmlContent)));
 
-      // Send email using Replit Mail integration
-      const result = await sendEmail({
-        to: programData.userEmail,
-        subject: `Evaluation Plan for ${programData.programName} - ${programData.organizationName}`,
-        html: emailBodyHtml,
+      // Send email using Replit Mail
+      const success = await sendEmail({
+        to: programData.email,
+        subject: `Evaluation Plan for ${programData.programName}`,
+        html: processedEmailBody,
         attachments: [{
           filename: filename,
           content: base64Content,
           contentType: 'text/html',
-          encoding: 'base64' as const
+          encoding: 'base64'
         }]
       });
 
-      setEmailStatus('sent');
-      alert('Evaluation plan has been successfully sent to your email!');
-      console.log('Email sent successfully:', result);
-      
+      if (success) {
+        setEmailStatus('sent');
+        alert('Email sent successfully! Please check your inbox.');
+      } else {
+        setEmailStatus('error');
+        alert('Failed to send email. Please try again.');
+      }
     } catch (error) {
       console.error('Error sending email:', error);
       setEmailStatus('error');
-      alert(`Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
+      alert('Failed to send email. Please try again later.');
     }
-  }, [htmlContent, programData.organizationName, programData.programName, programData.userEmail]);
-
-  // Automatic email sending when deliveryMethod is email
-  const sendEmailAutomatically = useCallback(async () => {
-    if (programData.deliveryMethod === 'email' && programData.userEmail && htmlContent) {
-      try {
-        await sendEmailReport();
-      } catch (error) {
-        console.error('Auto email send failed:', error);
-      }
-    } else {
-      console.log('Email conditions not met:', {
-        hasDeliveryMethod: programData.deliveryMethod === 'email',
-        hasUserEmail: !!programData.userEmail,
-        hasHtmlContent: !!htmlContent
-      });
-    }
-  }, [programData.deliveryMethod, programData.userEmail, htmlContent, sendEmailReport]);
-
-  // Trigger automatic email sending when HTML is ready
-  useEffect(() => {
-    if (renderStatus === 'complete' && programData.deliveryMethod === 'email') {
-      sendEmailAutomatically();
-    }
-  }, [renderStatus, sendEmailAutomatically]);
+  }, [htmlContent, programData]);
 
   return (
     <div className={styles.container}>
-      <div className={styles.innerContainer}>
-        {/* Rendering State */}
-        {renderStatus === 'rendering' && (
-          <div className={styles.loadingContainer}>
-            <Loader2 className={styles.loadingIcon} />
-            <p className={styles.loadingText}>Preparing your evaluation plan...</p>
+      {renderStatus === 'rendering' && (
+        <div className={styles.loadingContainer}>
+          <Loader2 className={styles.spinner} size={48} />
+          <h2>Rendering HTML Report</h2>
+          <p>Converting your evaluation plan to a formatted HTML document...</p>
+        </div>
+      )}
+      
+      {renderStatus === 'complete' && (
+        <div className={styles.previewContainer}>
+          <div className={styles.successMessage}>
+            <h2>✅ HTML Report Ready!</h2>
+            <p>Your evaluation plan has been successfully converted to HTML format.</p>
           </div>
-        )}
-
-        {/* Complete State */}
-        {renderStatus === 'complete' && (
-          <div className={styles.reportContainer}>
-            <p className={styles.statusMessage}>
-              {programData.deliveryMethod === 'email' ? (
-                <>Download the report below. It has already been sent to {programData.userEmail}.</>
-              ) : (
-                <>Your evaluation plan can be downloaded below. It has already been sent to {programData.userEmail}.</>
-              )}
-            </p>
+          
+          <div className={styles.actionButtons}>
+            <button 
+              onClick={downloadHtml}
+              className={styles.downloadButton}
+            >
+              <Download size={20} />
+              Download HTML Report
+            </button>
             
-            <div className={styles.buttonContainer}>
-              <button
-                onClick={downloadHtml}
-                className={styles.actionButton}
-              >
-                <div className={styles.iconWrapper}>
-                  <Download className={programData.deliveryMethod === 'download' ? styles.iconPrimary : styles.iconSecondary} />
-                </div>
-                <div className={styles.buttonContent}>
-                  <p className={styles.buttonTitle}>Download Report</p>
-                  <p className={styles.buttonSubtitle}>Can be printed as a PDF, posted on the web or imported into Word</p>
-                </div>
-              </button>
-              
-              {programData.deliveryMethod === 'email' && (
-                <button
-                  onClick={sendEmailReport}
-                  className={styles.actionButton}
-                >
-                  <div className={styles.iconWrapper}>
-                    <Mail className={styles.iconPrimary} />
-                  </div>
-                  <div className={styles.buttonContent}>
-                    <p className={styles.buttonTitle}>Resend Email</p>
-                    <p className={styles.buttonSubtitle}>Send to {programData.userEmail}</p>
-                  </div>
-                </button>
-              )}
-            </div>
+            <button 
+              onClick={sendEmailReport}
+              className={styles.emailButton}
+            >
+              <Mail size={20} />
+              Email Report
+            </button>
           </div>
-        )}
-      </div>
+          
+          <div className={styles.previewFrame}>
+            <h3>Report Preview</h3>
+            <iframe 
+              srcDoc={htmlContent}
+              title="Report Preview"
+              className={styles.iframe}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
