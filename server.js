@@ -815,6 +815,287 @@ app.get('/api/config', async (req, res) => {
 });
 
 // ============================================================================
+// ASYNC JOB QUEUE API
+// ============================================================================
+
+// POST /api/jobs - Create a new async job
+app.post('/api/jobs', async (req, res) => {
+  try {
+    const { job_type, input_data, email } = req.body;
+    
+    if (!job_type || !input_data || !email) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: job_type, input_data, email' 
+      });
+    }
+    
+    if (!['prompt1', 'prompt2', 'report_template'].includes(job_type)) {
+      return res.status(400).json({ 
+        error: 'Invalid job_type. Must be: prompt1, prompt2, or report_template' 
+      });
+    }
+    
+    const result = await pool.query(
+      `INSERT INTO jobs (job_type, status, input_data, email) 
+       VALUES ($1, 'pending', $2, $3) 
+       RETURNING id, job_type, status, created_at`,
+      [job_type, JSON.stringify(input_data), email]
+    );
+    
+    const job = result.rows[0];
+    console.log(`Created job ${job.id} (${job_type}) for ${email}`);
+    
+    // Trigger job processing (non-blocking)
+    processNextJob().catch(err => console.error('Error processing job:', err));
+    
+    res.json({
+      success: true,
+      job_id: job.id,
+      status: job.status,
+      created_at: job.created_at
+    });
+  } catch (error) {
+    console.error('Error creating job:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/jobs/:id - Get job status and results
+app.get('/api/jobs/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query(
+      `SELECT id, job_type, status, result_data, error, created_at, completed_at 
+       FROM jobs WHERE id = $1`,
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+    
+    const job = result.rows[0];
+    res.json({
+      id: job.id,
+      job_type: job.job_type,
+      status: job.status,
+      result: job.result_data,
+      error: job.error,
+      created_at: job.created_at,
+      completed_at: job.completed_at
+    });
+  } catch (error) {
+    console.error('Error fetching job:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Background job processor
+async function processNextJob() {
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    // Get the next pending job (with row lock)
+    const jobResult = await client.query(
+      `SELECT id, job_type, input_data, email 
+       FROM jobs 
+       WHERE status = 'pending' 
+       ORDER BY created_at ASC 
+       LIMIT 1 
+       FOR UPDATE SKIP LOCKED`
+    );
+    
+    if (jobResult.rows.length === 0) {
+      await client.query('COMMIT');
+      return;
+    }
+    
+    const job = jobResult.rows[0];
+    
+    // Mark job as processing
+    await client.query(
+      `UPDATE jobs SET status = 'processing' WHERE id = $1`,
+      [job.id]
+    );
+    
+    await client.query('COMMIT');
+    
+    console.log(`Processing job ${job.id} (${job.job_type})...`);
+    
+    // Process the job (outside transaction)
+    try {
+      const inputData = job.input_data;
+      const apiKey = await getSetting('openrouter_api_key', 'OPENROUTER_API_KEY');
+      
+      if (!apiKey) {
+        throw new Error('OpenRouter API key not configured');
+      }
+      
+      // Get model and temperature for this step
+      const stepUpperCase = job.job_type.toUpperCase();
+      const model = await getSetting(`${job.job_type}_model`, `${stepUpperCase}_MODEL`) || 'openai/gpt-4o';
+      const temperatureStr = await getSetting(`${job.job_type}_temperature`, `${stepUpperCase}_TEMPERATURE`);
+      const temperature = temperatureStr ? parseFloat(temperatureStr) : undefined;
+      
+      // Build request
+      const requestBody = {
+        model,
+        messages: inputData.messages,
+        max_tokens: inputData.max_tokens || 4000
+      };
+      
+      if (temperature !== undefined && !isNaN(temperature)) {
+        requestBody.temperature = temperature;
+      }
+      
+      console.log(`Calling OpenRouter for job ${job.id}: model=${model}, max_tokens=${requestBody.max_tokens}`);
+      
+      // Call OpenRouter with retry logic
+      let retries = 0;
+      const maxRetries = 3;
+      let result;
+      
+      while (retries < maxRetries) {
+        try {
+          if (retries > 0) {
+            const delay = Math.pow(2, retries) * 1000;
+            console.log(`Retry ${retries}/${maxRetries} after ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+          
+          const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody)
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
+          }
+          
+          const responseText = await response.text();
+          
+          if (responseText.length < 500) {
+            throw new Error(`Response too short (${responseText.length} chars), likely truncated`);
+          }
+          
+          const data = JSON.parse(responseText);
+          result = data.choices[0].message.content;
+          break;
+          
+        } catch (fetchError) {
+          retries++;
+          if (retries >= maxRetries) {
+            throw fetchError;
+          }
+        }
+      }
+      
+      console.log(`Job ${job.id} completed successfully (${result.length} chars)`);
+      
+      // Update job as complete
+      await pool.query(
+        `UPDATE jobs 
+         SET status = 'completed', result_data = $1, completed_at = CURRENT_TIMESTAMP 
+         WHERE id = $2`,
+        [result, job.id]
+      );
+      
+      // Send email with results
+      try {
+        const emailSubject = `Your ${job.job_type.replace('_', ' ')} is ready`;
+        const emailHtml = `
+          <h2>Your evaluation plan analysis is complete</h2>
+          <p>Your ${job.job_type.replace('_', ' ')} has been processed successfully.</p>
+          <h3>Results:</h3>
+          <div style="white-space: pre-wrap; font-family: monospace; background: #f5f5f5; padding: 15px; border-radius: 5px;">
+            ${result}
+          </div>
+          <p><small>Job ID: ${job.id}</small></p>
+        `;
+        
+        await sendEmail({
+          to: job.email,
+          subject: emailSubject,
+          html: emailHtml
+        });
+        
+        console.log(`Email sent to ${job.email} for job ${job.id}`);
+      } catch (emailError) {
+        console.error(`Failed to send email for job ${job.id}:`, emailError);
+      }
+      
+    } catch (processingError) {
+      console.error(`Job ${job.id} failed:`, processingError);
+      
+      // Update job as failed
+      await pool.query(
+        `UPDATE jobs 
+         SET status = 'failed', error = $1, completed_at = CURRENT_TIMESTAMP 
+         WHERE id = $2`,
+        [processingError.message, job.id]
+      );
+      
+      // Send error email
+      try {
+        await sendEmail({
+          to: job.email,
+          subject: 'Evaluation plan processing failed',
+          html: `
+            <h2>Processing Error</h2>
+            <p>Unfortunately, your ${job.job_type.replace('_', ' ')} failed to process.</p>
+            <p><strong>Error:</strong> ${processingError.message}</p>
+            <p><small>Job ID: ${job.id}</small></p>
+          `
+        });
+      } catch (emailError) {
+        console.error(`Failed to send error email for job ${job.id}:`, emailError);
+      }
+    }
+    
+    // Process next job if any
+    processNextJob().catch(err => console.error('Error in job chain:', err));
+    
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error in processNextJob:', error);
+  } finally {
+    client.release();
+  }
+}
+
+// Cleanup old jobs (runs every hour)
+async function cleanupOldJobs() {
+  try {
+    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
+    
+    const result = await pool.query(
+      `DELETE FROM jobs 
+       WHERE (status = 'completed' OR status = 'failed') 
+       AND completed_at < $1 
+       RETURNING id`,
+      [sixHoursAgo]
+    );
+    
+    if (result.rows.length > 0) {
+      console.log(`Cleaned up ${result.rows.length} old jobs`);
+    }
+  } catch (error) {
+    console.error('Error cleaning up old jobs:', error);
+  }
+}
+
+// Run cleanup every hour
+setInterval(cleanupOldJobs, 60 * 60 * 1000);
+
+// ============================================================================
 // STATIC FILE SERVING (PRODUCTION)
 // ============================================================================
 // Serve the built Vite frontend from project/dist
