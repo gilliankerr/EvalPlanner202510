@@ -64,6 +64,19 @@ Before making ANY styling changes, follow this mandatory checklist:
 ### Backend and Core Functionality
 The application integrates with Supabase for backend services. Key features include URL extraction and robust web scraping with error handling, retry logic, and concurrent processing. AI-powered analysis and evaluation framework generation are central to the system. Prompts for AI models are managed through a comprehensive admin interface, stored in a PostgreSQL database. Email delivery of reports is handled by Resend.
 
+**Async Job Queue Architecture (October 2025)**:
+The application uses an async job queue to handle long-running AI analysis tasks (30-60+ seconds) without browser timeout issues:
+
+1. **Job Creation**: Frontend submits jobs to `POST /api/jobs` with job type (prompt1/prompt2/report_template), input data, and user email
+2. **Immediate Response**: Backend creates a job record in PostgreSQL and returns job ID instantly
+3. **Background Processing**: Job processor picks up pending jobs, calls OpenRouter API with retry logic, and saves results
+4. **Email Delivery**: When complete, results are automatically emailed to the user (success or failure)
+5. **Status Polling**: Frontend polls `GET /api/jobs/:id` every 3 seconds to check status and display results
+6. **Browser Independence**: Users can close the browser anytime - results will still be emailed
+7. **Cleanup**: Completed/failed jobs are auto-deleted after 6 hours to prevent database bloat
+
+This architecture solves production timeout limits (2-5 min load balancer timeouts) and allows comprehensiveness over speed by supporting very long AI responses (up to 20,000 tokens for final reports).
+
 **Security Architecture - Three-Tier API Key Management (October 2025)**:
 The application implements a secure three-tier architecture that keeps API keys safe and allows remixability:
 
