@@ -906,9 +906,6 @@ app.post('/api/jobs', async (req, res) => {
     const job = result.rows[0];
     console.log(`Created job ${job.id} (${job_type}) for ${email}`);
     
-    // Trigger job processing (non-blocking)
-    processNextJob().catch(err => console.error('Error processing job:', err));
-    
     res.json({
       success: true,
       job_id: job.id,
@@ -1208,9 +1205,6 @@ async function processNextJob() {
       }
     }
     
-    // Process next job if any
-    processNextJob().catch(err => console.error('Error in job chain:', err));
-    
   } catch (error) {
     console.error('Error in processNextJob:', error);
     // Try to rollback if we have a client
@@ -1256,6 +1250,11 @@ async function cleanupOldJobs() {
 
 // Run cleanup every hour
 setInterval(cleanupOldJobs, 60 * 60 * 1000);
+
+// Run job processor every 5 seconds to check for pending jobs
+setInterval(() => {
+  processNextJob().catch(err => console.error('Job processor error:', err));
+}, 5000);
 
 // ============================================================================
 // STATIC FILE SERVING (PRODUCTION)
@@ -1306,6 +1305,10 @@ async function startServer() {
 
     console.log('\nCleaning up expired sessions...');
     await cleanupExpiredSessions();
+
+    console.log('\nStarting background job processor...');
+    processNextJob().catch(err => console.error('Initial job processor error:', err));
+    console.log('✓ Background job processor started (runs every 5 seconds)');
 
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`\n✓ Email server running on port ${PORT}`);

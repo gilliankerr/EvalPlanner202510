@@ -135,6 +135,22 @@ The project is configured for a Reserved VM deployment on Replit, using a unifie
 - **Simplicity**: One server to manage in deployment means fewer failure points
 - **Fix for recurring deployment bug**: Previous two-server production setup failed because Vite's dev proxy doesn't exist in production builds, causing "Analysis Failed" errors when frontend couldn't reach backend API
 
+**Background Job Queue** (October 2025):
+The application uses a PostgreSQL-backed job queue for asynchronous AI processing:
+- Jobs are created with 'pending' status when users submit forms
+- A background processor runs continuously via `setInterval` (every 5 seconds)
+- The processor picks up pending jobs, marks them as 'processing', and executes AI calls
+- Completed jobs are marked as 'completed' with results stored in `result_data`
+- Failed jobs are marked as 'failed' with error messages
+- Email delivery happens automatically for final `report_template` jobs
+- Old jobs (completed/failed) are automatically cleaned up after 6 hours
+
+**Why Continuous Job Processor?**
+- **Browser-independent**: Users can close their browser and receive emails later
+- **Resilient**: Jobs continue processing after server restarts (picks up pending jobs on startup)
+- **Fault-tolerant**: Errors in one job don't stop the processor from handling subsequent jobs
+- **Requires Reserved VM deployment**: Autoscale deployments would shut down the server and stop job processing
+
 ### Admin Interface
 A secure, session-based authentication system protects the admin interface, which allows for managing AI prompts, viewing system configurations (LLM models, temperatures, web search settings, email settings), and managing email delivery templates. Prompts can be edited using a markdown editor, with support for version history and rollbacks. The configuration panel displays web search status for each prompt with clear visual indicators (🌐 Enabled/Disabled).
 
