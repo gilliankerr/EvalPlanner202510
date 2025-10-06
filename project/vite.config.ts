@@ -21,8 +21,8 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
-        timeout: 600000, // 10 minute timeout for long AI responses
-        proxyTimeout: 600000
+        timeout: 180000, // 3 minute timeout (async jobs handle long AI responses)
+        proxyTimeout: 180000
       }
     }
   },
