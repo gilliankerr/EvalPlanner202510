@@ -2,11 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FileOutput, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import type { ProgramData } from '../App';
 import { fetchPrompt, buildPromptWithContext } from '../utils/promptApi';
-
-// TODO: Convert this component from Tailwind CSS to CSS Modules
-// This component currently uses ~80 Tailwind utility classes (grid, gap-*, bg-*, hover:*, animate-*, etc.)
-// When next modifying this component, follow the "Systematic Pre-Styling Verification Checklist"
-// in replit.md to convert to CSS Modules pattern. See StepSix.tsx and StepSix.module.css as reference.
+import styles from './ReportTemplate.module.css';
 
 // Utility functions for handling code fences in AI responses
 const stripCodeFences = (content: string): string => {
@@ -275,51 +271,46 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="p-2 rounded-lg" style={{backgroundColor: '#e6f3ff'}}>
-            <FileOutput className="h-6 w-6" style={{color: '#0085ca'}} />
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.headerTop}>
+          <div className={styles.iconWrapper}>
+            <FileOutput className={styles.icon} />
           </div>
-          <div>
-            <h2 className="text-2xl font-bold" style={{color: '#30302f'}}>Evaluation Plan Generation</h2>
-            <p className="text-gray-600">Creating comprehensive evaluation plan using LogicalOutcomes template</p>
+          <div className={styles.headerContent}>
+            <h2>Evaluation Plan Generation</h2>
+            <p>Creating comprehensive evaluation plan using LogicalOutcomes template</p>
           </div>
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className={styles.content}>
         {/* Status Card */}
         <div 
-          className="p-6 rounded-lg border"
-          style={{
-            backgroundColor: planStatus === 'generating' ? '#e6f3ff' :
-                           planStatus === 'complete' ? '#f0f9ff' :
-                           planStatus === 'error' ? '#fef2f2' :
-                           '#f8fafc',
-            borderColor: planStatus === 'generating' ? '#0085ca' :
-                        planStatus === 'complete' ? '#10b981' :
-                        planStatus === 'error' ? '#ef4444' :
-                        '#e2e8f0'
-          }}
+          className={`${styles.statusCard} ${
+            planStatus === 'generating' ? styles.statusCardGenerating :
+            planStatus === 'complete' ? styles.statusCardComplete :
+            planStatus === 'error' ? styles.statusCardError :
+            styles.statusCardIdle
+          }`}
         >
-          <div className="flex items-center space-x-3">
-            {planStatus === 'generating' && <Loader2 className="h-6 w-6 animate-spin" style={{color: '#0085ca'}} />}
-            {planStatus === 'complete' && <CheckCircle className="h-6 w-6 text-green-600" />}
-            {planStatus === 'error' && <AlertCircle className="h-6 w-6 text-red-600" />}
+          <div className={styles.statusHeader}>
+            {planStatus === 'generating' && <Loader2 className={styles.iconSpinning} />}
+            {planStatus === 'complete' && <CheckCircle className={styles.iconGreen} />}
+            {planStatus === 'error' && <AlertCircle className={styles.iconRed} />}
             
             <div>
-              <h3 className="text-lg font-semibold" style={{color: '#30302f'}}>
+              <h3 className={styles.statusTitle}>
                 {planStatus === 'generating' && 'Generating Evaluation Plan...'}
                 {planStatus === 'complete' && 'Evaluation Plan Complete'}
                 {planStatus === 'error' && 'Plan Generation Failed'}
                 {planStatus === 'idle' && 'Preparing Plan Generation...'}
               </h3>
-              <p className="text-gray-600">
+              <p className={styles.statusDescription}>
                 {planStatus === 'generating' && jobId && (
                   <>
                     Processing in background... You can close this browser tab - results will be emailed to {programData.userEmail}
-                    <span style={{ display: 'block', marginTop: '8px', fontSize: '0.9em', opacity: 0.8 }}>Job ID: {jobId}</span>
+                    <span className={styles.jobIdText}>Job ID: {jobId}</span>
                   </>
                 )}
                 {planStatus === 'generating' && !jobId && 'Customizing LogicalOutcomes evaluation plan template with program-specific analysis'}
@@ -333,15 +324,15 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
 
         {/* Error Recovery Options */}
         {planStatus === 'error' && (
-          <div className="space-y-4">
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <p className="text-sm text-amber-800 mb-3">
+          <div className={styles.errorRecovery}>
+            <div className={styles.errorBox}>
+              <p className={styles.errorText}>
                 The evaluation plan generation encountered an issue. This could be due to API connectivity or rate limits. You can:
               </p>
-              <div className="flex gap-3">
+              <div className={styles.errorButtons}>
                 <button
                   onClick={generateEvaluationPlan}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className={styles.retryButton}
                 >
                   Retry Generation
                 </button>
@@ -353,7 +344,7 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
                     setIsProcessing(false);
                     onComplete();
                   }}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  className={styles.skipButton}
                 >
                   Skip and Continue
                 </button>
@@ -364,59 +355,59 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
 
         {/* Generation Progress */}
         {planStatus === 'generating' && (
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#ed8b00'}}></div>
-              <span className="text-sm text-gray-600">Following LogicalOutcomes template structure</span>
+          <div className={styles.progressList}>
+            <div className={styles.progressItem}>
+              <div className={styles.progressDot}></div>
+              <span className={styles.progressText}>Following LogicalOutcomes template structure</span>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#ed8b00', animationDelay: '0.5s'}}></div>
-              <span className="text-sm text-gray-600">Customizing program summary and analysis section</span>
+            <div className={styles.progressItem}>
+              <div className={styles.progressDot}></div>
+              <span className={styles.progressText}>Customizing program summary and analysis section</span>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#ed8b00', animationDelay: '1s'}}></div>
-              <span className="text-sm text-gray-600">Creating program-specific logic model and evaluation framework</span>
+            <div className={styles.progressItem}>
+              <div className={styles.progressDot}></div>
+              <span className={styles.progressText}>Creating program-specific logic model and evaluation framework</span>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#ed8b00', animationDelay: '1.5s'}}></div>
-              <span className="text-sm text-gray-600">Including standard implementation phases and roles</span>
+            <div className={styles.progressItem}>
+              <div className={styles.progressDot}></div>
+              <span className={styles.progressText}>Including standard implementation phases and roles</span>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: '#ed8b00', animationDelay: '2s'}}></div>
-              <span className="text-sm text-gray-600">Finalizing comprehensive evaluation plan</span>
+            <div className={styles.progressItem}>
+              <div className={styles.progressDot}></div>
+              <span className={styles.progressText}>Finalizing comprehensive evaluation plan</span>
             </div>
           </div>
         )}
 
         {/* Plan Statistics */}
         {planResult && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-              <div className="text-2xl font-bold text-slate-900">{Math.ceil(planResult.length / 5000)}</div>
-              <div className="text-sm text-slate-600">Pages (est.)</div>
+          <div className={styles.statsGrid}>
+            <div className={styles.statCard}>
+              <div className={styles.statValue}>{Math.ceil(planResult.length / 5000)}</div>
+              <div className={styles.statLabel}>Pages (est.)</div>
             </div>
-            <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-              <div className="text-2xl font-bold text-slate-900">{planResult.split('##').length - 1}</div>
-              <div className="text-sm text-slate-600">Sections</div>
+            <div className={styles.statCard}>
+              <div className={styles.statValue}>{planResult.split('##').length - 1}</div>
+              <div className={styles.statLabel}>Sections</div>
             </div>
-            <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-              <div className="text-2xl font-bold text-slate-900">{planResult.split('|').length > 10 ? 'Yes' : 'No'}</div>
-              <div className="text-sm text-slate-600">Tables Included</div>
+            <div className={styles.statCard}>
+              <div className={styles.statValue}>{planResult.split('|').length > 10 ? 'Yes' : 'No'}</div>
+              <div className={styles.statLabel}>Tables Included</div>
             </div>
           </div>
         )}
 
         {/* Results Preview */}
         {planResult && (
-          <div className="mt-8">
-            <h4 className="text-lg font-semibold text-slate-900 mb-4">Evaluation Plan Preview</h4>
-            <div className="bg-slate-50 rounded-lg p-6 max-h-96 overflow-y-auto border border-slate-200">
-              <div className="prose prose-sm max-w-none">
-                <pre className="whitespace-pre-wrap text-sm text-slate-700 font-sans">
+          <div className={styles.previewSection}>
+            <h4 className={styles.previewTitle}>Evaluation Plan Preview</h4>
+            <div className={styles.previewBox}>
+              <div className={styles.previewContent}>
+                <pre className={styles.previewText}>
                   {planResult.substring(0, 2000)}...
                   
                   {planResult.length > 2000 && (
-                    <span className="text-blue-600 font-medium">
+                    <span className={styles.previewTruncated}>
                       [Preview truncated - Full plan will be displayed in final HTML report]
                     </span>
                   )}
@@ -427,9 +418,9 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
         )}
 
         {/* Technical Details */}
-        <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-          <h4 className="text-sm font-medium text-slate-700 mb-2">Plan Generation Details</h4>
-          <div className="text-xs text-slate-600 space-y-1">
+        <div className={styles.detailsBox}>
+          <h4 className={styles.detailsTitle}>Plan Generation Details</h4>
+          <div className={styles.detailsList}>
             <div>• Method: LogicalOutcomes Evaluation Planning Template</div>
             <div>• Program: {programData.programName}</div>
             <div>• Organization: {programData.organizationName}</div>

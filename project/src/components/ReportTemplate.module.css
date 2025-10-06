@@ -1,0 +1,336 @@
+/* Container */
+.container {
+  padding: 2rem;
+}
+
+/* Header Section */
+.header {
+  margin-bottom: 2rem;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.iconWrapper {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background-color: #e6f3ff;
+}
+
+.icon {
+  height: 1.5rem;
+  width: 1.5rem;
+  color: #0085ca;
+}
+
+.iconGreen {
+  height: 1.5rem;
+  width: 1.5rem;
+  color: #10b981;
+}
+
+.iconRed {
+  height: 1.5rem;
+  width: 1.5rem;
+  color: #ef4444;
+}
+
+.iconSpinning {
+  height: 1.5rem;
+  width: 1.5rem;
+  color: #0085ca;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.headerContent h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #30302f;
+  margin: 0;
+}
+
+.headerContent p {
+  color: #4b5563;
+  margin: 0.25rem 0 0 0;
+}
+
+/* Content Section */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Status Card */
+.statusCard {
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid;
+}
+
+.statusCardGenerating {
+  background-color: #e6f3ff;
+  border-color: #0085ca;
+}
+
+.statusCardComplete {
+  background-color: #f0f9ff;
+  border-color: #10b981;
+}
+
+.statusCardError {
+  background-color: #fef2f2;
+  border-color: #ef4444;
+}
+
+.statusCardIdle {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.statusHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.statusTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #30302f;
+  margin: 0 0 0.25rem 0;
+}
+
+.statusDescription {
+  color: #4b5563;
+  margin: 0;
+}
+
+.jobIdText {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+/* Error Recovery Section */
+.errorRecovery {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.errorBox {
+  background-color: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.errorText {
+  font-size: 0.875rem;
+  color: #92400e;
+  margin-bottom: 0.75rem;
+}
+
+.errorButtons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.retryButton {
+  padding: 0.5rem 1rem;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.retryButton:hover {
+  background-color: #1d4ed8;
+}
+
+.skipButton {
+  padding: 0.5rem 1rem;
+  background-color: #4b5563;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.skipButton:hover {
+  background-color: #374151;
+}
+
+/* Progress Indicators */
+.progressList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.progressItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.progressDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: #ed8b00;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.progressDot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.progressDot:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.progressDot:nth-child(3) {
+  animation-delay: 1s;
+}
+
+.progressDot:nth-child(4) {
+  animation-delay: 1.5s;
+}
+
+.progressDot:nth-child(5) {
+  animation-delay: 2s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.progressText {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+/* Statistics Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .statsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.statCard {
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.25rem 0;
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Preview Section */
+.previewSection {
+  margin-top: 2rem;
+}
+
+.previewTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 1rem 0;
+}
+
+.previewBox {
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  max-height: 24rem;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+}
+
+.previewContent {
+  max-width: 100%;
+}
+
+.previewText {
+  white-space: pre-wrap;
+  font-size: 0.875rem;
+  color: #334155;
+  font-family: inherit;
+  margin: 0;
+}
+
+.previewTruncated {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+/* Details Section */
+.detailsBox {
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+}
+
+.detailsTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+  margin: 0 0 0.5rem 0;
+}
+
+.detailsList {
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.detailsList div {
+  margin-bottom: 0.25rem;
+}
