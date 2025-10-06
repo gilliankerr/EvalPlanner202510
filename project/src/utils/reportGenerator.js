@@ -894,17 +894,17 @@ function generateFullHtmlDocument(markdown, options = {}) {
 }
 
 // Export functions for both environments
+// ES Modules export (for browser)
+export {
+  convertMarkdownToHtml,
+  generateTOC,
+  getReportStyles,
+  generateFullHtmlDocument
+};
+
+// CommonJS export (for Node.js)
 if (typeof module !== 'undefined' && module.exports) {
-  // Node.js exports
   module.exports = {
-    convertMarkdownToHtml,
-    generateTOC,
-    getReportStyles,
-    generateFullHtmlDocument
-  };
-} else if (typeof window !== 'undefined') {
-  // Browser exports
-  window.reportGenerator = {
     convertMarkdownToHtml,
     generateTOC,
     getReportStyles,

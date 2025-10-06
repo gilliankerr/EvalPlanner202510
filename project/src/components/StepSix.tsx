@@ -5,6 +5,7 @@ import { getProcessedPrompt } from '../utils/promptApi';
 import type { ProgramData } from '../App';
 import styles from './StepSix.module.css';
 // Import the unified report generator
+// @ts-ignore - JavaScript module without TypeScript declarations
 import { generateFullHtmlDocument } from '../utils/reportGenerator';
 
 interface StepSixProps {
@@ -89,14 +90,14 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       setEmailStatus('sending');
 
       // Get the processed email template from the backend
-      const templateResponse = await getProcessedPrompt('email_delivery');
+      const templateContent = await getProcessedPrompt('email_delivery');
       
-      if (!templateResponse.success) {
+      if (!templateContent) {
         throw new Error('Failed to fetch email template');
       }
 
       // Format the email body with proper HTML
-      let emailBody = templateResponse.content;
+      let emailBody = templateContent;
       const currentDateTime = new Date().toLocaleString('en-US', {
         weekday: 'long',
         year: 'numeric',
@@ -130,7 +131,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
 
       // Send email using Replit Mail
       const success = await sendEmail({
-        to: programData.email,
+        to: programData.userEmail || 'user@example.com',
         subject: `Evaluation Plan for ${programData.programName}`,
         html: processedEmailBody,
         attachments: [{
