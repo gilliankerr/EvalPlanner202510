@@ -63,7 +63,7 @@ localPort = 39201
 externalPort = 3000
 
 [[ports]]
-localPort = 40823
+localPort = 43107
 externalPort = 3003
 
 [[ports]]
@@ -71,6 +71,6 @@ localPort = 45221
 externalPort = 3002
 
 [deployment]
-deploymentTarget = "vm"
+deploymentTarget = "cloudrun"
 run = ["npm", "start"]
 build = ["npm", "run", "build"]
