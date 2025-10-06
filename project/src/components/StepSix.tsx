@@ -503,21 +503,31 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             background: #f8fafc;
             border-radius: 16px;
             border: 2px solid #3b82f6;
+            overflow-x: auto;
         }
         
         .logic-model-table {
             margin: 0;
             box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1);
             border: 2px solid #3b82f6;
+            table-layout: fixed;
+            width: 100%;
         }
         
+        .logic-model-table th {
+            padding: 0.6rem 0.8rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
         
         .logic-model-table td {
-            padding: 1.5rem;
+            padding: 0.75rem 0.8rem;
             vertical-align: top;
-            line-height: 1.6;
+            line-height: 1.4;
             background: white;
             border-right: 1px solid #e2e8f0;
+            font-size: 0.75rem;
+            word-wrap: break-word;
         }
         
         .logic-model-table td:last-child {
