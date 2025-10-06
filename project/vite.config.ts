@@ -15,6 +15,8 @@ export default defineConfig({
     fs: {
       allow: ['..']
     },
+    // Proxy API requests to backend in development mode only
+    // In production, backend serves the frontend from the same port
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

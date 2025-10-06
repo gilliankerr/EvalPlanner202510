@@ -9,7 +9,9 @@ const { Resend } = require('resend');
 const crypto = require('crypto');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+// In development, backend runs on 3001 (Vite dev server uses 5000)
+// In production, backend runs on 5000 (serves both frontend and API)
+const PORT = process.env.NODE_ENV === 'production' ? (process.env.PORT || 5000) : 3001;
 
 // ============================================================================
 // EMAIL CONFIGURATION
