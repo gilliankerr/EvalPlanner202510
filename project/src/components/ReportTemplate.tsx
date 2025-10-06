@@ -146,6 +146,7 @@ interface ReportTemplateProps {
 const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProgramData, onComplete, setIsProcessing }) => {
   const [planStatus, setPlanStatus] = useState<'idle' | 'generating' | 'complete' | 'error'>('idle');
   const [planResult, setPlanResult] = useState<string>('');
+  const [jobId, setJobId] = useState<number | null>(null);
 
   useEffect(() => {
     generateEvaluationPlan();
@@ -171,62 +172,102 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
         evaluationFramework: programData.evaluationFramework
       });
 
-      // Make API call through backend proxy (secure - API key never exposed to frontend)
-      const requestBody: any = {
-        messages: [
-          {
-            role: 'user',
-            content: planPrompt
-          }
-        ],
-        max_tokens: 20000,
-        step: 'report_template'  // Backend uses this to determine model/temperature from config
+      const jobData = {
+        job_type: 'report_template',
+        input_data: {
+          messages: [
+            {
+              role: 'user',
+              content: planPrompt
+            }
+          ],
+          max_tokens: 20000
+        },
+        email: programData.userEmail
       };
       
-      const response = await fetch('/api/openrouter/chat/completions', {
+      const response = await fetch('/api/jobs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(jobData)
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error Response:', errorText);
-        throw new Error(`API request failed: ${response.status} - ${errorText}`);
+        throw new Error(`Job creation failed: ${response.status}`);
       }
 
       const data = await response.json();
-      let evaluationPlan = data.choices[0].message.content;
-
-      // Strip code fences if present (prevents markdown from being treated as code block)
-      evaluationPlan = stripCodeFences(evaluationPlan);
-
-      // Ensure canonical hyperlinks are always present (fixes AI inconsistency with link preservation)
-      evaluationPlan = ensureCanonicalLinks(evaluationPlan);
-
-      // Validate that the response doesn't contain code fences after stripping
-      if (containsCodeFences(evaluationPlan)) {
-        console.warn('AI response still contains code fences after stripping. This may affect markdown rendering.');
-        // Could implement retry logic here if needed
-      }
-
-      setPlanResult(evaluationPlan);
-      updateProgramData({ evaluationPlan: evaluationPlan });
-      setPlanStatus('complete');
-
-      // Auto-advance after a brief delay
-      setTimeout(() => {
-        setIsProcessing(false);
-        onComplete();
-      }, 2000);
+      const createdJobId = data.job_id;
+      setJobId(createdJobId);
+      
+      console.log(`Job ${createdJobId} created, polling for results...`);
+      
+      pollJobStatus(createdJobId);
 
     } catch (error) {
-      console.error('Error generating evaluation plan:', error);
+      console.error('Error creating job:', error);
       setPlanStatus('error');
       setIsProcessing(false);
     }
+  };
+
+  const pollJobStatus = async (jobId: number) => {
+    const maxAttempts = 200;
+    let attempts = 0;
+
+    const poll = async () => {
+      try {
+        const response = await fetch(`/api/jobs/${jobId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Job status check failed: ${response.status}`);
+        }
+
+        const job = await response.json();
+        
+        if (job.status === 'completed') {
+          let evaluationPlan = job.result;
+
+          // Strip code fences if present (prevents markdown from being treated as code block)
+          evaluationPlan = stripCodeFences(evaluationPlan);
+
+          // Ensure canonical hyperlinks are always present (fixes AI inconsistency with link preservation)
+          evaluationPlan = ensureCanonicalLinks(evaluationPlan);
+
+          // Validate that the response doesn't contain code fences after stripping
+          if (containsCodeFences(evaluationPlan)) {
+            console.warn('AI response still contains code fences after stripping. This may affect markdown rendering.');
+          }
+
+          setPlanResult(evaluationPlan);
+          updateProgramData({ evaluationPlan: evaluationPlan });
+          setPlanStatus('complete');
+
+          setTimeout(() => {
+            setIsProcessing(false);
+            onComplete();
+          }, 2000);
+          
+        } else if (job.status === 'failed') {
+          throw new Error(job.error || 'Job processing failed');
+        } else if (job.status === 'pending' || job.status === 'processing') {
+          attempts++;
+          if (attempts < maxAttempts) {
+            setTimeout(poll, 3000);
+          } else {
+            throw new Error('Job timeout - processing took too long');
+          }
+        }
+      } catch (error) {
+        console.error('Error polling job status:', error);
+        setPlanStatus('error');
+        setIsProcessing(false);
+      }
+    };
+
+    poll();
   };
 
   return (
@@ -271,7 +312,13 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
                 {planStatus === 'idle' && 'Preparing Plan Generation...'}
               </h3>
               <p className="text-gray-600">
-                {planStatus === 'generating' && 'Customizing LogicalOutcomes evaluation plan template with program-specific analysis'}
+                {planStatus === 'generating' && jobId && (
+                  <>
+                    Processing in background... You can close this browser tab - results will be emailed to {programData.userEmail}
+                    <span style={{ display: 'block', marginTop: '8px', fontSize: '0.9em', opacity: 0.8 }}>Job ID: {jobId}</span>
+                  </>
+                )}
+                {planStatus === 'generating' && !jobId && 'Customizing LogicalOutcomes evaluation plan template with program-specific analysis'}
                 {planStatus === 'complete' && 'Complete evaluation plan generated following LogicalOutcomes methodology'}
                 {planStatus === 'error' && 'An error occurred during plan generation'}
                 {planStatus === 'idle' && 'Setting up plan generation parameters'}
