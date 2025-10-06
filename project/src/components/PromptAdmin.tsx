@@ -597,7 +597,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                     {/* @ts-ignore - MDEditor type incompatibility with React types */}
                     <MDEditor
                       value={editedContent}
-                      onChange={setEditedContent}
+                      onChange={(value) => setEditedContent(value || '')}
                       height={500}
                       preview="edit"
                     />
