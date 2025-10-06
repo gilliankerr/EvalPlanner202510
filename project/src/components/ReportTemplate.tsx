@@ -181,7 +181,11 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
               content: planPrompt
             }
           ],
-          max_tokens: 20000
+          max_tokens: 20000,
+          metadata: {
+            organizationName: programData.organizationName,
+            programName: programData.programName
+          }
         },
         email: programData.userEmail
       };

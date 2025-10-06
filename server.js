@@ -1008,23 +1008,47 @@ async function processNextJob() {
         [result, job.id]
       );
       
-      // Send email with results
+      // Send email with results using email_delivery template
       try {
+        // Fetch email template from database
+        const templateResult = await pool.query(
+          'SELECT content FROM prompts WHERE step_name = $1',
+          ['email_delivery']
+        );
+        
+        let emailBody = 'Your evaluation plan analysis is complete!';
+        
+        if (templateResult.rows.length > 0) {
+          // Get template content
+          let templateContent = templateResult.rows[0].content;
+          
+          // Extract metadata from input_data
+          const metadata = inputData.metadata || {};
+          const programName = metadata.programName || 'your program';
+          const organizationName = metadata.organizationName || 'your organization';
+          const currentDateTime = new Date().toLocaleString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZoneName: 'short'
+          });
+          
+          // Replace template variables
+          emailBody = templateContent
+            .replace(/\{\{programName\}\}/g, programName)
+            .replace(/\{\{organizationName\}\}/g, organizationName)
+            .replace(/\{\{currentDateTime\}\}/g, currentDateTime);
+        }
+        
         const emailSubject = `Your ${job.job_type.replace('_', ' ')} is ready`;
-        const emailHtml = `
-          <h2>Your evaluation plan analysis is complete</h2>
-          <p>Your ${job.job_type.replace('_', ' ')} has been processed successfully.</p>
-          <h3>Results:</h3>
-          <div style="white-space: pre-wrap; font-family: monospace; background: #f5f5f5; padding: 15px; border-radius: 5px;">
-            ${result}
-          </div>
-          <p><small>Job ID: ${job.id}</small></p>
-        `;
         
         await sendEmail({
           to: job.email,
           subject: emailSubject,
-          html: emailHtml
+          text: emailBody
         });
         
         console.log(`Email sent to ${job.email} for job ${job.id}`);

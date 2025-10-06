@@ -44,7 +44,11 @@ const Prompt1: React.FC<Prompt1Props> = ({ programData, updateProgramData, onCom
               content: analysisPrompt
             }
           ],
-          max_tokens: 4000
+          max_tokens: 4000,
+          metadata: {
+            organizationName: programData.organizationName,
+            programName: programData.programName
+          }
         },
         email: programData.userEmail
       };
