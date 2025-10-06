@@ -6,6 +6,7 @@ import DOMPurify from 'dompurify';
 import { sendEmail } from '../utils/email';
 import { getProcessedPrompt } from '../utils/promptApi';
 import type { ProgramData } from '../App';
+import styles from './StepSix.module.css';
 
 interface StepSixProps {
   programData: ProgramData;
@@ -331,12 +332,12 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             .join('');
           const id = slugger.slug(rawText);
           const level = headingToken.depth;
-          const indent = level === 1 ? '' : level === 2 ? 'ml-2' : 'ml-4';
+          const levelClass = level === 1 ? 'toc-level-1' : level === 2 ? 'toc-level-2' : 'toc-level-3';
           
           // Sanitize display text
           const displayText = DOMPurify.sanitize(rawText, { ALLOWED_TAGS: [] });
           
-          tocItems.push(`<div class="toc-item ${indent}"><a href="#${id}">${displayText}</a></div>`);
+          tocItems.push(`<div class="toc-item ${levelClass}"><a href="#${id}">${displayText}</a></div>`);
         }
       });
       
@@ -624,6 +625,18 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             padding: 0.5rem 0.75rem;
             border-radius: 6px;
             transition: all 0.15s ease;
+        }
+        
+        .toc-level-1 {
+            margin-left: 0;
+        }
+        
+        .toc-level-2 {
+            margin-left: 0.5rem;
+        }
+        
+        .toc-level-3 {
+            margin-left: 1rem;
         }
         
         .toc-item:hover {
@@ -1249,20 +1262,20 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
   }, [renderStatus, sendEmailAutomatically]);
 
   return (
-    <div className="p-8">
-      <div className="max-w-2xl mx-auto">
+    <div className={styles.container}>
+      <div className={styles.innerContainer}>
         {/* Rendering State */}
         {renderStatus === 'rendering' && (
-          <div className="text-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-slate-600">Preparing your evaluation plan...</p>
+          <div className={styles.loadingContainer}>
+            <Loader2 className={styles.loadingIcon} />
+            <p className={styles.loadingText}>Preparing your evaluation plan...</p>
           </div>
         )}
 
         {/* Complete State */}
         {renderStatus === 'complete' && (
-          <div className="py-8">
-            <p className="text-lg text-slate-700 mb-8 text-center">
+          <div className={styles.reportContainer}>
+            <p className={styles.statusMessage}>
               {programData.deliveryMethod === 'email' ? (
                 <>Your evaluation plan has been sent to {programData.userEmail}.</>
               ) : (
@@ -1270,31 +1283,31 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
               )}
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-2xl mx-auto">
+            <div className={styles.buttonContainer}>
               <button
                 onClick={downloadHtml}
-                className="flex items-start space-x-4 p-4 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors text-left"
+                className={styles.actionButton}
               >
-                <div className="flex-shrink-0 mt-0.5">
-                  <Download className={`h-5 w-5 ${programData.deliveryMethod === 'download' ? 'text-blue-600' : 'text-slate-600'}`} />
+                <div className={styles.iconWrapper}>
+                  <Download className={programData.deliveryMethod === 'download' ? styles.iconPrimary : styles.iconSecondary} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900">Download Report</p>
-                  <p className="text-sm text-slate-500">Save as HTML file</p>
+                <div className={styles.buttonContent}>
+                  <p className={styles.buttonTitle}>Download Report</p>
+                  <p className={styles.buttonSubtitle}>Save as HTML file</p>
                 </div>
               </button>
               
               {programData.deliveryMethod === 'email' && (
                 <button
                   onClick={sendEmailReport}
-                  className="flex items-start space-x-4 p-4 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors text-left"
+                  className={styles.actionButton}
                 >
-                  <div className="flex-shrink-0 mt-0.5">
-                    <Mail className="h-5 w-5 text-blue-600" />
+                  <div className={styles.iconWrapper}>
+                    <Mail className={styles.iconPrimary} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900">Resend Email</p>
-                    <p className="text-sm text-slate-500">Send to {programData.userEmail}</p>
+                  <div className={styles.buttonContent}>
+                    <p className={styles.buttonTitle}>Resend Email</p>
+                    <p className={styles.buttonSubtitle}>Send to {programData.userEmail}</p>
                   </div>
                 </button>
               )}
