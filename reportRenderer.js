@@ -226,6 +226,13 @@ function initializeMarked(slugger, programName) {
     }
   };
 
+  renderer.link = function(token) {
+    const href = token.href;
+    const title = token.title ? ` title="${token.title}"` : '';
+    const text = this.parser.parseInline(token.tokens);
+    return `<a href="${href}"${title}>${text}</a>`;
+  };
+
   marked.use({ 
     renderer,
     breaks: true,
