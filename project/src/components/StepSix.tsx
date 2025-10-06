@@ -6,7 +6,7 @@ import type { ProgramData } from '../App';
 import styles from './StepSix.module.css';
 // Import the unified report generator
 // @ts-ignore - JavaScript module without TypeScript declarations
-import { generateFullHtmlDocument } from '../utils/reportGenerator';
+import { generateFullHtmlDocument } from '../utils/reportGenerator.cjs';
 
 interface StepSixProps {
   programData: ProgramData;

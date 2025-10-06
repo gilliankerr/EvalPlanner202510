@@ -9,7 +9,7 @@ const { Resend } = require('resend');
 const crypto = require('crypto');
 const { marked } = require('marked');
 // Import the unified report generator
-const { generateFullHtmlDocument } = require('./project/src/utils/reportGenerator');
+const { generateFullHtmlDocument } = require('./project/src/utils/reportGenerator.cjs');
 
 const app = express();
 // In development, backend runs on 3001 (Vite dev server uses 5000)
@@ -956,7 +956,7 @@ function convertMarkdownToHtml(markdown, programName, organizationName) {
   return generateFullHtmlDocument(markdown, {
     programName,
     organizationName,
-    includePrintButton: false  // No print button for emails
+    includePrintButton: true  // Include print button for email attachments
   });
 }
 
