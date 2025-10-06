@@ -4,6 +4,11 @@ import type { ProgramData } from '../App';
 import { extractAndNormalizeUrls, extractLabeledUrls } from '../utils/url';
 import { scrapeUrls, type ScrapeResult, type LabeledScrapeResult } from '../utils/scrape';
 
+// TODO: Convert this component from Tailwind CSS to CSS Modules
+// This component currently uses ~50 Tailwind utility classes (flex, bg-slate-50, text-*, p-*, etc.)
+// When next modifying this component, follow the "Systematic Pre-Styling Verification Checklist" 
+// in replit.md to convert to CSS Modules pattern. See StepSix.tsx and StepSix.module.css as reference.
+
 interface StepTwoProps {
   programData: ProgramData;
   updateProgramData: (data: Partial<ProgramData>) => void;

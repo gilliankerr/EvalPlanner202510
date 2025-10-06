@@ -3,6 +3,11 @@ import { FileOutput, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import type { ProgramData } from '../App';
 import { fetchPrompt, buildPromptWithContext } from '../utils/promptApi';
 
+// TODO: Convert this component from Tailwind CSS to CSS Modules
+// This component currently uses ~80 Tailwind utility classes (grid, gap-*, bg-*, hover:*, animate-*, etc.)
+// When next modifying this component, follow the "Systematic Pre-Styling Verification Checklist"
+// in replit.md to convert to CSS Modules pattern. See StepSix.tsx and StepSix.module.css as reference.
+
 // Utility functions for handling code fences in AI responses
 const stripCodeFences = (content: string): string => {
   if (!content) return content;
