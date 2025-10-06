@@ -7,6 +7,7 @@ const path = require('path');
 const { Pool } = require('pg');
 const { Resend } = require('resend');
 const crypto = require('crypto');
+const { marked } = require('marked');
 const { convertMarkdownToHtml: mdToHtml, generateTOC, getReportStyles } = require('./reportRenderer');
 
 const app = express();
@@ -210,6 +211,23 @@ async function sendEmail(message) {
   }
 
   return result.data;
+}
+
+// Helper function to convert markdown to HTML for email bodies
+function convertMarkdownToEmailHtml(markdown) {
+  if (!markdown) return '';
+  
+  // Configure marked for email-friendly HTML
+  marked.setOptions({
+    breaks: true, // Convert line breaks to <br>
+    gfm: true // GitHub Flavored Markdown
+  });
+  
+  // Convert markdown to HTML
+  const html = marked.parse(markdown);
+  
+  // Return with basic styling for better email rendering
+  return html;
 }
 
 // ============================================================================
@@ -1120,10 +1138,13 @@ async function processNextJob() {
             });
             
             // Replace template variables
-            emailBody = templateContent
+            const emailBodyMarkdown = templateContent
               .replace(/\{\{programName\}\}/g, programName)
               .replace(/\{\{organizationName\}\}/g, organizationName)
               .replace(/\{\{currentDateTime\}\}/g, currentDateTime);
+            
+            // Convert markdown to HTML for proper email formatting
+            emailBody = convertMarkdownToEmailHtml(emailBodyMarkdown);
           }
           
           // Create clean filename from metadata
