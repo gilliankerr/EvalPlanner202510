@@ -1227,8 +1227,11 @@ async function processNextJob() {
           const progNameClean = (programName || 'Program').replace(/[^a-zA-Z0-9]/g, '_');
           const filename = `${orgNameClean}_${progNameClean}_Evaluation_Plan.html`;
           
-          // Convert HTML result to base64 for attachment
-          const base64Content = Buffer.from(result, 'utf-8').toString('base64');
+          // Convert markdown to formatted HTML with CSS
+          const formattedHtml = convertMarkdownToHtml(result, programName, organizationName);
+          
+          // Convert formatted HTML to base64 for attachment
+          const base64Content = Buffer.from(formattedHtml, 'utf-8').toString('base64');
           
           const emailSubject = `Evaluation Plan for ${programName}`;
           
