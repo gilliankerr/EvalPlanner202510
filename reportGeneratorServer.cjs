@@ -93,28 +93,41 @@ function initializeMarked(slugger, programName) {
   const renderer = new marked.Renderer();
   
   // Custom heading renderer with IDs for TOC navigation
-  renderer.heading = function(text, level, raw) {
-    // Ensure text is a string
-    const textString = typeof text === 'string' ? text : String(text || '');
+  renderer.heading = function(textOrOptions, level, raw) {
+    // Handle both old and new marked API signatures
+    let tokens, depth, text;
     
-    // Handle both string and token array formats from parseInline
-    const parsed = this.parser.parseInline(textString);
-    let rawText;
-    
-    if (typeof parsed === 'string') {
-      // If parseInline returns a string, use it directly
-      rawText = parsed.replace(/<[^>]+>/g, '').trim();
-    } else if (Array.isArray(parsed)) {
-      // If it returns tokens, flatten them
-      rawText = flattenTokensToText(parsed);
+    if (typeof textOrOptions === 'object' && textOrOptions !== null) {
+      // New API: object with { tokens, depth, text }
+      tokens = textOrOptions.tokens;
+      depth = textOrOptions.depth;
+      text = textOrOptions.text;
     } else {
-      // Fallback to raw text
-      rawText = (raw || textString).replace(/<[^>]+>/g, '').trim();
+      // Old API: (text, level, raw)
+      text = textOrOptions;
+      depth = level;
     }
     
+    // Ensure we have valid values
+    depth = depth || 1;
+    text = String(text || '');
+    
+    // Extract clean text for ID generation
+    let rawText;
+    if (tokens && Array.isArray(tokens)) {
+      // Use tokens if available (more reliable)
+      rawText = flattenTokensToText(tokens);
+    } else {
+      // Fallback to text string
+      rawText = text.replace(/<[^>]+>/g, '').trim();
+    }
+    
+    // Generate consistent ID for TOC navigation
     const id = slugger.slug(rawText);
-    const levelClass = `heading-level-${level}`;
-    return `<h${level} id="${id}" class="${levelClass}">${textString}</h${level}>`;
+    const levelClass = `heading-level-${depth}`;
+    
+    // Use the provided text for display (already processed by marked)
+    return `<h${depth} id="${id}" class="${levelClass}">${text}</h${depth}>`;
   };
   
   // Custom table renderer with enhanced styling
@@ -145,9 +158,21 @@ function initializeMarked(slugger, programName) {
   };
   
   // Custom paragraph renderer for better spacing
-  renderer.paragraph = function(text) {
-    // Ensure text is a string (handle both string and token formats)
-    const textString = typeof text === 'string' ? text : String(text);
+  renderer.paragraph = function(textOrOptions) {
+    // Handle both old and new marked API signatures
+    let text, tokens;
+    
+    if (typeof textOrOptions === 'object' && textOrOptions !== null && textOrOptions.text !== undefined) {
+      // New API: object with { text, tokens }
+      text = textOrOptions.text;
+      tokens = textOrOptions.tokens;
+    } else {
+      // Old API or string: direct text
+      text = textOrOptions;
+    }
+    
+    // Ensure text is a string
+    const textString = String(text || '');
     
     if (textString.startsWith('<strong>') && (textString.includes('Phase') || textString.includes('Component'))) {
       return `<div class="phase-header">${textString}</div>`;
@@ -221,9 +246,8 @@ function generateTOC(markdown) {
     
     tokens.forEach(token => {
       if (token.type === 'heading' && token.depth <= 3) {
-        const rawText = token.tokens
-          .map(t => t.type === 'text' ? t.text : '')
-          .join('');
+        // Use the same text extraction logic as the heading renderer
+        const rawText = flattenTokensToText(token.tokens);
         const id = slugger.slug(rawText);
         const level = token.depth;
         const levelClass = level === 1 ? 'toc-level-1' : level === 2 ? 'toc-level-2' : 'toc-level-3';
