@@ -35,6 +35,8 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       }
 
       console.log('Generating HTML from evaluation plan...');
+      console.log('Evaluation plan type:', typeof programData.evaluationPlan);
+      console.log('Evaluation plan value:', programData.evaluationPlan);
       console.log('Evaluation plan length:', programData.evaluationPlan.length);
       
       // Use the unified HTML generation function
@@ -49,6 +51,7 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       }
       
       console.log('HTML report generated successfully, length:', htmlReport.length);
+      console.log('First 500 chars of HTML:', htmlReport.substring(0, 500));
       setHtmlContent(htmlReport);
       setRenderStatus('complete');
       setIsProcessing(false);

@@ -94,8 +94,11 @@ function initializeMarked(slugger, programName) {
   
   // Custom heading renderer with IDs for TOC navigation
   renderer.heading = function(text, level, raw) {
+    // Ensure text is a string
+    const textString = typeof text === 'string' ? text : String(text || '');
+    
     // Handle both string and token array formats from parseInline
-    const parsed = this.parser.parseInline(text);
+    const parsed = this.parser.parseInline(textString);
     let rawText;
     
     if (typeof parsed === 'string') {
@@ -106,12 +109,12 @@ function initializeMarked(slugger, programName) {
       rawText = flattenTokensToText(parsed);
     } else {
       // Fallback to raw text
-      rawText = (raw || text).replace(/<[^>]+>/g, '').trim();
+      rawText = (raw || textString).replace(/<[^>]+>/g, '').trim();
     }
     
     const id = slugger.slug(rawText);
     const levelClass = `heading-level-${level}`;
-    return `<h${level} id="${id}" class="${levelClass}">${text}</h${level}>`;
+    return `<h${level} id="${id}" class="${levelClass}">${textString}</h${level}>`;
   };
   
   // Custom table renderer with enhanced styling
