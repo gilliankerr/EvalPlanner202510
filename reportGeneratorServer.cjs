@@ -165,21 +165,33 @@ function normalizeContent(content) {
   // Handle strings directly
   if (typeof content === 'string') return content;
   
-  // Handle arrays (token arrays)
+  // Handle arrays (token arrays) - use marked to parse them to HTML
   if (Array.isArray(content)) {
-    return flattenTokensToText(content);
+    try {
+      // Use marked.parseInline to convert tokens to HTML while preserving formatting
+      return marked.parseInline(content.map(token => token.raw || token.text || '').join(''));
+    } catch (e) {
+      // Fallback to text extraction if parsing fails
+      return flattenTokensToText(content);
+    }
   }
   
   // Handle objects with various properties
   if (typeof content === 'object') {
+    // If it has tokens, use marked to parse them
+    if (content.tokens && Array.isArray(content.tokens)) {
+      try {
+        // Use marked.parseInline to convert tokens to HTML
+        return marked.parseInline(content.tokens.map(token => token.raw || token.text || '').join(''));
+      } catch (e) {
+        // Fallback to text extraction if parsing fails
+        return flattenTokensToText(content.tokens);
+      }
+    }
+    
     // Try to extract text from common properties
     if (content.text && typeof content.text === 'string') return content.text;
     if (content.raw && typeof content.raw === 'string') return content.raw;
-    
-    // If it has tokens, flatten them
-    if (content.tokens && Array.isArray(content.tokens)) {
-      return flattenTokensToText(content.tokens);
-    }
     
     // If it's an object with toString that's not [object Object]
     const stringified = content.toString();
