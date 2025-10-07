@@ -730,6 +730,14 @@ function generateFullHtmlDocument(markdown, options = {}) {
     includePrintButton = false
   } = options;
   
+  // Debug logging to verify parameters
+  console.log('[Backend Report Generator] Options received:', {
+    programName,
+    organizationName,
+    includePrintButton,
+    optionsKeys: Object.keys(options)
+  });
+  
   const reportData = { programName, organizationName };
   
   // Ensure markdown is a string
@@ -761,7 +769,7 @@ function generateFullHtmlDocument(markdown, options = {}) {
 <body style="background-color: #ffffff; margin: 0; padding: 0;">`;
 
   if (includePrintButton) {
-    // Include print button and sidebar layout (for downloads)
+    // Full layout with sidebar, TOC, and print button - USED FOR BOTH DOWNLOADS AND EMAILS
     htmlDocument += `
     <!-- Table of Contents Layout -->
     <div class="report-container">
@@ -795,7 +803,7 @@ function generateFullHtmlDocument(markdown, options = {}) {
         }
     </script>`;
   } else {
-    // Simple layout without print button (for emails)
+    // Simple layout without print button (only used when explicitly disabled)
     htmlDocument += `
     <div class="report-container">
         <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 2rem;">
