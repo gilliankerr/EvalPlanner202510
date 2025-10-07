@@ -1022,4 +1022,10 @@ function generateHTMLReport(evaluationPlan, options = {}) {
   return html;
 }
 
-module.exports = { generateHTMLReport };
+// Export with both names for compatibility
+const generateFullHtmlDocument = generateHTMLReport;
+
+module.exports = { 
+  generateHTMLReport,
+  generateFullHtmlDocument 
+};
