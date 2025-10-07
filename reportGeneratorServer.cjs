@@ -118,7 +118,9 @@ function initializeMarked(slugger, programName) {
   renderer.table = function(header, body) {
     // Extract text from HTML header for table type detection
     // The header parameter is already processed HTML, not markdown
-    const headerText = header.replace(/<[^>]+>/g, ' ').toLowerCase();
+    // Ensure header is a string before processing
+    const headerStr = String(header || '');
+    const headerText = headerStr.replace(/<[^>]+>/g, ' ').toLowerCase();
     
     const tableType = detectTableType(headerText);
     const isLogicModel = isLogicModelTable(headerText);
@@ -126,7 +128,7 @@ function initializeMarked(slugger, programName) {
     
     return `<div class="table-wrapper ${tableClass}">
       <table class="${tableClass}">
-        <thead>${header}</thead>
+        <thead>${headerStr}</thead>
         <tbody>${body}</tbody>
       </table>
     </div>`;
