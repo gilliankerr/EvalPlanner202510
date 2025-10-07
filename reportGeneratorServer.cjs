@@ -69,23 +69,128 @@ function postProcessHTML(html) {
   return processed;
 }
 
+// Comprehensive token flattening that handles all marked token types
 function flattenTokensToText(tokens) {
+  if (!tokens || !Array.isArray(tokens)) return '';
+  
   return tokens.map(t => {
-    if (t.type === 'text') return t.text;
-    if (t.type === 'strong') return flattenTokensToText(t.tokens);
-    if (t.type === 'em') return flattenTokensToText(t.tokens);
-    if (t.type === 'link') return flattenTokensToText(t.tokens);
-    if (t.type === 'codespan') return t.text;
-    if (t.type === 'br') return '\n';
+    // Handle text content
+    if (t.type === 'text') return t.text || t.raw || '';
+    if (t.type === 'escape') return t.text || t.raw || '';
     if (t.type === 'html') {
-      const htmlText = t.text;
+      const htmlText = t.text || t.raw || '';
       return htmlText.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
     }
+    if (t.type === 'code' || t.type === 'codespan') return t.text || t.raw || '';
+    
+    // Handle inline formatting with nested tokens
+    if (t.type === 'strong' && t.tokens) return flattenTokensToText(t.tokens);
+    if (t.type === 'em' && t.tokens) return flattenTokensToText(t.tokens);
+    if (t.type === 'del' && t.tokens) return flattenTokensToText(t.tokens);
+    if (t.type === 'link' && t.tokens) return flattenTokensToText(t.tokens);
+    
+    // Handle block elements
+    if (t.type === 'paragraph' && t.tokens) return flattenTokensToText(t.tokens);
+    if (t.type === 'heading' && t.tokens) return flattenTokensToText(t.tokens);
+    if (t.type === 'blockquote' && t.tokens) return flattenTokensToText(t.tokens);
+    
+    // Handle lists
+    if (t.type === 'list') {
+      if (t.items) {
+        return t.items.map(item => {
+          if (item.tokens) return flattenTokensToText(item.tokens);
+          if (item.text) return item.text;
+          return '';
+        }).join(' ');
+      }
+      if (t.tokens) return flattenTokensToText(t.tokens);
+      return t.text || '';
+    }
+    
+    if (t.type === 'list_item' || t.type === 'listitem') {
+      if (t.tokens) return flattenTokensToText(t.tokens);
+      return t.text || '';
+    }
+    
+    // Handle tables
+    if (t.type === 'table') {
+      let text = '';
+      if (t.header && Array.isArray(t.header)) {
+        text += t.header.map(row => 
+          row.tokens ? flattenTokensToText(row.tokens) : (row.text || '')
+        ).join(' ');
+      }
+      if (t.rows && Array.isArray(t.rows)) {
+        t.rows.forEach(row => {
+          if (Array.isArray(row)) {
+            text += ' ' + row.map(cell => 
+              cell.tokens ? flattenTokensToText(cell.tokens) : (cell.text || '')
+            ).join(' ');
+          }
+        });
+      }
+      return text;
+    }
+    
+    // Handle breaks and spacing
+    if (t.type === 'br') return '\n';
+    if (t.type === 'hr') return '\n---\n';
+    if (t.type === 'space') return ' ';
+    
+    // Handle images
+    if (t.type === 'image') return t.text || t.title || '';
+    
+    // Fallback for any token with text/raw properties
+    if (t.text) return t.text;
+    if (t.raw) return t.raw;
+    
+    // For any unhandled types with tokens array
+    if (t.tokens && Array.isArray(t.tokens)) {
+      return flattenTokensToText(t.tokens);
+    }
+    
+    // Final fallback - return empty string instead of the object
     return '';
   }).join('')
     .replace(/[\t\r\f\v ]+/g, ' ')
     .replace(/\s*\n\s*/g, '\n')
     .trim();
+}
+
+// Universal content normalizer for all renderers
+function normalizeContent(content) {
+  // Handle null/undefined
+  if (content == null) return '';
+  
+  // Handle strings directly
+  if (typeof content === 'string') return content;
+  
+  // Handle arrays (token arrays)
+  if (Array.isArray(content)) {
+    return flattenTokensToText(content);
+  }
+  
+  // Handle objects with various properties
+  if (typeof content === 'object') {
+    // Try to extract text from common properties
+    if (content.text && typeof content.text === 'string') return content.text;
+    if (content.raw && typeof content.raw === 'string') return content.raw;
+    
+    // If it has tokens, flatten them
+    if (content.tokens && Array.isArray(content.tokens)) {
+      return flattenTokensToText(content.tokens);
+    }
+    
+    // If it's an object with toString that's not [object Object]
+    const stringified = content.toString();
+    if (stringified && !stringified.includes('[object Object]')) {
+      return stringified;
+    }
+  }
+  
+  // Last resort - convert to string but avoid [object Object]
+  const result = String(content);
+  return result.includes('[object Object]') ? '' : result;
 }
 
 // Initialize marked with custom renderer
@@ -146,9 +251,9 @@ function initializeMarked(slugger, programName) {
       // body parameter stays as passed
     }
     
-    // Ensure header and body are strings
-    const headerStr = String(header || '');
-    const bodyStr = String(body || '');
+    // Use normalizeContent for proper string conversion
+    const headerStr = normalizeContent(header);
+    const bodyStr = normalizeContent(body);
     const headerText = headerStr.replace(/<[^>]+>/g, ' ').toLowerCase();
     
     const tableType = detectTableType(headerText);
@@ -179,8 +284,8 @@ function initializeMarked(slugger, programName) {
       // ordered and start parameters stay as passed
     }
     
-    // Ensure body is a string
-    const bodyStr = String(body || '');
+    // Use normalizeContent for proper string conversion
+    const bodyStr = normalizeContent(body);
     const type = ordered ? 'ol' : 'ul';
     const startAttr = (ordered && start !== undefined && start !== 1) ? ` start="${start}"` : '';
     return `<${type}${startAttr} class="content-list">${bodyStr}</${type}>`;
@@ -199,7 +304,8 @@ function initializeMarked(slugger, programName) {
       content = contentOrOptions;
     }
     
-    const contentStr = String(content || '');
+    // Use normalizeContent for proper string conversion
+    const contentStr = normalizeContent(content);
     return `<tr>${contentStr}</tr>`;
   };
   
@@ -221,7 +327,8 @@ function initializeMarked(slugger, programName) {
       align = flags?.align;
     }
     
-    const contentStr = String(content || '');
+    // Use normalizeContent for proper string conversion
+    const contentStr = normalizeContent(content);
     const tag = header ? 'th' : 'td';
     const alignAttr = align ? ` style="text-align: ${align};"` : '';
     return `<${tag}${alignAttr}>${contentStr}</${tag}>`;
@@ -243,7 +350,8 @@ function initializeMarked(slugger, programName) {
       // task and checked parameters stay as passed
     }
     
-    const textStr = String(text || '');
+    // Use normalizeContent for proper string conversion
+    const textStr = normalizeContent(text);
     
     if (task) {
       const checkbox = checked 
