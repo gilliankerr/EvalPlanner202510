@@ -122,10 +122,10 @@ function initializeMarked(slugger, programName) {
     const rawText = text.replace(/<[^>]+>/g, '').trim();
     const anchor = slugger.slug(rawText);
     
-    return `<h${depth} id="${anchor}">${text}</h${depth}>`;
+    return `<h${depth} id="${anchor}" class="heading-level-${depth}">${text}</h${depth}>`;
   };
   
-  // Custom paragraph renderer
+  // Custom paragraph renderer for better spacing
   renderer.paragraph = function(token) {
     let text = '';
     
@@ -141,7 +141,10 @@ function initializeMarked(slugger, programName) {
       text = String(token || '');
     }
     
-    return `<p>${text}</p>\n`;
+    if (text.startsWith('<strong>') && (text.includes('Phase') || text.includes('Component'))) {
+      return `<div class="phase-header">${text}</div>`;
+    }
+    return `<p>${text}</p>`;
   };
   
   // Custom table renderer
@@ -157,7 +160,7 @@ function initializeMarked(slugger, programName) {
         const cellText = cell.tokens ? renderInline(cell.tokens) : cell.text || '';
         return `<th${alignAttr}>${cellText}</th>`;
       }).join('');
-      headerHTML = `<tr>\n${headerCells}\n</tr>`;
+      headerHTML = `<tr>${headerCells}</tr>`;
       
       // Build body rows
       const bodyRows = token.rows.map(row => {
@@ -166,7 +169,7 @@ function initializeMarked(slugger, programName) {
           const cellText = cell.tokens ? renderInline(cell.tokens) : cell.text || '';
           return `<td${alignAttr}>${cellText}</td>`;
         }).join('');
-        return `<tr>\n${cells}\n</tr>`;
+        return `<tr>${cells}</tr>`;
       }).join('\n');
       bodyHTML = bodyRows;
     } else {
@@ -175,31 +178,18 @@ function initializeMarked(slugger, programName) {
       bodyHTML = '';
     }
     
-    // Extract header text for classification
-    const headerText = headerHTML.toLowerCase();
+    // Analyze table type from header content
+    const headerText = headerHTML.replace(/<[^>]+>/g, ' ').toLowerCase();
+    const tableType = detectTableType(headerText);
     const isLogicModel = isLogicModelTable(headerText);
-    const tableClass = isLogicModel ? 'logic-model-table' : detectTableType(headerText);
+    const tableClass = isLogicModel ? 'logic-model-table' : tableType;
     
-    if (isLogicModel) {
-      return `
-        <div class="logic-model-section">
-          <h3 class="logic-model-title">Logic Model for ${programName}</h3>
-          <div class="table-responsive">
-            <table class="${tableClass}">
-              <thead>${headerHTML}</thead>
-              <tbody>${bodyHTML}</tbody>
-            </table>
-          </div>
-        </div>\n`;
-    }
-    
-    return `
-      <div class="table-responsive">
-        <table class="${tableClass}">
-          <thead>${headerHTML}</thead>
-          <tbody>${bodyHTML}</tbody>
-        </table>
-      </div>\n`;
+    return `<div class="table-wrapper ${tableClass}">
+      <table class="${tableClass}">
+        <thead>${headerHTML}</thead>
+        <tbody>${bodyHTML}</tbody>
+      </table>
+    </div>`;
   };
   
   // Custom list renderer
@@ -220,11 +210,11 @@ function initializeMarked(slugger, programName) {
           const checkbox = item.checked 
             ? '<input type="checkbox" checked disabled> '
             : '<input type="checkbox" disabled> ';
-          const text = item.tokens ? marked.parse(item.tokens) : item.text || '';
+          const text = item.tokens ? renderInline(item.tokens) : item.text || '';
           return `<li class="task-list-item">${checkbox}${text}</li>`;
         } else {
           // Regular list item
-          const text = item.tokens ? marked.parse(item.tokens) : item.text || '';
+          const text = item.tokens ? renderInline(item.tokens) : item.text || '';
           return `<li>${text}</li>`;
         }
       }).join('\n');
@@ -235,37 +225,14 @@ function initializeMarked(slugger, programName) {
     
     const type = ordered ? 'ol' : 'ul';
     const startAttr = (ordered && start !== 1) ? ` start="${start}"` : '';
-    return `<${type}${startAttr}>\n${bodyHTML}\n</${type}>\n`;
+    return `<${type}${startAttr} class="content-list">${bodyHTML}</${type}>`;
   };
   
-  // Custom code renderer
-  renderer.code = function(token) {
-    // Handle both old and new marked API signatures
-    let code, lang;
-    
-    if (typeof token === 'object' && token !== null) {
-      // New API: token object
-      code = token.text || '';
-      lang = token.lang || '';
-    } else {
-      // Old API: (code, infostring, escaped) parameters
-      code = arguments[0] || token || '';
-      lang = arguments[1] || '';
-    }
-    
-    // Highlight code if language is specified
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        const highlighted = hljs.highlight(code, { language: lang }).value;
-        return `<pre><code class="hljs language-${lang}">${highlighted}</code></pre>\n`;
-      } catch (err) {
-        console.error('Highlighting error:', err);
-      }
-    }
-    
-    // Fallback to plain code block
-    const escaped = code.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return `<pre><code>${escaped}</code></pre>\n`;
+  // Code block with syntax highlighting
+  renderer.code = function(code, language) {
+    const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
+    const highlighted = hljs.highlight(code, { language: validLanguage }).value;
+    return `<pre><code class="hljs ${validLanguage}">${highlighted}</code></pre>`;
   };
   
   return renderer;
@@ -310,14 +277,8 @@ function generateFullHtmlDocument(markdownContent, organizationName, programName
   marked.setOptions({
     renderer: renderer,
     highlight: function(code, lang) {
-      if (lang && hljs.getLanguage(lang)) {
-        try {
-          return hljs.highlight(code, { language: lang }).value;
-        } catch (err) {
-          console.error('Highlighting error:', err);
-        }
-      }
-      return code;
+      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+      return hljs.highlight(code, { language }).value;
     },
     breaks: true,
     gfm: true,
