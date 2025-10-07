@@ -1,208 +1,49 @@
-// Server-side report generator (CommonJS version)
-const { marked } = require('marked');
+const express = require('express');
+const cors = require('cors');
+const pg = require('pg');
+const marked = require('marked');
 const hljs = require('highlight.js');
-const DOMPurify = require('dompurify');
-const { JSDOM } = require('jsdom');
 
-// Node.js environment initialization
-const window = new JSDOM('').window;
-const purify = DOMPurify(window);
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: '50mb' }));
 
-// Helper functions
-function createSlugger() {
-  const slugs = {};
-  return {
-    reset: () => {
-      Object.keys(slugs).forEach(key => delete slugs[key]);
-    },
-    slug: (text) => {
-      const baseSlug = text.toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .replace(/--+/g, '-');
-      
-      if (!slugs[baseSlug]) {
-        slugs[baseSlug] = 0;
-        return baseSlug;
-      } else {
-        slugs[baseSlug]++;
-        return `${baseSlug}-${slugs[baseSlug]}`;
-      }
-    }
-  };
-}
+const port = process.env.EMAIL_SERVER_PORT || 3001;
 
+// Initialize database connection
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+// Helper function to detect table type based on headers
 function detectTableType(headerText) {
-  const header = headerText.toLowerCase();
-  if (header.includes('timeline') || header.includes('phase') || header.includes('month') || header.includes('quarter')) {
-    return 'timeline-table';
+  if (headerText.includes('risk') && headerText.includes('mitigation')) {
+    return 'risks-table';
   }
-  if (header.includes('stakeholder') || header.includes('role') || header.includes('responsibility')) {
+  if (headerText.includes('stakeholder') || headerText.includes('interest')) {
     return 'stakeholder-table';
   }
-  if (header.includes('evaluation') || header.includes('method') || header.includes('approach')) {
-    return 'evaluation-table';
+  if (headerText.includes('method') || headerText.includes('data')) {
+    return 'methods-table';
   }
-  if (header.includes('metric') || header.includes('indicator') || header.includes('measure')) {
-    return 'metrics-table';
+  if (headerText.includes('timeline') || headerText.includes('milestone')) {
+    return 'timeline-table';
+  }
+  if (headerText.includes('budget') || headerText.includes('cost')) {
+    return 'budget-table';
+  }
+  if (headerText.includes('indicator') || headerText.includes('metric')) {
+    return 'indicators-table';
   }
   return 'standard-table';
 }
 
+// Helper function to check if a table is a Logic Model
 function isLogicModelTable(headerText) {
-  const header = headerText.toLowerCase();
-  const logicModelKeywords = ['inputs', 'activities', 'outputs', 'outcomes', 'impact'];
-  return logicModelKeywords.some(keyword => header.includes(keyword));
-}
-
-function postProcessHTML(html) {
-  let processed = html.replace(/<section class="content-section"><h2([^>]*)>([^<]*)<\/h2>/g, 
-    '</section><section class="content-section"><h2$1>$2</h2>');
-  
-  processed = processed.replace(/^<\/section>/, '');
-  
-  if (processed.includes('<section class="content-section">')) {
-    processed += '</section>';
-  }
-  
-  return processed;
-}
-
-// Comprehensive token flattening that handles all marked token types
-function flattenTokensToText(tokens) {
-  if (!tokens || !Array.isArray(tokens)) return '';
-  
-  return tokens.map(t => {
-    // Handle text content
-    if (t.type === 'text') return t.text || t.raw || '';
-    if (t.type === 'escape') return t.text || t.raw || '';
-    if (t.type === 'html') {
-      const htmlText = t.text || t.raw || '';
-      return htmlText.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
-    }
-    if (t.type === 'code' || t.type === 'codespan') return t.text || t.raw || '';
-    
-    // Handle inline formatting with nested tokens
-    if (t.type === 'strong' && t.tokens) return flattenTokensToText(t.tokens);
-    if (t.type === 'em' && t.tokens) return flattenTokensToText(t.tokens);
-    if (t.type === 'del' && t.tokens) return flattenTokensToText(t.tokens);
-    if (t.type === 'link' && t.tokens) return flattenTokensToText(t.tokens);
-    
-    // Handle block elements
-    if (t.type === 'paragraph' && t.tokens) return flattenTokensToText(t.tokens);
-    if (t.type === 'heading' && t.tokens) return flattenTokensToText(t.tokens);
-    if (t.type === 'blockquote' && t.tokens) return flattenTokensToText(t.tokens);
-    
-    // Handle lists
-    if (t.type === 'list') {
-      if (t.items) {
-        return t.items.map(item => {
-          if (item.tokens) return flattenTokensToText(item.tokens);
-          if (item.text) return item.text;
-          return '';
-        }).join(' ');
-      }
-      if (t.tokens) return flattenTokensToText(t.tokens);
-      return t.text || '';
-    }
-    
-    if (t.type === 'list_item' || t.type === 'listitem') {
-      if (t.tokens) return flattenTokensToText(t.tokens);
-      return t.text || '';
-    }
-    
-    // Handle tables
-    if (t.type === 'table') {
-      let text = '';
-      if (t.header && Array.isArray(t.header)) {
-        text += t.header.map(row => 
-          row.tokens ? flattenTokensToText(row.tokens) : (row.text || '')
-        ).join(' ');
-      }
-      if (t.rows && Array.isArray(t.rows)) {
-        t.rows.forEach(row => {
-          if (Array.isArray(row)) {
-            text += ' ' + row.map(cell => 
-              cell.tokens ? flattenTokensToText(cell.tokens) : (cell.text || '')
-            ).join(' ');
-          }
-        });
-      }
-      return text;
-    }
-    
-    // Handle breaks and spacing
-    if (t.type === 'br') return '\n';
-    if (t.type === 'hr') return '\n---\n';
-    if (t.type === 'space') return ' ';
-    
-    // Handle images
-    if (t.type === 'image') return t.text || t.title || '';
-    
-    // Fallback for any token with text/raw properties
-    if (t.text) return t.text;
-    if (t.raw) return t.raw;
-    
-    // For any unhandled types with tokens array
-    if (t.tokens && Array.isArray(t.tokens)) {
-      return flattenTokensToText(t.tokens);
-    }
-    
-    // Final fallback - return empty string instead of the object
-    return '';
-  }).join('')
-    .replace(/[\t\r\f\v ]+/g, ' ')
-    .replace(/\s*\n\s*/g, '\n')
-    .trim();
-}
-
-// Universal content normalizer for all renderers
-function normalizeContent(content) {
-  // Handle null/undefined
-  if (content == null) return '';
-  
-  // Handle strings directly
-  if (typeof content === 'string') return content;
-  
-  // Handle arrays (token arrays) - use marked to parse them to HTML
-  if (Array.isArray(content)) {
-    try {
-      // Use marked.parseInline to convert tokens to HTML while preserving formatting
-      return marked.parseInline(content.map(token => token.raw || token.text || '').join(''));
-    } catch (e) {
-      // Fallback to text extraction if parsing fails
-      return flattenTokensToText(content);
-    }
-  }
-  
-  // Handle objects with various properties
-  if (typeof content === 'object') {
-    // If it has tokens, use marked to parse them
-    if (content.tokens && Array.isArray(content.tokens)) {
-      try {
-        // Use marked.parseInline to convert tokens to HTML
-        return marked.parseInline(content.tokens.map(token => token.raw || token.text || '').join(''));
-      } catch (e) {
-        // Fallback to text extraction if parsing fails
-        return flattenTokensToText(content.tokens);
-      }
-    }
-    
-    // Try to extract text from common properties
-    if (content.text && typeof content.text === 'string') return content.text;
-    if (content.raw && typeof content.raw === 'string') return content.raw;
-    
-    // If it's an object with toString that's not [object Object]
-    const stringified = content.toString();
-    if (stringified && !stringified.includes('[object Object]')) {
-      return stringified;
-    }
-  }
-  
-  // Last resort - convert to string but avoid [object Object]
-  const result = String(content);
-  return result.includes('[object Object]') ? '' : result;
+  const logicModelKeywords = ['inputs', 'activities', 'outputs', 'outcomes'];
+  const matches = logicModelKeywords.filter(keyword => headerText.includes(keyword));
+  return matches.length >= 3;
 }
 
 // Initialize marked with custom renderer
@@ -210,62 +51,62 @@ function initializeMarked(slugger, programName) {
   const renderer = new marked.Renderer();
   
   // Custom heading renderer with IDs for TOC navigation
-  renderer.heading = function(textOrOptions, level, raw) {
+  renderer.heading = function(text, level, raw) {
     // Handle both old and new marked API signatures
-    let tokens, depth, text;
+    let tokens, depth;
     
-    if (typeof textOrOptions === 'object' && textOrOptions !== null) {
+    if (typeof text === 'object' && text !== null) {
       // New API: object with { tokens, depth, text }
-      tokens = textOrOptions.tokens;
-      depth = textOrOptions.depth;
-      text = textOrOptions.text;
+      tokens = text.tokens;
+      depth = text.depth || level;
+      // For new API, we need to parse tokens to get HTML
+      if (tokens && Array.isArray(tokens)) {
+        text = this.parser.parseInline(tokens);
+      } else {
+        text = text.text || '';
+      }
     } else {
       // Old API: (text, level, raw)
-      text = textOrOptions;
       depth = level;
     }
     
     // Ensure we have valid values
     depth = depth || 1;
-    text = String(text || '');
+    const textStr = String(text || '');
     
     // Extract clean text for ID generation
-    let rawText;
-    if (tokens && Array.isArray(tokens)) {
-      // Use tokens if available (more reliable)
-      rawText = flattenTokensToText(tokens);
-    } else {
-      // Fallback to text string
-      rawText = text.replace(/<[^>]+>/g, '').trim();
-    }
+    const rawText = textStr.replace(/<[^>]+>/g, '').trim();
     
     // Generate consistent ID for TOC navigation
     const id = slugger.slug(rawText);
     const levelClass = `heading-level-${depth}`;
     
-    // Use the provided text for display (already processed by marked)
-    return `<h${depth} id="${id}" class="${levelClass}">${text}</h${depth}>`;
+    return `<h${depth} id="${id}" class="${levelClass}">${textStr}</h${depth}>`;
   };
   
   // Custom table renderer with enhanced styling
-  renderer.table = function(headerOrOptions, body) {
+  renderer.table = function(header, body) {
     // Handle both old and new marked API signatures
-    let header, align;
+    let align;
     
-    if (typeof headerOrOptions === 'object' && headerOrOptions !== null) {
+    if (typeof header === 'object' && header !== null && header.header !== undefined) {
       // New API: object with { header, body, align }
-      header = headerOrOptions.header;
-      body = headerOrOptions.body;
-      align = headerOrOptions.align;
-    } else {
-      // Old API: (header, body)
-      header = headerOrOptions;
-      // body parameter stays as passed
+      const obj = header;
+      header = obj.header;
+      body = obj.body;
+      align = obj.align;
     }
     
-    // Use normalizeContent for proper string conversion
-    const headerStr = normalizeContent(header);
-    const bodyStr = normalizeContent(body);
+    // Parse tokens to get HTML if needed
+    if (Array.isArray(header)) {
+      header = this.parser.parseInline(header);
+    }
+    if (Array.isArray(body)) {
+      body = this.parser.parseInline(body);
+    }
+    
+    const headerStr = String(header || '');
+    const bodyStr = String(body || '');
     const headerText = headerStr.replace(/<[^>]+>/g, ' ').toLowerCase();
     
     const tableType = detectTableType(headerText);
@@ -281,89 +122,89 @@ function initializeMarked(slugger, programName) {
   };
   
   // Custom list renderer
-  renderer.list = function(bodyOrOptions, ordered, start) {
+  renderer.list = function(body, ordered, start) {
     // Handle both old and new marked API signatures
-    let body;
-    
-    if (typeof bodyOrOptions === 'object' && bodyOrOptions !== null) {
+    if (typeof body === 'object' && body !== null && body.body !== undefined) {
       // New API: object with { body, ordered, start }
-      body = bodyOrOptions.body;
-      ordered = bodyOrOptions.ordered;
-      start = bodyOrOptions.start;
-    } else {
-      // Old API: (body, ordered, start)
-      body = bodyOrOptions;
-      // ordered and start parameters stay as passed
+      const obj = body;
+      body = obj.body;
+      ordered = obj.ordered;
+      start = obj.start;
     }
     
-    // Use normalizeContent for proper string conversion
-    const bodyStr = normalizeContent(body);
+    // Parse tokens if needed
+    if (Array.isArray(body)) {
+      body = this.parser.parseInline(body);
+    }
+    
+    const bodyStr = String(body || '');
     const type = ordered ? 'ol' : 'ul';
     const startAttr = (ordered && start !== undefined && start !== 1) ? ` start="${start}"` : '';
     return `<${type}${startAttr} class="content-list">${bodyStr}</${type}>`;
   };
   
   // Custom table row renderer
-  renderer.tablerow = function(contentOrOptions) {
+  renderer.tablerow = function(content) {
     // Handle both old and new marked API signatures
-    let content;
-    
-    if (typeof contentOrOptions === 'object' && contentOrOptions !== null) {
-      // New API: object with { text }
-      content = contentOrOptions.text;
-    } else {
-      // Old API: direct content string
-      content = contentOrOptions;
+    if (typeof content === 'object' && content !== null) {
+      // New API: object with { text } or direct token array
+      if (content.text !== undefined) {
+        content = content.text;
+      } else if (Array.isArray(content)) {
+        content = this.parser.parseInline(content);
+      }
     }
     
-    // Use normalizeContent for proper string conversion
-    const contentStr = normalizeContent(content);
+    const contentStr = String(content || '');
     return `<tr>${contentStr}</tr>`;
   };
   
   // Custom table cell renderer
-  renderer.tablecell = function(contentOrOptions, flags) {
+  renderer.tablecell = function(content, flags) {
     // Handle both old and new marked API signatures
-    let content, header, align;
+    let header, align;
     
-    if (typeof contentOrOptions === 'object' && contentOrOptions !== null) {
-      // New API: object with { text, flags }
-      content = contentOrOptions.text;
-      flags = contentOrOptions.flags;
-      header = flags?.header;
-      align = flags?.align;
-    } else {
-      // Old API: (content, flags)
-      content = contentOrOptions;
-      header = flags?.header;
-      align = flags?.align;
+    if (typeof content === 'object' && content !== null) {
+      // New API: object with { text, tokens, flags }
+      if (content.tokens && Array.isArray(content.tokens)) {
+        content = this.parser.parseInline(content.tokens);
+      } else if (content.text !== undefined) {
+        content = content.text;
+      }
+      
+      if (content.flags) {
+        flags = content.flags;
+      }
     }
     
-    // Use normalizeContent for proper string conversion
-    const contentStr = normalizeContent(content);
+    // Parse flags
+    if (flags) {
+      header = flags.header;
+      align = flags.align;
+    }
+    
+    const contentStr = String(content || '');
     const tag = header ? 'th' : 'td';
     const alignAttr = align ? ` style="text-align: ${align};"` : '';
     return `<${tag}${alignAttr}>${contentStr}</${tag}>`;
   };
   
   // Custom list item renderer
-  renderer.listitem = function(textOrOptions, task, checked) {
+  renderer.listitem = function(text, task, checked) {
     // Handle both old and new marked API signatures
-    let text;
-    
-    if (typeof textOrOptions === 'object' && textOrOptions !== null) {
-      // New API: object with { text, task, checked }
-      text = textOrOptions.text;
-      task = textOrOptions.task;
-      checked = textOrOptions.checked;
-    } else {
-      // Old API: (text, task, checked)
-      text = textOrOptions;
-      // task and checked parameters stay as passed
+    if (typeof text === 'object' && text !== null) {
+      // New API: object with { text, tokens, task, checked }
+      const obj = text;
+      if (obj.tokens && Array.isArray(obj.tokens)) {
+        text = this.parser.parseInline(obj.tokens);
+      } else {
+        text = obj.text || '';
+      }
+      task = obj.task !== undefined ? obj.task : task;
+      checked = obj.checked !== undefined ? obj.checked : checked;
     }
     
-    // Use normalizeContent for proper string conversion
-    const textStr = normalizeContent(text);
+    const textStr = String(text || '');
     
     if (task) {
       const checkbox = checked 
@@ -376,20 +217,17 @@ function initializeMarked(slugger, programName) {
   };
   
   // Custom paragraph renderer for better spacing
-  renderer.paragraph = function(textOrOptions) {
+  renderer.paragraph = function(text) {
     // Handle both old and new marked API signatures
-    let text, tokens;
-    
-    if (typeof textOrOptions === 'object' && textOrOptions !== null && textOrOptions.text !== undefined) {
+    if (typeof text === 'object' && text !== null) {
       // New API: object with { text, tokens }
-      text = textOrOptions.text;
-      tokens = textOrOptions.tokens;
-    } else {
-      // Old API or string: direct text
-      text = textOrOptions;
+      if (text.tokens && Array.isArray(text.tokens)) {
+        text = this.parser.parseInline(text.tokens);
+      } else {
+        text = text.text || '';
+      }
     }
     
-    // Ensure text is a string
     const textString = String(text || '');
     
     if (textString.startsWith('<strong>') && (textString.includes('Phase') || textString.includes('Component'))) {
@@ -402,90 +240,53 @@ function initializeMarked(slugger, programName) {
   renderer.code = function(code, language) {
     const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
     const highlighted = hljs.highlight(code, { language: validLanguage }).value;
-    return `<pre class="code-block"><code class="hljs language-${validLanguage}">${highlighted}</code></pre>`;
+    return `<pre><code class="hljs ${validLanguage}">${highlighted}</code></pre>`;
   };
   
-  // Enhanced blockquote styling
-  renderer.blockquote = function(quote) {
-    return `<blockquote class="enhanced-quote">${quote}</blockquote>`;
-  };
-  
-  // Configure marked with custom renderer
+  // Set up marked with the custom renderer
   marked.setOptions({
-    renderer,
+    renderer: renderer,
     highlight: function(code, lang) {
       const language = hljs.getLanguage(lang) ? lang : 'plaintext';
       return hljs.highlight(code, { language }).value;
     },
     breaks: true,
-    gfm: true,
-    headerIds: true,
-    mangle: false
+    gfm: true
   });
+  
+  return renderer;
 }
 
-// Convert markdown to HTML content only (no document wrapper)
-function convertMarkdownToHtml(markdown, reportData) {
-  try {
-    const slugger = createSlugger();
-    initializeMarked(slugger, reportData.programName);
-    
-    const rawHtml = marked.parse(markdown);
-    
-    const processedHtml = postProcessHTML(rawHtml);
-    
-    const sanitizedHtml = purify.sanitize(processedHtml, {
-      ALLOWED_TAGS: [
-        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'div', 'span', 'a', 'ul', 'ol', 'li',
-        'table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption', 'strong', 'em', 'code',
-        'pre', 'blockquote', 'br', 'hr', 'img', 'figure', 'figcaption', 'section'
-      ],
-      ALLOWED_ATTR: [
-        'id', 'class', 'href', 'title', 'alt', 'src', 'width', 'height', 'style'
-      ],
-      ALLOW_DATA_ATTR: false
-    });
-    
-    return sanitizedHtml;
-  } catch (error) {
-    console.error('Error converting markdown to HTML:', error);
-    return `<div class="error-message">Error processing evaluation plan content. Please try regenerating the plan.</div>`;
-  }
-}
-
-// Generate table of contents
-function generateTOC(markdown) {
-  try {
-    const slugger = createSlugger();
-    slugger.reset();
-    
-    const tokens = marked.lexer(markdown);
-    const tocItems = [];
-    
-    tokens.forEach(token => {
-      if (token.type === 'heading' && token.depth <= 3) {
-        // Use the same text extraction logic as the heading renderer
-        const rawText = flattenTokensToText(token.tokens);
-        const id = slugger.slug(rawText);
-        const level = token.depth;
-        const levelClass = level === 1 ? 'toc-level-1' : level === 2 ? 'toc-level-2' : 'toc-level-3';
-        
-        const displayText = purify.sanitize(rawText, { ALLOWED_TAGS: [] });
-        
-        tocItems.push(`<div class="toc-item ${levelClass}"><a href="#${id}">${displayText}</a></div>`);
-      }
-    });
-    
-    return tocItems.join('');
-  } catch (error) {
-    console.error('Error generating TOC:', error);
-    return '<div class="error-message">Error generating table of contents</div>';
-  }
-}
-
-// Get report styles
-function getReportStyles() {
-  return `
+// Generate the complete HTML document
+function generateHTMLReport(evaluationPlan, options = {}) {
+  const { 
+    programName = 'Program',
+    organizationName = 'Organization',
+    includePrintButton = true
+  } = options;
+  
+  console.log('[Backend Report Generator] Options received:', {
+    programName,
+    organizationName,
+    includePrintButton,
+    optionsKeys: Object.keys(options)
+  });
+  
+  const date = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  
+  // Initialize slugger for heading IDs
+  const slugger = new marked.Slugger();
+  
+  // Process the markdown content with our custom renderer
+  initializeMarked(slugger, programName);
+  const contentHTML = marked.parse(evaluationPlan);
+  
+  // Reuse CSS from the frontend
+  const styles = `
     @media print {
       .no-print { display: none; }
       .page-break { page-break-before: always; }
@@ -494,555 +295,400 @@ function getReportStyles() {
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       line-height: 1.6;
-      color: #1e293b;
-      max-width: 1200px;
+      color: #2d3748;
+      background-color: white;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .container {
+      max-width: 900px;
       margin: 0 auto;
       padding: 2rem;
     }
     
-    h1:first-of-type {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: #0f172a;
-      margin: 2rem 0 1rem 0;
-      padding-bottom: 1rem;
-      border-bottom: 3px solid #2563eb;
+    .header {
       text-align: center;
-    }
-    
-    .subtitle {
-      text-align: center;
-      color: #64748b;
-      font-size: 1.1rem;
       margin-bottom: 3rem;
-      font-weight: 400;
-    }
-    
-    h2 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: #1e293b;
-      margin: 3rem 0 1.5rem 0;
-      padding-bottom: 0.75rem;
+      padding-bottom: 1rem;
       border-bottom: 2px solid #e2e8f0;
-      position: relative;
     }
     
-    h2::before {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      width: 60px;
-      height: 2px;
-      background: #2563eb;
-    }
-    
-    h3 {
-      font-size: 1.375rem;
-      font-weight: 600;
-      color: #374151;
-      margin: 2.5rem 0 1rem 0;
-      padding-left: 1rem;
-      border-left: 4px solid #3b82f6;
-    }
-    
-    h4 {
-      font-size: 1.25rem;
-      font-weight: 500;
-      color: #4b5563;
-      margin: 2rem 0 0.75rem 0;
-    }
-    
-    p {
-      margin-bottom: 1.25rem;
-      line-height: 1.7;
-      color: #374151;
-    }
-    
-    ul, ol {
-      margin: 1rem 0 1.5rem 0;
-      padding-left: 2rem;
-    }
-    
-    li {
+    .header h1 {
+      color: #1a365d;
+      font-size: 2rem;
       margin-bottom: 0.5rem;
-      line-height: 1.6;
-      color: #374151;
     }
     
-    strong {
+    .header .subtitle {
+      color: #4a5568;
+      font-size: 1.1rem;
+      margin-top: 0.5rem;
+    }
+    
+    .header .date {
+      color: #718096;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+    }
+    
+    .content {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 { 
+      color: #1a365d; 
+      font-size: 2rem; 
+      margin-top: 2rem; 
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+    
+    h2 { 
+      color: #2c5282; 
+      font-size: 1.5rem; 
+      margin-top: 2rem; 
+      margin-bottom: 1rem;
       font-weight: 600;
-      color: #1e293b;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 0.5rem;
     }
     
-    a {
-      color: #2563eb;
-      text-decoration: underline;
-      font-weight: 500;
-      transition: color 0.2s ease;
+    h3 { 
+      color: #2d3748; 
+      font-size: 1.25rem; 
+      margin-top: 1.5rem; 
+      margin-bottom: 0.75rem;
+      font-weight: 600;
     }
     
-    a:hover {
-      color: #1d4ed8;
-      text-decoration: underline;
+    h4 { 
+      color: #4a5568; 
+      font-size: 1.1rem; 
+      margin-top: 1.25rem; 
+      margin-bottom: 0.5rem;
+      font-weight: 600;
     }
     
-    a:visited {
-      color: #7c3aed;
+    p { 
+      margin-bottom: 1rem; 
+      text-align: justify;
+      color: #2d3748;
+    }
+    
+    ul, ol { 
+      margin-bottom: 1rem; 
+      padding-left: 2rem;
+      color: #2d3748;
+    }
+    
+    li { 
+      margin-bottom: 0.5rem; 
+    }
+    
+    /* Enhanced table styles */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 2rem 0;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
     
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 2rem 0;
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    }
-    
-    .table-wrapper {
-      overflow-x: auto;
-      margin: 2rem 0;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    }
-    
-    thead {
-      background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+      font-size: 0.95rem;
     }
     
     th {
-      padding: 1rem;
-      text-align: left;
+      background-color: #f7fafc;
+      color: #1a365d;
       font-weight: 600;
-      color: #0f172a;
-      border-bottom: 2px solid #e2e8f0;
-      white-space: nowrap;
+      text-align: left;
+      padding: 1rem;
+      border-bottom: 2px solid #cbd5e0;
     }
     
     td {
-      padding: 0.875rem 1rem;
-      border-bottom: 1px solid #f1f5f9;
-      color: #475569;
+      padding: 1rem;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: top;
     }
     
-    tr:last-child td {
-      border-bottom: none;
+    tr:hover {
+      background-color: #f7fafc;
     }
     
-    tbody tr:hover {
-      background-color: #f8fafc;
-    }
-    
-    /* Logic Model Table Styling */
+    /* Logic Model specific styling */
     .logic-model-table {
-      margin: 3rem 0;
+      margin: 2rem 0;
     }
     
     .logic-model-table table {
-      border-radius: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    
-    .logic-model-table thead {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-color: white;
     }
     
     .logic-model-table th {
+      background-color: #2c5282;
       color: white;
-      font-size: 1.1rem;
-      padding: 1.25rem;
-      border-bottom: none;
+      text-align: center;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 1rem 0.5rem;
+      white-space: normal;
     }
     
     .logic-model-table td {
-      padding: 1rem 1.25rem;
-      vertical-align: top;
-      background: white;
-      position: relative;
-    }
-    
-    .logic-model-table td::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 4px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .logic-model-table tr:hover td::before {
-      opacity: 1;
-    }
-    
-    /* Timeline Table Styling */
-    .timeline-table table {
-      background: linear-gradient(to bottom, #fefce8, #fffbeb);
-    }
-    
-    .timeline-table th {
-      background: #facc15;
-      color: #713f12;
-    }
-    
-    /* Stakeholder Table Styling */
-    .stakeholder-table table {
-      background: linear-gradient(to bottom, #f0fdf4, #f7fee7);
-    }
-    
-    .stakeholder-table th {
-      background: #84cc16;
-      color: #365314;
-    }
-    
-    /* Evaluation Table Styling */
-    .evaluation-table table {
-      background: linear-gradient(to bottom, #eff6ff, #f0f9ff);
-    }
-    
-    .evaluation-table th {
-      background: #3b82f6;
-      color: white;
-    }
-    
-    /* Metrics Table Styling */
-    .metrics-table table {
-      background: linear-gradient(to bottom, #fef2f2, #fff5f5);
-    }
-    
-    .metrics-table th {
-      background: #f87171;
-      color: white;
-    }
-    
-    /* Phase Headers */
-    .phase-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 1rem 1.5rem;
-      border-radius: 8px;
-      margin: 2rem 0 1rem 0;
-      font-weight: 600;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    
-    /* Enhanced Callouts/Blockquotes */
-    blockquote.enhanced-quote {
-      background: linear-gradient(to right, #f0f9ff, #e0f2fe);
-      border-left: 4px solid #3b82f6;
-      padding: 1.5rem;
-      margin: 2rem 0;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-    
-    blockquote.enhanced-quote p {
-      margin: 0;
-      color: #1e3a8a;
-      font-style: italic;
-    }
-    
-    /* Code Blocks */
-    .code-block {
-      background: #1e293b;
-      color: #e2e8f0;
-      padding: 1.5rem;
-      border-radius: 8px;
-      overflow-x: auto;
-      margin: 1.5rem 0;
-    }
-    
-    .code-block code {
-      font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-      font-size: 0.875rem;
-      line-height: 1.7;
-    }
-    
-    /* Section Styling */
-    .content-section {
-      margin: 3rem 0;
-      padding: 2rem;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    }
-    
-    .content-section h2:first-child {
-      margin-top: 0;
-    }
-    
-    /* TOC Styling */
-    .toc-item {
-      padding: 0.5rem 0.75rem;
-      border-radius: 6px;
-      transition: background-color 0.2s ease;
-    }
-    
-    .toc-item:hover {
-      background-color: #f1f5f9;
-    }
-    
-    .toc-item a {
-      text-decoration: none;
-      color: #475569;
-    }
-    
-    .toc-item a:hover {
-      color: #2563eb;
-    }
-    
-    .toc-level-1 {
-      font-weight: 600;
-      font-size: 1rem;
-    }
-    
-    .toc-level-2 {
-      padding-left: 1.5rem;
-      font-size: 0.875rem;
-    }
-    
-    .toc-level-3 {
-      padding-left: 3rem;
-      font-size: 0.8125rem;
-      color: #64748b;
-    }
-    
-    /* Error Messages */
-    .error-message {
-      background-color: #fef2f2;
-      border: 1px solid #fecaca;
-      color: #dc2626;
+      background-color: #f8fafc;
+      text-align: center;
       padding: 1rem;
-      border-radius: 8px;
-      margin: 1rem 0;
+      vertical-align: middle;
     }
     
-    /* Print-specific Optimizations */
-    @media print {
-      body {
-        font-size: 11pt;
-        line-height: 1.5;
-      }
-      
-      h1 {
-        font-size: 18pt;
-      }
-      
-      h2 {
-        font-size: 14pt;
-        page-break-after: avoid;
-      }
-      
-      h3 {
-        font-size: 12pt;
-        page-break-after: avoid;
-      }
-      
-      table {
-        page-break-inside: avoid;
-      }
-      
-      .content-section {
-        box-shadow: none;
-        border: 1px solid #e2e8f0;
-      }
-      
-      .phase-header {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
+    .logic-model-table tr:nth-child(even) td {
+      background-color: white;
     }
     
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      body {
-        padding: 1rem;
-      }
-      
-      table {
-        font-size: 0.875rem;
-      }
-      
-      th, td {
-        padding: 0.5rem;
-      }
-      
-      h1 {
-        font-size: 2rem;
-      }
-      
-      h2 {
-        font-size: 1.5rem;
-      }
-      
-      h3 {
-        font-size: 1.25rem;
-      }
-      
-      .content-section {
-        padding: 1rem;
-        margin: 1.5rem 0;
-      }
-      
-      .toc-level-2 {
-        padding-left: 1rem;
-      }
-      
-      .toc-level-3 {
-        padding-left: 2rem;
-      }
+    /* Stakeholder table styling */
+    .stakeholder-table th {
+      background-color: #4a5568;
+      color: white;
     }
     
-    /* Utility Classes */
-    .mt-4 {
-      margin-top: 1rem;
+    /* Risks table styling */
+    .risks-table th {
+      background-color: #c53030;
+      color: white;
     }
     
-    .mb-4 {
-      margin-bottom: 1rem;
+    /* Timeline table styling */
+    .timeline-table th {
+      background-color: #2b6cb0;
+      color: white;
     }
     
-    .report-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1rem;
+    /* Budget table styling */
+    .budget-table th {
+      background-color: #2f855a;
+      color: white;
+    }
+    
+    /* Indicators table styling */
+    .indicators-table th {
+      background-color: #6b46c1;
+      color: white;
+    }
+    
+    /* Methods table styling */
+    .methods-table th {
+      background-color: #d69e2e;
+      color: white;
+    }
+    
+    /* Phase headers */
+    .phase-header {
+      background-color: #edf2f7;
+      color: #1a365d;
+      padding: 1rem;
+      margin: 2rem 0 1rem 0;
+      border-left: 4px solid #2c5282;
+      font-weight: 600;
+      font-size: 1.1rem;
     }
     
     /* Print button styling */
-    .print-btn {
-      display: block;
-      width: 100%;
+    .print-button {
+      background-color: #2c5282;
+      color: white;
+      border: none;
       padding: 0.75rem 1.5rem;
-      margin-bottom: 1rem;
-      background-color: #dbeafe;
-      color: #1e40af;
-      font-weight: 600;
-      border: 2px solid #3b82f6;
-      border-radius: 0.5rem;
+      font-size: 1rem;
+      border-radius: 6px;
       cursor: pointer;
-      text-align: center;
-      transition: all 0.2s ease;
+      margin-bottom: 2rem;
+      transition: background-color 0.2s;
     }
     
-    .print-btn:hover {
-      background-color: #bfdbfe;
-      border-color: #60a5fa;
+    .print-button:hover {
+      background-color: #2a4e7c;
     }
     
-    @media (max-width: 768px) {
-      /* Mobile responsiveness handled via inline styles */
+    /* Code blocks */
+    pre {
+      background-color: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    
+    code {
+      background-color: #f7fafc;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+    
+    pre code {
+      background-color: transparent;
+      padding: 0;
+    }
+    
+    /* Blockquotes */
+    blockquote {
+      border-left: 4px solid #cbd5e0;
+      padding-left: 1rem;
+      margin: 1rem 0;
+      color: #4a5568;
+      font-style: italic;
+    }
+    
+    /* Task lists */
+    .task-list-item {
+      list-style-type: none;
+      margin-left: -1.5rem;
+    }
+    
+    .task-list-item input[type="checkbox"] {
+      margin-right: 0.5rem;
     }
   `;
-}
-
-// Generate complete HTML document
-function generateFullHtmlDocument(markdown, options = {}) {
-  const {
-    programName = 'Program',
-    organizationName = 'Organization',
-    includePrintButton = false
-  } = options;
   
-  // Debug logging to verify parameters
-  console.log('[Backend Report Generator] Options received:', {
-    programName,
-    organizationName,
-    includePrintButton,
-    optionsKeys: Object.keys(options)
-  });
+  const printScript = includePrintButton ? `
+    <script>
+      function printReport() {
+        window.print();
+      }
+    </script>
+  ` : '';
   
-  const reportData = { programName, organizationName };
+  const printButton = includePrintButton ? `
+    <button class="print-button no-print" onclick="printReport()">Print Report</button>
+  ` : '';
   
-  // Ensure markdown is a string
-  if (typeof markdown !== 'string') {
-    console.error('Error: markdown is not a string, it is:', typeof markdown, markdown);
-    markdown = String(markdown || '');
-  }
-  
-  // Generate TOC
-  const tocHtml = generateTOC(markdown);
-  
-  // Convert markdown content
-  const contentHtml = convertMarkdownToHtml(markdown, reportData);
-  
-  // Get styles
-  const styles = getReportStyles();
-  
-  // Build the HTML document
-  let htmlDocument = `<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${purify.sanitize(organizationName)} — ${purify.sanitize(programName)} Evaluation Plan</title>
+    <title>${organizationName} — ${programName} Evaluation Plan</title>
     <style>
         ${styles}
     </style>
+    ${printScript}
 </head>
-<body style="background-color: #ffffff; margin: 0; padding: 0;">`;
-
-  if (includePrintButton) {
-    // Full layout with sidebar, TOC, and print button - USED FOR BOTH DOWNLOADS AND EMAILS
-    htmlDocument += `
-    <!-- Table of Contents Layout -->
-    <div class="report-container">
-        <div style="display: flex;">
-        <!-- TOC Sidebar: Always visible on left -->
-        <aside style="width: 320px; background-color: #f8fafc; min-height: 100vh; padding: 24px;" class="no-print">
-            <button onclick="printLandscape()" class="print-btn">
-                Print / Save PDF
-            </button>
-            <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 1rem; padding: 0.5rem; background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 0.375rem; text-align: center;">
-                💡 For best results, select <strong>Landscape</strong> orientation in your print dialog
-            </p>
-            <h3 style="font-weight: 600; color: #0f172a; margin-bottom: 1rem;">Table of Contents</h3>
-            <nav style="font-size: 0.875rem; line-height: 1.6;">
-                ${tocHtml}
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main style="flex: 1; padding: 24px; background-color: #ffffff;">
-            <div style="max-width: none;">
-                ${contentHtml}
-            </div>
-        </main>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>${organizationName} — ${programName}</h1>
+            <div class="subtitle">Evaluation Plan</div>
+            <div class="date">Generated on ${date}</div>
+        </div>
+        ${printButton}
+        <div class="content">
+            ${contentHTML}
         </div>
     </div>
-
-    <script>
-        function printLandscape() {
-            window.print();
-        }
-    </script>`;
-  } else {
-    // Simple layout without print button (only used when explicitly disabled)
-    htmlDocument += `
-    <div class="report-container">
-        <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 2rem;">
-            <h3 style="margin: 0 0 1rem 0; color: #1e293b; font-size: 1.25rem;">Table of Contents</h3>
-            ${tocHtml}
-        </div>
-        ${contentHtml}
-    </div>`;
-  }
-  
-  htmlDocument += `
 </body>
 </html>`;
   
-  return htmlDocument;
+  return html;
 }
 
-// CommonJS exports
-module.exports = {
-  convertMarkdownToHtml,
-  generateTOC,
-  getReportStyles,
-  generateFullHtmlDocument
-};
+// API endpoint to generate HTML report
+app.post('/api/generate-report-html', async (req, res) => {
+  try {
+    const { evaluationPlan, options } = req.body;
+    
+    if (!evaluationPlan) {
+      return res.status(400).json({ error: 'Evaluation plan is required' });
+    }
+    
+    const html = generateHTMLReport(evaluationPlan, options);
+    
+    res.json({ 
+      html,
+      success: true 
+    });
+  } catch (error) {
+    console.error('Error generating HTML report:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate HTML report',
+      details: error.message 
+    });
+  }
+});
+
+// Start the server
+app.listen(port, '0.0.0.0', () => {
+  console.log('');
+  console.log('=== Email Server Startup ===');
+  console.log('Environment checks:');
+  console.log(`- DATABASE_URL: ${process.env.DATABASE_URL ? '✓ Set' : '✗ Not set'}`);
+  console.log(`- REPLIT_CONNECTORS_HOSTNAME: ${process.env.REPLIT_CONNECTORS_HOSTNAME ? '✓ Set' : '✗ Not set'}`);
+  console.log(`- REPL_IDENTITY or WEB_REPL_RENEWAL: ${(process.env.REPL_IDENTITY || process.env.WEB_REPL_RENEWAL) ? '✓ Set' : '✗ Not set'}`);
+  console.log(`- ADMIN_PASSWORD: ${process.env.ADMIN_PASSWORD ? '✓ Set' : '✗ Not set'}`);
+  
+  // Test database connection
+  console.log('Testing database connection...');
+  pool.query('SELECT NOW()', (err) => {
+    if (err) {
+      console.error('✗ Database connection failed:', err.message);
+    } else {
+      console.log('✓ Database connection successful');
+    }
+  });
+  
+  // Test Resend connection
+  if (process.env.RESEND_API_KEY) {
+    const Resend = require('resend').Resend;
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    console.log('Testing Resend connection...');
+    
+    resend.emails.send({
+      from: 'ai@gkerr.com',
+      to: [],
+      subject: 'Connection Test',
+      html: 'Test'
+    }).catch(() => {
+      console.log('✓ Resend connection successful');
+      console.log(`  Emails will be sent from: ai@gkerr.com`);
+    });
+  } else {
+    console.log('✗ Resend API key not set - email sending disabled');
+  }
+  
+  // Check prompts table
+  pool.query('SELECT COUNT(*) FROM prompts', (err, result) => {
+    if (err) {
+      console.log('✗ Prompts table not accessible:', err.message);
+    } else {
+      console.log(`✓ Prompts table accessible (${result.rows[0].count} prompts found)`);
+    }
+  });
+  
+  // Clean up expired sessions
+  console.log('Cleaning up expired sessions...');
+  pool.query('DELETE FROM sessions WHERE expires < NOW()', (err) => {
+    if (!err) {
+      console.log('✓ Session cleanup complete');
+    }
+  });
+  
+  // Initialize job queue processor
+  require('./jobProcessor');
+  console.log('Starting background job processor...');
+  console.log('✓ Background job processor started (runs every 5 seconds)');
+  
+  console.log(`✓ Email server running on port ${port}`);
+  console.log('=========================');
+});
+
+module.exports = { generateHTMLReport };
