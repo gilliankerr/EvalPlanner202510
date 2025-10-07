@@ -31,204 +31,206 @@ function isLogicModelTable(headerText) {
   return matches.length >= 3;
 }
 
+// Build a helper for rendering inline content with marked v16
+function buildInlineRenderer() {
+  // Create a parser instance with the default renderer
+  const parser = new marked.Parser();
+  
+  // Helper to safely render inline tokens
+  const renderInline = (tokens) => {
+    if (!tokens) return '';
+    if (typeof tokens === 'string') return tokens;
+    if (!Array.isArray(tokens)) {
+      return tokens.text || tokens.raw || '';
+    }
+    
+    // Process each token
+    return tokens.map(token => {
+      if (typeof token === 'string') return token;
+      
+      // Handle different token types
+      switch (token.type) {
+        case 'text':
+        case 'escape':
+          return token.text || token.raw || '';
+        case 'strong':
+          return `<strong>${renderInline(token.tokens)}</strong>`;
+        case 'em':
+          return `<em>${renderInline(token.tokens)}</em>`;
+        case 'codespan':
+          return `<code>${token.text}</code>`;
+        case 'br':
+          return '<br>';
+        case 'del':
+          return `<del>${renderInline(token.tokens)}</del>`;
+        case 'link':
+          const linkText = renderInline(token.tokens);
+          return `<a href="${token.href}"${token.title ? ` title="${token.title}"` : ''}>${linkText}</a>`;
+        case 'image':
+          return `<img src="${token.href}" alt="${token.text}"${token.title ? ` title="${token.title}"` : ''}>`;
+        default:
+          // For unknown types, try to extract text
+          return token.text || token.raw || renderInline(token.tokens) || '';
+      }
+    }).join('');
+  };
+  
+  // Helper to extract plain text from tokens
+  const renderText = (tokens) => {
+    if (!tokens) return '';
+    if (typeof tokens === 'string') return tokens;
+    if (!Array.isArray(tokens)) {
+      return tokens.text || tokens.raw || '';
+    }
+    
+    return tokens.map(token => {
+      if (typeof token === 'string') return token;
+      if (token.type === 'text' || token.type === 'escape') {
+        return token.text || token.raw || '';
+      }
+      if (token.tokens) {
+        return renderText(token.tokens);
+      }
+      return token.text || token.raw || '';
+    }).join('');
+  };
+  
+  return { renderInline, renderText };
+}
+
 // Initialize marked with custom renderer
 function initializeMarked(slugger, programName) {
   const renderer = new marked.Renderer();
+  const { renderInline, renderText } = buildInlineRenderer();
   
   // Custom heading renderer with IDs for TOC navigation
-  renderer.heading = function(text, level, raw) {
-    // Handle both old and new marked API signatures
-    let tokens, depth;
+  renderer.heading = function(token) {
+    // Extract depth and text
+    let depth = 1;
+    let text = '';
     
-    if (typeof text === 'object' && text !== null) {
-      // New API: object with { tokens, depth, text }
-      tokens = text.tokens;
-      depth = text.depth || level;
-      // For new API, we need to parse tokens to get HTML
-      if (tokens && Array.isArray(tokens)) {
-        text = this.parser.parseInline(tokens);
-      } else {
-        text = text.text || '';
+    if (typeof token === 'object' && token !== null) {
+      depth = token.depth || 1;
+      if (token.tokens) {
+        text = renderInline(token.tokens);
+      } else if (token.text) {
+        text = token.text;
       }
     } else {
-      // Old API: (text, level, raw)
-      depth = level;
+      // Fallback for string input
+      text = String(token || '');
     }
     
-    // Ensure we have valid values
-    depth = depth || 1;
-    const textStr = String(text || '');
-    
-    // Extract clean text for ID generation
-    const rawText = textStr.replace(/<[^>]+>/g, '').trim();
-    
-    // Generate consistent ID for TOC navigation
+    // Generate ID for TOC
+    const rawText = text.replace(/<[^>]+>/g, '').trim();
     const id = slugger.slug(rawText);
     const levelClass = `heading-level-${depth}`;
     
-    return `<h${depth} id="${id}" class="${levelClass}">${textStr}</h${depth}>`;
+    return `<h${depth} id="${id}" class="${levelClass}">${text}</h${depth}>`;
   };
   
   // Custom table renderer with enhanced styling
   renderer.table = function(token) {
-    // Handle both old and new marked API signatures
-    let header, body, align;
+    let headerHTML = '';
+    let bodyHTML = '';
     
     if (typeof token === 'object' && token !== null && token.header) {
       // New API: token object with header and rows
-      // Build header HTML
+      // Build header row
       const headerCells = token.header.map((cell, i) => {
         const alignAttr = token.align && token.align[i] ? ` align="${token.align[i]}"` : '';
-        const cellText = cell.tokens ? this.parser.parseInline(cell.tokens) : cell.text || '';
+        const cellText = cell.tokens ? renderInline(cell.tokens) : cell.text || '';
         return `<th${alignAttr}>${cellText}</th>`;
       }).join('');
-      header = `<thead><tr>${headerCells}</tr></thead>`;
+      headerHTML = `<tr>${headerCells}</tr>`;
       
-      // Build body HTML
+      // Build body rows
       const bodyRows = token.rows.map(row => {
         const cells = row.map((cell, i) => {
           const alignAttr = token.align && token.align[i] ? ` align="${token.align[i]}"` : '';
-          const cellText = cell.tokens ? this.parser.parseInline(cell.tokens) : cell.text || '';
+          const cellText = cell.tokens ? renderInline(cell.tokens) : cell.text || '';
           return `<td${alignAttr}>${cellText}</td>`;
         }).join('');
         return `<tr>${cells}</tr>`;
-      }).join('');
-      body = `<tbody>${bodyRows}</tbody>`;
+      }).join('\n');
+      bodyHTML = bodyRows;
     } else {
-      // Old API: (header, body) string parameters
-      header = arguments[0] || token || '';
-      body = arguments[1] || '';
+      // Fallback for string input
+      headerHTML = String(token || '');
+      bodyHTML = '';
     }
     
-    const headerStr = String(header || '');
-    const bodyStr = String(body || '');
-    const headerText = headerStr.replace(/<[^>]+>/g, ' ').toLowerCase();
-    
+    // Analyze table type from header content
+    const headerText = headerHTML.replace(/<[^>]+>/g, ' ').toLowerCase();
     const tableType = detectTableType(headerText);
     const isLogicModel = isLogicModelTable(headerText);
     const tableClass = isLogicModel ? 'logic-model-table' : tableType;
     
     return `<div class="table-wrapper ${tableClass}">
       <table class="${tableClass}">
-        <thead>${headerStr}</thead>
-        <tbody>${bodyStr}</tbody>
+        <thead>${headerHTML}</thead>
+        <tbody>${bodyHTML}</tbody>
       </table>
     </div>`;
   };
   
   // Custom list renderer
-  renderer.list = function(body, ordered, start) {
-    // Handle both old and new marked API signatures
-    if (typeof body === 'object' && body !== null && body.body !== undefined) {
-      // New API: object with { body, ordered, start }
-      const obj = body;
-      body = obj.body;
-      ordered = obj.ordered;
-      start = obj.start;
-    }
+  renderer.list = function(token) {
+    let bodyHTML = '';
+    let ordered = false;
+    let start = 1;
     
-    // Parse tokens if needed
-    if (Array.isArray(body)) {
-      body = this.parser.parseInline(body);
-    }
-    
-    const bodyStr = String(body || '');
-    const type = ordered ? 'ol' : 'ul';
-    const startAttr = (ordered && start !== undefined && start !== 1) ? ` start="${start}"` : '';
-    return `<${type}${startAttr} class="content-list">${bodyStr}</${type}>`;
-  };
-  
-  // Custom table row renderer
-  renderer.tablerow = function(content) {
-    // Handle both old and new marked API signatures
-    if (typeof content === 'object' && content !== null) {
-      // New API: object with { text } or direct token array
-      if (content.text !== undefined) {
-        content = content.text;
-      } else if (Array.isArray(content)) {
-        content = this.parser.parseInline(content);
-      }
-    }
-    
-    const contentStr = String(content || '');
-    return `<tr>${contentStr}</tr>`;
-  };
-  
-  // Custom table cell renderer
-  renderer.tablecell = function(content, flags) {
-    // Handle both old and new marked API signatures
-    let header, align;
-    
-    if (typeof content === 'object' && content !== null) {
-      // New API: object with { text, tokens, flags }
-      if (content.tokens && Array.isArray(content.tokens)) {
-        content = this.parser.parseInline(content.tokens);
-      } else if (content.text !== undefined) {
-        content = content.text;
-      }
+    if (typeof token === 'object' && token !== null && token.items) {
+      // New API: token with items array
+      ordered = token.ordered || false;
+      start = token.start || 1;
       
-      if (content.flags) {
-        flags = content.flags;
-      }
+      // Render each list item
+      bodyHTML = token.items.map(item => {
+        if (item.task !== undefined) {
+          // Task list item
+          const checkbox = item.checked 
+            ? '<input type="checkbox" checked disabled> '
+            : '<input type="checkbox" disabled> ';
+          const text = item.tokens ? marked.parse(item.tokens) : item.text || '';
+          return `<li class="task-list-item">${checkbox}${text}</li>`;
+        } else {
+          // Regular list item
+          const text = item.tokens ? marked.parse(item.tokens) : item.text || '';
+          return `<li>${text}</li>`;
+        }
+      }).join('\n');
+    } else {
+      // Fallback for string input
+      bodyHTML = String(token || '');
     }
     
-    // Parse flags
-    if (flags) {
-      header = flags.header;
-      align = flags.align;
-    }
-    
-    const contentStr = String(content || '');
-    const tag = header ? 'th' : 'td';
-    const alignAttr = align ? ` style="text-align: ${align};"` : '';
-    return `<${tag}${alignAttr}>${contentStr}</${tag}>`;
+    const type = ordered ? 'ol' : 'ul';
+    const startAttr = (ordered && start !== 1) ? ` start="${start}"` : '';
+    return `<${type}${startAttr} class="content-list">${bodyHTML}</${type}>`;
   };
   
-  // Custom list item renderer
-  renderer.listitem = function(text, task, checked) {
-    // Handle both old and new marked API signatures
-    if (typeof text === 'object' && text !== null) {
-      // New API: object with { text, tokens, task, checked }
-      const obj = text;
-      if (obj.tokens && Array.isArray(obj.tokens)) {
-        text = this.parser.parseInline(obj.tokens);
-      } else {
-        text = obj.text || '';
-      }
-      task = obj.task !== undefined ? obj.task : task;
-      checked = obj.checked !== undefined ? obj.checked : checked;
-    }
-    
-    const textStr = String(text || '');
-    
-    if (task) {
-      const checkbox = checked 
-        ? '<input type="checkbox" checked disabled> ' 
-        : '<input type="checkbox" disabled> ';
-      return `<li class="task-list-item">${checkbox}${textStr}</li>`;
-    }
-    
-    return `<li>${textStr}</li>`;
-  };
   
   // Custom paragraph renderer for better spacing
-  renderer.paragraph = function(text) {
-    // Handle both old and new marked API signatures
-    if (typeof text === 'object' && text !== null) {
-      // New API: object with { text, tokens }
-      if (text.tokens && Array.isArray(text.tokens)) {
-        text = this.parser.parseInline(text.tokens);
-      } else {
-        text = text.text || '';
+  renderer.paragraph = function(token) {
+    let text = '';
+    
+    if (typeof token === 'object' && token !== null) {
+      // New API: token with tokens array
+      if (token.tokens) {
+        text = renderInline(token.tokens);
+      } else if (token.text) {
+        text = token.text;
       }
+    } else {
+      // Fallback for string input
+      text = String(token || '');
     }
     
-    const textString = String(text || '');
-    
-    if (textString.startsWith('<strong>') && (textString.includes('Phase') || textString.includes('Component'))) {
-      return `<div class="phase-header">${textString}</div>`;
+    if (text.startsWith('<strong>') && (text.includes('Phase') || text.includes('Component'))) {
+      return `<div class="phase-header">${text}</div>`;
     }
-    return `<p>${textString}</p>`;
+    return `<p>${text}</p>`;
   };
   
   // Code block with syntax highlighting
