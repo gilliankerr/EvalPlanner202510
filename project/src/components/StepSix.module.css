@@ -162,6 +162,31 @@
   font-weight: 600;
 }
 
+/* Email Status Banners */
+.emailSuccessBanner {
+  margin: 1.5rem 0;
+  padding: 1rem 1.5rem;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+  color: #155724;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.emailErrorBanner {
+  margin: 1.5rem 0;
+  padding: 1rem 1.5rem;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  color: #721c24;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: center;
+}
+
 /* Action Buttons Container */
 .actionButtons {
   display: flex;
@@ -219,6 +244,12 @@
 .emailButton:active {
   transform: translateY(0);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.emailButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* Button Content */

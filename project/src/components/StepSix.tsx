@@ -18,7 +18,7 @@ interface StepSixProps {
 const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcessing }) => {
   const [renderStatus, setRenderStatus] = useState<'idle' | 'rendering' | 'complete'>('idle');
   const [htmlContent, setHtmlContent] = useState<string>('');
-  const [, setEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
   useEffect(() => {
     renderHtmlReport();
@@ -90,14 +90,6 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       setEmailStatus('sending');
 
       // Get the processed email template from the backend
-      const templateContent = await getProcessedPrompt('email_delivery');
-      
-      if (!templateContent) {
-        throw new Error('Failed to fetch email template');
-      }
-
-      // Format the email body with proper HTML
-      let emailBody = templateContent;
       const currentDateTime = new Date().toLocaleString('en-US', {
         weekday: 'long',
         year: 'numeric',
@@ -109,11 +101,15 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         timeZone: 'America/Toronto'
       });
 
-      // Replace template variables
-      emailBody = emailBody
-        .replace(/\{\{programName\}\}/g, programData.programName)
-        .replace(/\{\{organizationName\}\}/g, programData.organizationName)
-        .replace(/\{\{currentDateTime\}\}/g, currentDateTime);
+      const emailBody = await getProcessedPrompt('email_delivery', {
+        programName: programData.programName,
+        organizationName: programData.organizationName,
+        currentDateTime: currentDateTime
+      });
+      
+      if (!emailBody) {
+        throw new Error('Failed to fetch email template');
+      }
 
       // Create clean filename
       const orgNameClean = (programData.organizationName || 'Organization').replace(/[^a-zA-Z0-9]/g, '_');
@@ -144,15 +140,12 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
 
       if (success) {
         setEmailStatus('sent');
-        alert('Email sent successfully! Please check your inbox.');
       } else {
         setEmailStatus('error');
-        alert('Failed to send email. Please try again.');
       }
     } catch (error) {
       console.error('Error sending email:', error);
       setEmailStatus('error');
-      alert('Failed to send email. Please try again later.');
     }
   }, [htmlContent, programData]);
 
@@ -174,6 +167,18 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
               Download the report below. It has already been emailed to <strong>{programData.userEmail}</strong>.
             </p>
           </div>
+
+          {emailStatus === 'sent' && (
+            <div className={styles.emailSuccessBanner}>
+              ✅ Email sent successfully! Please check your inbox.
+            </div>
+          )}
+
+          {emailStatus === 'error' && (
+            <div className={styles.emailErrorBanner}>
+              ❌ Failed to send email. Please try again or download the report below.
+            </div>
+          )}
           
           <div className={styles.actionButtons}>
             <button 
@@ -190,10 +195,13 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
             <button 
               onClick={sendEmailReport}
               className={styles.emailButton}
+              disabled={emailStatus === 'sending'}
             >
-              <Mail size={20} />
+              {emailStatus === 'sending' ? <Loader2 className={styles.spinner} size={20} /> : <Mail size={20} />}
               <div className={styles.buttonContent}>
-                <span className={styles.buttonTitle}>Email Report</span>
+                <span className={styles.buttonTitle}>
+                  {emailStatus === 'sending' ? 'Sending...' : 'Email Report'}
+                </span>
                 <span className={styles.buttonSubtitle}>Send a copy to your inbox</span>
               </div>
             </button>
