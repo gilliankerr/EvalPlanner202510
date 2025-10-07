@@ -1,7 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Loader2, Download, Mail } from 'lucide-react';
-import { sendEmail } from '../utils/email';
-import { getProcessedPrompt } from '../utils/promptApi';
+import { Loader2, Download } from 'lucide-react';
 import type { ProgramData } from '../App';
 import styles from './StepSix.module.css';
 // Import the unified report generator
@@ -18,7 +16,6 @@ interface StepSixProps {
 const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcessing }) => {
   const [renderStatus, setRenderStatus] = useState<'idle' | 'rendering' | 'complete'>('idle');
   const [htmlContent, setHtmlContent] = useState<string>('');
-  const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
   useEffect(() => {
     renderHtmlReport();
@@ -84,70 +81,6 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
     }
   }, [htmlContent, programData.organizationName, programData.programName]);
 
-  // Email sending function using Replit Mail integration
-  const sendEmailReport = useCallback(async () => {
-    try {
-      setEmailStatus('sending');
-
-      // Get the processed email template from the backend
-      const currentDateTime = new Date().toLocaleString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZoneName: 'short',
-        timeZone: 'America/Toronto'
-      });
-
-      const emailBody = await getProcessedPrompt('email_delivery', {
-        programName: programData.programName,
-        organizationName: programData.organizationName,
-        currentDateTime: currentDateTime
-      });
-      
-      if (!emailBody) {
-        throw new Error('Failed to fetch email template');
-      }
-
-      // Create clean filename
-      const orgNameClean = (programData.organizationName || 'Organization').replace(/[^a-zA-Z0-9]/g, '_');
-      const progNameClean = (programData.programName || 'Program').replace(/[^a-zA-Z0-9]/g, '_');
-      const filename = `${orgNameClean}_${progNameClean}_Evaluation_Plan.html`;
-
-      // Convert emailBody from markdown to HTML if it's in markdown format
-      const isMarkdown = emailBody.includes('#') || emailBody.includes('**') || emailBody.includes('*');
-      const processedEmailBody = isMarkdown ? 
-        `<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">${emailBody.replace(/\n/g, '<br>')}</div>` : 
-        emailBody;
-
-      // Convert HTML to base64 for attachment
-      const base64Content = btoa(unescape(encodeURIComponent(htmlContent)));
-
-      // Send email using Replit Mail
-      const success = await sendEmail({
-        to: programData.userEmail || 'user@example.com',
-        subject: `Evaluation Plan for ${programData.programName}`,
-        html: processedEmailBody,
-        attachments: [{
-          filename: filename,
-          content: base64Content,
-          contentType: 'text/html',
-          encoding: 'base64'
-        }]
-      });
-
-      if (success) {
-        setEmailStatus('sent');
-      } else {
-        setEmailStatus('error');
-      }
-    } catch (error) {
-      console.error('Error sending email:', error);
-      setEmailStatus('error');
-    }
-  }, [htmlContent, programData]);
 
   return (
     <div className={styles.container}>
@@ -160,52 +93,24 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
       )}
       
       {renderStatus === 'complete' && (
-        <div className={styles.previewContainer}>
+        <div className={styles.downloadContainer}>
           <div className={styles.successMessage}>
             <h2>✅ Your Evaluation Plan is Ready!</h2>
             <p className={styles.emailNotification}>
               Download the report below. It has already been emailed to <strong>{programData.userEmail}</strong>.
             </p>
           </div>
-
-          {emailStatus === 'sent' && (
-            <div className={styles.emailSuccessBanner}>
-              ✅ Email sent successfully! Please check your inbox.
-            </div>
-          )}
-
-          {emailStatus === 'error' && (
-            <div className={styles.emailErrorBanner}>
-              ❌ Failed to send email. Please try again or download the report below.
-            </div>
-          )}
           
-          <div className={styles.actionButtons}>
-            <button 
-              onClick={downloadHtml}
-              className={styles.downloadButton}
-            >
-              <Download size={20} />
-              <div className={styles.buttonContent}>
-                <span className={styles.buttonTitle}>Download Report</span>
-                <span className={styles.buttonSubtitle}>Can be printed to PDF, posted on the web or pasted into Word</span>
-              </div>
-            </button>
-            
-            <button 
-              onClick={sendEmailReport}
-              className={styles.emailButton}
-              disabled={emailStatus === 'sending'}
-            >
-              {emailStatus === 'sending' ? <Loader2 className={styles.spinner} size={20} /> : <Mail size={20} />}
-              <div className={styles.buttonContent}>
-                <span className={styles.buttonTitle}>
-                  {emailStatus === 'sending' ? 'Sending...' : 'Email Report'}
-                </span>
-                <span className={styles.buttonSubtitle}>Send a copy to your inbox</span>
-              </div>
-            </button>
-          </div>
+          <button 
+            onClick={downloadHtml}
+            className={styles.downloadButton}
+          >
+            <Download size={24} />
+            <div className={styles.buttonContent}>
+              <span className={styles.buttonTitle}>Download Report</span>
+              <span className={styles.buttonSubtitle}>Can be printed to PDF, posted on the web or pasted into Word</span>
+            </div>
+          </button>
         </div>
       )}
     </div>

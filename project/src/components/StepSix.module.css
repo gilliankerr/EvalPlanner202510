@@ -132,11 +132,6 @@
   }
 }
 
-/* Preview Container */
-.previewContainer {
-  max-width: 800px;
-  margin: 0 auto;
-}
 
 /* Success Message */
 .successMessage {
@@ -162,146 +157,76 @@
   font-weight: 600;
 }
 
-/* Email Status Banners */
-.emailSuccessBanner {
-  margin: 1.5rem 0;
-  padding: 1rem 1.5rem;
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  border-radius: 8px;
-  color: #155724;
-  font-size: 1rem;
-  font-weight: 500;
+/* Download Container - Centers content */
+.downloadContainer {
+  max-width: 600px;
+  margin: 0 auto;
   text-align: center;
+  padding: 2rem 1rem;
 }
 
-.emailErrorBanner {
-  margin: 1.5rem 0;
-  padding: 1rem 1.5rem;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 8px;
-  color: #721c24;
-  font-size: 1rem;
-  font-weight: 500;
-  text-align: center;
-}
-
-/* Action Buttons Container */
-.actionButtons {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-top: 2rem;
-}
-
-/* Modern Button Styling */
-.downloadButton,
-.emailButton {
-  display: flex;
+/* Modern Download Button Styling */
+.downloadButton {
+  display: inline-flex;
   align-items: center;
   gap: 1rem;
-  padding: 1.5rem;
+  padding: 1.25rem 2rem;
   border: none;
   border-radius: 12px;
   font-family: var(--font-family-base);
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  width: 100%;
-  text-align: left;
-}
-
-.downloadButton {
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  margin-top: 2rem;
+  
+  /* Accessible gradient: White (#FFFFFF) on blue provides 4.5:1+ contrast ratio */
   background: linear-gradient(135deg, #0085ca 0%, #006ba6 100%);
-  color: white;
+  color: #FFFFFF;
 }
 
 .downloadButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0, 133, 202, 0.3), 0 6px 6px rgba(0, 133, 202, 0.2);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(0, 133, 202, 0.35), 0 8px 8px rgba(0, 133, 202, 0.25);
 }
 
 .downloadButton:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 133, 202, 0.3);
 }
 
-.emailButton {
-  background-color: white;
-  color: var(--color-text-dark);
-  border: 2px solid var(--color-slate-200);
-}
-
-.emailButton:hover {
-  background-color: var(--color-slate-50);
-  border-color: var(--color-primary);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.05);
-}
-
-.emailButton:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.emailButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+.downloadButton:focus {
+  outline: 3px solid rgba(0, 133, 202, 0.5);
+  outline-offset: 2px;
 }
 
 /* Button Content */
-.downloadButton .buttonContent,
-.emailButton .buttonContent {
+.downloadButton .buttonContent {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   flex: 1;
+  text-align: left;
 }
 
-.downloadButton svg,
-.emailButton svg {
+.downloadButton svg {
   flex-shrink: 0;
 }
 
 .downloadButton .buttonTitle {
   font-size: 1.125rem;
   font-weight: 600;
-  color: white;
+  color: #FFFFFF;
   margin: 0;
+  line-height: 1.3;
 }
 
 .downloadButton .buttonSubtitle {
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #FFFFFF;
+  opacity: 0.95;
   margin: 0;
-}
-
-.emailButton .buttonTitle {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--color-text-dark);
-  margin: 0;
-}
-
-.emailButton .buttonSubtitle {
-  font-size: 0.875rem;
-  color: var(--color-text-gray);
-  margin: 0;
-}
-
-/* Responsive Design */
-@media (min-width: 768px) {
-  .actionButtons {
-    flex-direction: row;
-  }
-  
-  .downloadButton,
-  .emailButton {
-    flex: 1;
-  }
+  line-height: 1.4;
 }
 
 /* Table of Contents Styles */
