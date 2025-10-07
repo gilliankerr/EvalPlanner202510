@@ -235,8 +235,29 @@ function generateHTMLReport(content, organizationName, programName, options = {}
 
 // Full HTML document generator with all styles inline
 function generateFullHtmlDocument(markdownContent, organizationName, programName, options = {}) {
-  // Create a new slugger instance for this document
-  const slugger = new marked.Slugger();
+  // Simple slug function to replace marked.Slugger
+  const slugCache = new Map();
+  const slugger = {
+    slug: (text) => {
+      // Convert to lowercase and replace non-alphanumeric with hyphens
+      let slug = text.toString()
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '') // Remove non-word chars
+        .replace(/[\s_-]+/g, '-')  // Replace spaces, underscores with hyphens
+        .replace(/^-+|-+$/g, '');  // Remove leading/trailing hyphens
+      
+      // Handle duplicates
+      let count = slugCache.get(slug) || 0;
+      if (count > 0) {
+        const numberedSlug = `${slug}-${count}`;
+        slugCache.set(slug, count + 1);
+        return numberedSlug;
+      }
+      slugCache.set(slug, 1);
+      return slug;
+    }
+  };
   
   // Initialize marked with custom renderer
   const renderer = initializeMarked(slugger, programName);

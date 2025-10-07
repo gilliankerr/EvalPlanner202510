@@ -70,24 +70,34 @@ function initializeMarked(slugger, programName) {
   };
   
   // Custom table renderer with enhanced styling
-  renderer.table = function(header, body) {
+  renderer.table = function(token) {
     // Handle both old and new marked API signatures
-    let align;
+    let header, body, align;
     
-    if (typeof header === 'object' && header !== null && header.header !== undefined) {
-      // New API: object with { header, body, align }
-      const obj = header;
-      header = obj.header;
-      body = obj.body;
-      align = obj.align;
-    }
-    
-    // Parse tokens to get HTML if needed
-    if (Array.isArray(header)) {
-      header = this.parser.parseInline(header);
-    }
-    if (Array.isArray(body)) {
-      body = this.parser.parseInline(body);
+    if (typeof token === 'object' && token !== null && token.header) {
+      // New API: token object with header and rows
+      // Build header HTML
+      const headerCells = token.header.map((cell, i) => {
+        const alignAttr = token.align && token.align[i] ? ` align="${token.align[i]}"` : '';
+        const cellText = cell.tokens ? this.parser.parseInline(cell.tokens) : cell.text || '';
+        return `<th${alignAttr}>${cellText}</th>`;
+      }).join('');
+      header = `<thead><tr>${headerCells}</tr></thead>`;
+      
+      // Build body HTML
+      const bodyRows = token.rows.map(row => {
+        const cells = row.map((cell, i) => {
+          const alignAttr = token.align && token.align[i] ? ` align="${token.align[i]}"` : '';
+          const cellText = cell.tokens ? this.parser.parseInline(cell.tokens) : cell.text || '';
+          return `<td${alignAttr}>${cellText}</td>`;
+        }).join('');
+        return `<tr>${cells}</tr>`;
+      }).join('');
+      body = `<tbody>${bodyRows}</tbody>`;
+    } else {
+      // Old API: (header, body) string parameters
+      header = arguments[0] || token || '';
+      body = arguments[1] || '';
     }
     
     const headerStr = String(header || '');
@@ -263,8 +273,29 @@ export function generateHTMLReport(evaluationPlan, options = {}) {
     day: 'numeric'
   });
   
-  // Initialize slugger for heading IDs
-  const slugger = new marked.Slugger();
+  // Simple slug function to replace marked.Slugger
+  const slugCache = new Map();
+  const slugger = {
+    slug: (text) => {
+      // Convert to lowercase and replace non-alphanumeric with hyphens
+      let slug = text.toString()
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '') // Remove non-word chars
+        .replace(/[\s_-]+/g, '-')  // Replace spaces, underscores with hyphens
+        .replace(/^-+|-+$/g, '');  // Remove leading/trailing hyphens
+      
+      // Handle duplicates
+      let count = slugCache.get(slug) || 0;
+      if (count > 0) {
+        const numberedSlug = `${slug}-${count}`;
+        slugCache.set(slug, count + 1);
+        return numberedSlug;
+      }
+      slugCache.set(slug, 1);
+      return slug;
+    }
+  };
   
   // Process the markdown content with our custom renderer
   initializeMarked(slugger, programName);
