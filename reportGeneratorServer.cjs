@@ -238,14 +238,20 @@ function initializeMarked(slugger, programName) {
   return renderer;
 }
 
-// Main HTML generation function
-function generateHTMLReport(content, organizationName, programName, options = {}) {
-  const fullHTML = generateFullHtmlDocument(content, organizationName, programName, options);
-  return fullHTML;
-}
-
-// Full HTML document generator with all styles inline
-function generateFullHtmlDocument(markdownContent, organizationName, programName, options = {}) {
+// Generate the complete HTML document
+function generateHTMLReport(evaluationPlan, options = {}) {
+  const { 
+    programName = 'Program',
+    organizationName = 'Organization',
+    includePrintButton = true
+  } = options;
+  
+  const date = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  
   // Simple slug function to replace marked.Slugger
   const slugCache = new Map();
   const slugger = {
@@ -287,332 +293,259 @@ function generateFullHtmlDocument(markdownContent, organizationName, programName
     sanitize: false
   });
   
-  // Convert markdown to HTML
-  const htmlContent = marked.parse(markdownContent);
+  // Process the markdown content with our custom renderer
+  initializeMarked(slugger, programName);
+  const contentHTML = marked.parse(evaluationPlan);
   
-  // Generate table of contents
-  const headings = [];
-  const headingRegex = /<h([1-3])[^>]*id="([^"]*)"[^>]*>(.*?)<\/h[1-3]>/gi;
-  let match;
-  
-  while ((match = headingRegex.exec(htmlContent)) !== null) {
-    headings.push({
-      level: parseInt(match[1]),
-      id: match[2],
-      text: match[3].replace(/<[^>]*>/g, '').trim()
-    });
-  }
-  
-  let tocHtml = '<nav class="toc" role="navigation" aria-label="Table of contents">\n';
-  tocHtml += '<h2>Table of Contents</h2>\n';
-  tocHtml += '<ul>\n';
-  
-  headings.forEach(heading => {
-    const indent = '  '.repeat(heading.level - 1);
-    tocHtml += `${indent}<li class="toc-level-${heading.level}">`;
-    tocHtml += `<a href="#${heading.id}">${heading.text}</a>`;
-    tocHtml += '</li>\n';
-  });
-  
-  tocHtml += '</ul>\n</nav>\n\n';
-  
-  // Create the complete HTML document
-  const fullHTML = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Evaluation Plan for ${programName} by ${organizationName}">
-  <title>Evaluation Plan - ${programName}</title>
-  <style>
-    /* CSS Reset and Base Styles */
-    * {
+  // Reuse CSS from the frontend
+  const styles = `
+    @media print {
+      .no-print { display: none; }
+      .page-break { page-break-before: always; }
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #2d3748;
+      background-color: white;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-    }
-    
-    /* Root Variables */
-    :root {
-      --primary-color: #0969da;
-      --secondary-color: #6c757d;
-      --success-color: #28a745;
-      --warning-color: #ffc107;
-      --danger-color: #dc3545;
-      --info-color: #17a2b8;
-      --light-bg: #f8f9fa;
-      --dark-text: #212529;
-      --border-color: #dee2e6;
-      --link-color: #0969da;
-      --link-hover: #0051a3;
-      --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      --font-size-base: 16px;
-      --line-height-base: 1.6;
-      --spacing-xs: 0.25rem;
-      --spacing-sm: 0.5rem;
-      --spacing-md: 1rem;
-      --spacing-lg: 1.5rem;
-      --spacing-xl: 2rem;
-      --spacing-xxl: 3rem;
-      --border-radius: 4px;
-      --max-width: 900px;
-    }
-    
-    /* Base Typography */
-    body {
-      font-family: var(--font-family);
-      font-size: var(--font-size-base);
-      line-height: var(--line-height-base);
-      color: var(--dark-text);
-      background-color: white;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      padding: var(--spacing-xl) var(--spacing-md);
     }
     
     .container {
-      max-width: var(--max-width);
+      max-width: 900px;
       margin: 0 auto;
-      padding: 0 var(--spacing-md);
+      padding: 2rem;
     }
     
-    /* Header Styles */
     .header {
       text-align: center;
-      margin-bottom: var(--spacing-xxl);
-      padding: var(--spacing-xl) 0;
-      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 3rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #e2e8f0;
     }
     
     .header h1 {
-      color: var(--primary-color);
-      font-size: 2.5rem;
-      margin-bottom: var(--spacing-md);
-      font-weight: 600;
+      color: #1a365d;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
     }
     
-    .header p {
-      color: var(--secondary-color);
+    .header .subtitle {
+      color: #4a5568;
       font-size: 1.1rem;
-      margin: var(--spacing-sm) 0;
+      margin-top: 0.5rem;
     }
     
-    /* Headings */
-    h1, h2, h3, h4, h5, h6 {
-      font-weight: 600;
-      line-height: 1.2;
-      margin-top: var(--spacing-xl);
-      margin-bottom: var(--spacing-md);
-      color: var(--dark-text);
+    .header .date {
+      color: #718096;
+      font-size: 0.9rem;
+      margin-top: 1rem;
     }
     
-    h1 { font-size: 2.25rem; }
+    .content {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 { 
+      color: #1a365d; 
+      font-size: 2rem; 
+      margin-top: 2rem; 
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+    
     h2 { 
-      font-size: 1.875rem; 
-      color: var(--primary-color);
-      border-bottom: 2px solid var(--light-bg);
-      padding-bottom: var(--spacing-sm);
-      margin-top: var(--spacing-xxl);
-    }
-    h3 { 
+      color: #2c5282; 
       font-size: 1.5rem; 
-      margin-top: var(--spacing-xl);
-    }
-    h4 { font-size: 1.25rem; }
-    h5 { font-size: 1.125rem; }
-    h6 { font-size: 1rem; }
-    
-    /* Paragraph and Text */
-    p {
-      margin-bottom: var(--spacing-md);
+      margin-top: 2rem; 
+      margin-bottom: 1rem;
+      font-weight: 600;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 0.5rem;
     }
     
-    /* Links */
-    a {
-      color: var(--link-color);
-      text-decoration: underline;
-      transition: color 0.2s ease;
+    h3 { 
+      color: #2d3748; 
+      font-size: 1.25rem; 
+      margin-top: 1.5rem; 
+      margin-bottom: 0.75rem;
+      font-weight: 600;
     }
     
-    a:hover {
-      color: var(--link-hover);
-      text-decoration: underline;
+    h4 { 
+      color: #4a5568; 
+      font-size: 1.1rem; 
+      margin-top: 1.25rem; 
+      margin-bottom: 0.5rem;
+      font-weight: 600;
     }
     
-    a:focus {
-      outline: 2px solid var(--link-color);
-      outline-offset: 2px;
+    p { 
+      margin-bottom: 1rem; 
+      text-align: justify;
+      color: #2d3748;
     }
     
-    /* Lists */
-    ul, ol {
-      margin-bottom: var(--spacing-md);
-      padding-left: var(--spacing-xl);
+    ul, ol { 
+      margin-bottom: 1rem; 
+      padding-left: 2rem;
+      color: #2d3748;
     }
     
-    li {
-      margin-bottom: var(--spacing-sm);
+    li { 
+      margin-bottom: 0.5rem; 
     }
     
-    li > ul, li > ol {
-      margin-top: var(--spacing-sm);
-      margin-bottom: var(--spacing-sm);
-    }
-    
-    /* Table of Contents */
-    .toc {
-      background-color: var(--light-bg);
-      border: 1px solid var(--border-color);
-      border-radius: var(--border-radius);
-      padding: var(--spacing-lg);
-      margin-bottom: var(--spacing-xxl);
-    }
-    
-    .toc h2 {
-      font-size: 1.25rem;
-      margin-top: 0;
-      margin-bottom: var(--spacing-md);
-      color: var(--dark-text);
-      border: none;
-      padding: 0;
-    }
-    
-    .toc ul {
-      list-style: none;
-      padding-left: 0;
-    }
-    
-    .toc li {
-      margin-bottom: var(--spacing-xs);
-      line-height: 1.8;
-    }
-    
-    .toc-level-2 {
-      padding-left: var(--spacing-lg);
-    }
-    
-    .toc-level-3 {
-      padding-left: calc(var(--spacing-lg) * 2);
-    }
-    
-    .toc a {
-      color: var(--dark-text);
-      text-decoration: none;
-      border-bottom: 1px dotted var(--border-color);
-    }
-    
-    .toc a:hover {
-      color: var(--link-color);
-      border-bottom-color: var(--link-color);
-    }
-    
-    /* Tables */
-    .table-responsive {
+    /* Enhanced table styles */
+    .table-wrapper {
       overflow-x: auto;
-      margin: var(--spacing-lg) 0;
-      border: 1px solid var(--border-color);
-      border-radius: var(--border-radius);
+      margin: 2rem 0;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
     
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.95rem;
-      background-color: white;
-    }
-    
-    th, td {
-      padding: var(--spacing-md);
-      text-align: left;
-      vertical-align: top;
-      border: 1px solid var(--border-color);
     }
     
     th {
-      background-color: var(--light-bg);
+      background-color: #f7fafc;
+      color: #1a365d;
       font-weight: 600;
-      color: var(--dark-text);
-      white-space: nowrap;
+      text-align: left;
+      padding: 1rem;
+      border-bottom: 2px solid #cbd5e0;
     }
     
     td {
-      background-color: white;
+      padding: 1rem;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: top;
     }
     
-    tbody tr:nth-child(even) td {
-      background-color: rgba(248, 249, 250, 0.5);
+    tr:hover {
+      background-color: #f7fafc;
     }
     
-    tbody tr:hover td {
-      background-color: rgba(9, 105, 218, 0.05);
-    }
-    
-    /* Specialized Table Styles */
-    .logic-model-section {
-      margin: var(--spacing-xxl) 0;
-      padding: var(--spacing-xl);
-      background-color: var(--light-bg);
-      border-radius: var(--border-radius);
-      page-break-inside: avoid;
-    }
-    
-    .logic-model-title {
-      text-align: center;
-      color: var(--primary-color);
-      margin-bottom: var(--spacing-lg);
-      font-size: 1.5rem;
-    }
-    
+    /* Logic Model specific styling */
     .logic-model-table {
-      border: 2px solid var(--primary-color);
+      margin: 2rem 0;
+    }
+    
+    .logic-model-table table {
+      background-color: white;
     }
     
     .logic-model-table th {
-      background-color: var(--primary-color);
+      background-color: #2c5282;
       color: white;
       text-align: center;
-      font-size: 1rem;
-      padding: var(--spacing-md) var(--spacing-sm);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 1rem 0.5rem;
+      white-space: normal;
     }
     
     .logic-model-table td {
+      background-color: #f8fafc;
+      text-align: center;
+      padding: 1rem;
       vertical-align: middle;
-      padding: var(--spacing-md);
+    }
+    
+    .logic-model-table tr:nth-child(even) td {
       background-color: white;
     }
     
-    /* Risk Table */
-    .risks-table th {
-      background-color: #dc3545;
-      color: white;
-    }
-    
-    .risks-table tbody tr:nth-child(even) td {
-      background-color: rgba(220, 53, 69, 0.05);
-    }
-    
-    /* Stakeholder Table */
+    /* Stakeholder table styling */
     .stakeholder-table th {
-      background-color: #17a2b8;
+      background-color: #4a5568;
       color: white;
     }
     
-    /* Code Blocks */
+    /* Risks table styling */
+    .risks-table th {
+      background-color: #c53030;
+      color: white;
+    }
+    
+    /* Timeline table styling */
+    .timeline-table th {
+      background-color: #2b6cb0;
+      color: white;
+    }
+    
+    /* Budget table styling */
+    .budget-table th {
+      background-color: #2f855a;
+      color: white;
+    }
+    
+    /* Indicators table styling */
+    .indicators-table th {
+      background-color: #6b46c1;
+      color: white;
+    }
+    
+    /* Methods table styling */
+    .methods-table th {
+      background-color: #d69e2e;
+      color: white;
+    }
+    
+    /* Phase headers */
+    .phase-header {
+      background-color: #edf2f7;
+      color: #1a365d;
+      padding: 1rem;
+      margin: 2rem 0 1rem 0;
+      border-left: 4px solid #2c5282;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    
+    /* Print button styling */
+    .print-button {
+      background-color: #2c5282;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 2rem;
+      transition: background-color 0.2s;
+    }
+    
+    .print-button:hover {
+      background-color: #2a4e7c;
+    }
+    
+    /* Code blocks */
     pre {
-      background-color: var(--light-bg);
-      border: 1px solid var(--border-color);
-      border-radius: var(--border-radius);
-      padding: var(--spacing-md);
+      background-color: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 1rem;
       overflow-x: auto;
-      margin-bottom: var(--spacing-md);
+      margin: 1rem 0;
     }
     
     code {
-      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-      font-size: 0.875rem;
-      background-color: var(--light-bg);
-      padding: 0.125rem 0.25rem;
+      background-color: #f7fafc;
+      padding: 0.2rem 0.4rem;
       border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
     }
     
     pre code {
@@ -620,247 +553,65 @@ function generateFullHtmlDocument(markdownContent, organizationName, programName
       padding: 0;
     }
     
-    /* Syntax Highlighting */
-    .hljs {
-      display: block;
-      overflow-x: auto;
-      padding: var(--spacing-md);
-      background: var(--light-bg);
-    }
-    
     /* Blockquotes */
     blockquote {
-      border-left: 4px solid var(--primary-color);
-      padding-left: var(--spacing-lg);
-      margin: var(--spacing-lg) 0;
-      color: var(--secondary-color);
+      border-left: 4px solid #cbd5e0;
+      padding-left: 1rem;
+      margin: 1rem 0;
+      color: #4a5568;
       font-style: italic;
     }
     
-    /* Horizontal Rules */
-    hr {
-      border: none;
-      border-top: 2px solid var(--border-color);
-      margin: var(--spacing-xxl) 0;
+    /* Task lists */
+    .task-list-item {
+      list-style-type: none;
+      margin-left: -1.5rem;
     }
     
-    /* Print Styles */
-    @media print {
-      body {
-        font-size: 12pt;
-        line-height: 1.5;
-        padding: 0;
-      }
-      
-      .container {
-        max-width: 100%;
-        padding: 0;
-      }
-      
-      .header {
-        page-break-after: avoid;
-      }
-      
-      h1, h2, h3, h4, h5, h6 {
-        page-break-after: avoid;
-        page-break-inside: avoid;
-      }
-      
-      table, figure, blockquote {
-        page-break-inside: avoid;
-      }
-      
-      .toc {
-        page-break-after: always;
-      }
-      
-      .logic-model-section {
-        page-break-inside: avoid;
-      }
-      
-      a {
-        color: var(--dark-text);
-        text-decoration: underline;
-      }
-      
-      a[href^="http"]:after {
-        content: " (" attr(href) ")";
-        font-size: 0.8em;
-        color: var(--secondary-color);
-      }
-      
-      a[href^="#"]:after {
-        content: "";
-      }
-      
-      .table-responsive {
-        border: none;
-        overflow: visible;
-      }
-      
-      table {
-        font-size: 10pt;
-      }
-      
-      th, td {
-        padding: var(--spacing-sm);
-      }
+    .task-list-item input[type="checkbox"] {
+      margin-right: 0.5rem;
     }
-    
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      body {
-        padding: var(--spacing-md);
+  `;
+  
+  const printScript = includePrintButton ? `
+    <script>
+      function printReport() {
+        window.print();
       }
-      
-      .header h1 {
-        font-size: 2rem;
-      }
-      
-      h1 { font-size: 1.75rem; }
-      h2 { font-size: 1.5rem; }
-      h3 { font-size: 1.25rem; }
-      
-      table {
-        font-size: 0.875rem;
-      }
-      
-      th, td {
-        padding: var(--spacing-sm);
-      }
-      
-      .logic-model-table th {
-        font-size: 0.875rem;
-        padding: var(--spacing-sm) var(--spacing-xs);
-      }
-    }
-    
-    /* Accessibility Enhancements */
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-    
-    /* Skip to main content link */
-    .skip-link {
-      position: absolute;
-      top: -40px;
-      left: 0;
-      background: var(--primary-color);
-      color: white;
-      padding: var(--spacing-sm);
-      text-decoration: none;
-      z-index: 100;
-    }
-    
-    .skip-link:focus {
-      top: 0;
-    }
-    
-    /* Focus indicators for interactive elements */
-    button:focus,
-    input:focus,
-    select:focus,
-    textarea:focus {
-      outline: 2px solid var(--primary-color);
-      outline-offset: 2px;
-    }
-    
-    /* High contrast mode support */
-    @media (prefers-contrast: high) {
-      :root {
-        --border-color: #000;
-        --light-bg: #fff;
-      }
-      
-      table, th, td {
-        border: 2px solid var(--border-color);
-      }
-    }
-    
-    /* Dark mode support */
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --light-bg: #1e1e1e;
-        --dark-text: #e4e4e4;
-        --border-color: #444;
-        --link-color: #58a6ff;
-        --link-hover: #79c0ff;
-      }
-      
-      body {
-        background-color: #0d1117;
-        color: var(--dark-text);
-      }
-      
-      th {
-        background-color: #161b22;
-      }
-      
-      td {
-        background-color: #0d1117;
-      }
-      
-      tbody tr:nth-child(even) td {
-        background-color: rgba(110, 118, 129, 0.1);
-      }
-      
-      pre, code {
-        background-color: #161b22;
-      }
-      
-      .toc {
-        background-color: #161b22;
-        border-color: #30363d;
-      }
-      
-      .logic-model-section {
-        background-color: #161b22;
-      }
-    }
-  </style>
+    </script>
+  ` : '';
+  
+  const printButton = includePrintButton ? `
+    <button class="print-button no-print" onclick="printReport()">Print Report</button>
+  ` : '';
+  
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${organizationName} — ${programName} Evaluation Plan</title>
+    <style>
+        ${styles}
+    </style>
+    ${printScript}
 </head>
 <body>
-  <a href="#main" class="skip-link">Skip to main content</a>
-  <div class="container">
-    <header class="header">
-      <h1>Evaluation Plan</h1>
-      <p><strong>Organization:</strong> ${organizationName}</p>
-      <p><strong>Program:</strong> ${programName}</p>
-      <p><strong>Generated:</strong> ${new Date().toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      })}</p>
-    </header>
-    
-    <main id="main" role="main" aria-label="Evaluation plan content">
-      ${tocHtml}
-      ${htmlContent}
-    </main>
-    
-    <footer style="margin-top: var(--spacing-xxl); padding-top: var(--spacing-xl); border-top: 1px solid var(--border-color); text-align: center; color: var(--secondary-color); font-size: 0.9rem;">
-      <p>Generated by Evaluation Planner · Based on LogicalOutcomes Evaluation Planning Handbook</p>
-      <p style="margin-top: var(--spacing-sm);">
-        <a href="https://www.logicaloutcomes.net" target="_blank" rel="noopener noreferrer">www.logicaloutcomes.net</a>
-      </p>
-    </footer>
-  </div>
+    <div class="container">
+        <div class="header">
+            <h1>${organizationName} — ${programName}</h1>
+            <div class="subtitle">Evaluation Plan</div>
+            <div class="date">Generated on ${date}</div>
+        </div>
+        ${printButton}
+        <div class="content">
+            ${contentHTML}
+        </div>
+    </div>
 </body>
 </html>`;
   
-  return fullHTML;
+  return html;
 }
 
-// Export both names for compatibility
-module.exports = { 
-  generateHTMLReport,
-  generateFullHtmlDocument: generateHTMLReport
-};
+module.exports = { generateHTMLReport };
