@@ -129,11 +129,24 @@ function initializeMarked(slugger, programName) {
   };
   
   // Custom table renderer with enhanced styling
-  renderer.table = function(header, body) {
-    // Extract text from HTML header for table type detection
-    // The header parameter is already processed HTML, not markdown
-    // Ensure header is a string before processing
+  renderer.table = function(headerOrOptions, body) {
+    // Handle both old and new marked API signatures
+    let header, align;
+    
+    if (typeof headerOrOptions === 'object' && headerOrOptions !== null) {
+      // New API: object with { header, body, align }
+      header = headerOrOptions.header;
+      body = headerOrOptions.body;
+      align = headerOrOptions.align;
+    } else {
+      // Old API: (header, body)
+      header = headerOrOptions;
+      // body parameter stays as passed
+    }
+    
+    // Ensure header and body are strings
     const headerStr = String(header || '');
+    const bodyStr = String(body || '');
     const headerText = headerStr.replace(/<[^>]+>/g, ' ').toLowerCase();
     
     const tableType = detectTableType(headerText);
@@ -143,16 +156,101 @@ function initializeMarked(slugger, programName) {
     return `<div class="table-wrapper ${tableClass}">
       <table class="${tableClass}">
         <thead>${headerStr}</thead>
-        <tbody>${body}</tbody>
+        <tbody>${bodyStr}</tbody>
       </table>
     </div>`;
   };
   
   // Custom list renderer
-  renderer.list = function(body, ordered, start) {
+  renderer.list = function(bodyOrOptions, ordered, start) {
+    // Handle both old and new marked API signatures
+    let body;
+    
+    if (typeof bodyOrOptions === 'object' && bodyOrOptions !== null) {
+      // New API: object with { body, ordered, start }
+      body = bodyOrOptions.body;
+      ordered = bodyOrOptions.ordered;
+      start = bodyOrOptions.start;
+    } else {
+      // Old API: (body, ordered, start)
+      body = bodyOrOptions;
+      // ordered and start parameters stay as passed
+    }
+    
+    // Ensure body is a string
+    const bodyStr = String(body || '');
     const type = ordered ? 'ol' : 'ul';
-    const startAttr = (ordered && start !== 1) ? ` start="${start}"` : '';
-    return `<${type}${startAttr} class="content-list">${body}</${type}>`;
+    const startAttr = (ordered && start !== undefined && start !== 1) ? ` start="${start}"` : '';
+    return `<${type}${startAttr} class="content-list">${bodyStr}</${type}>`;
+  };
+  
+  // Custom table row renderer
+  renderer.tablerow = function(contentOrOptions) {
+    // Handle both old and new marked API signatures
+    let content;
+    
+    if (typeof contentOrOptions === 'object' && contentOrOptions !== null) {
+      // New API: object with { text }
+      content = contentOrOptions.text;
+    } else {
+      // Old API: direct content string
+      content = contentOrOptions;
+    }
+    
+    const contentStr = String(content || '');
+    return `<tr>${contentStr}</tr>`;
+  };
+  
+  // Custom table cell renderer
+  renderer.tablecell = function(contentOrOptions, flags) {
+    // Handle both old and new marked API signatures
+    let content, header, align;
+    
+    if (typeof contentOrOptions === 'object' && contentOrOptions !== null) {
+      // New API: object with { text, flags }
+      content = contentOrOptions.text;
+      flags = contentOrOptions.flags;
+      header = flags?.header;
+      align = flags?.align;
+    } else {
+      // Old API: (content, flags)
+      content = contentOrOptions;
+      header = flags?.header;
+      align = flags?.align;
+    }
+    
+    const contentStr = String(content || '');
+    const tag = header ? 'th' : 'td';
+    const alignAttr = align ? ` style="text-align: ${align};"` : '';
+    return `<${tag}${alignAttr}>${contentStr}</${tag}>`;
+  };
+  
+  // Custom list item renderer
+  renderer.listitem = function(textOrOptions, task, checked) {
+    // Handle both old and new marked API signatures
+    let text;
+    
+    if (typeof textOrOptions === 'object' && textOrOptions !== null) {
+      // New API: object with { text, task, checked }
+      text = textOrOptions.text;
+      task = textOrOptions.task;
+      checked = textOrOptions.checked;
+    } else {
+      // Old API: (text, task, checked)
+      text = textOrOptions;
+      // task and checked parameters stay as passed
+    }
+    
+    const textStr = String(text || '');
+    
+    if (task) {
+      const checkbox = checked 
+        ? '<input type="checkbox" checked disabled> ' 
+        : '<input type="checkbox" disabled> ';
+      return `<li class="task-list-item">${checkbox}${textStr}</li>`;
+    }
+    
+    return `<li>${textStr}</li>`;
   };
   
   // Custom paragraph renderer for better spacing
