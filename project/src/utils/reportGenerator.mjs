@@ -703,6 +703,12 @@ function generateFullHtmlDocument(markdown, options = {}) {
   
   const reportData = { programName, organizationName };
   
+  // Ensure markdown is a string
+  if (typeof markdown !== 'string') {
+    console.error('Error: markdown is not a string, it is:', typeof markdown, markdown);
+    markdown = String(markdown || '');
+  }
+  
   // Generate TOC
   const tocHtml = generateTOC(markdown);
   
