@@ -31,89 +31,152 @@ function isLogicModelTable(headerText) {
   return matches.length >= 3;
 }
 
+// Build a helper for rendering inline content with marked v16
+function buildInlineRenderer() {
+  // Helper to safely render inline tokens
+  const renderInline = (tokens) => {
+    if (!tokens) return '';
+    if (typeof tokens === 'string') return tokens;
+    if (!Array.isArray(tokens)) {
+      return tokens.text || tokens.raw || '';
+    }
+    
+    // Process each token
+    return tokens.map(token => {
+      if (typeof token === 'string') return token;
+      
+      // Handle different token types
+      switch (token.type) {
+        case 'text':
+        case 'escape':
+          return token.text || token.raw || '';
+        case 'strong':
+          return `<strong>${renderInline(token.tokens)}</strong>`;
+        case 'em':
+          return `<em>${renderInline(token.tokens)}</em>`;
+        case 'codespan':
+          return `<code>${token.text}</code>`;
+        case 'br':
+          return '<br>';
+        case 'del':
+          return `<del>${renderInline(token.tokens)}</del>`;
+        case 'link':
+          const linkText = renderInline(token.tokens);
+          return `<a href="${token.href}"${token.title ? ` title="${token.title}"` : ''}>${linkText}</a>`;
+        case 'image':
+          return `<img src="${token.href}" alt="${token.text}"${token.title ? ` title="${token.title}"` : ''}>`;
+        default:
+          // For unknown types, try to extract text
+          return token.text || token.raw || renderInline(token.tokens) || '';
+      }
+    }).join('');
+  };
+  
+  // Helper to extract plain text from tokens
+  const renderText = (tokens) => {
+    if (!tokens) return '';
+    if (typeof tokens === 'string') return tokens;
+    if (!Array.isArray(tokens)) {
+      return tokens.text || tokens.raw || '';
+    }
+    
+    return tokens.map(token => {
+      if (typeof token === 'string') return token;
+      if (token.type === 'text' || token.type === 'escape') {
+        return token.text || token.raw || '';
+      }
+      if (token.tokens) {
+        return renderText(token.tokens);
+      }
+      return token.text || token.raw || '';
+    }).join('');
+  };
+  
+  return { renderInline, renderText };
+}
+
 // Initialize marked with custom renderer
 function initializeMarked(slugger, programName) {
   const renderer = new marked.Renderer();
+  const { renderInline, renderText } = buildInlineRenderer();
   
   // Custom heading renderer with IDs for TOC navigation
-  renderer.heading = function(text, level, raw) {
-    // Handle both old and new marked API signatures
-    let tokens, depth;
+  renderer.heading = function(token) {
+    // Extract depth and text
+    let depth = 1;
+    let text = '';
     
-    if (typeof text === 'object' && text !== null) {
-      // New API: object with { tokens, depth, text }
-      tokens = text.tokens;
-      depth = text.depth || level;
-      // For new API, we need to parse tokens to get HTML
-      if (tokens && Array.isArray(tokens)) {
-        text = this.parser.parseInline(tokens);
-      } else {
-        text = text.text || '';
+    if (typeof token === 'object' && token !== null) {
+      depth = token.depth || 1;
+      if (token.tokens) {
+        text = renderInline(token.tokens);
+      } else if (token.text) {
+        text = token.text;
       }
     } else {
-      // Old API: (text, level, raw)
-      depth = level;
+      // Fallback for string input
+      text = String(token || '');
     }
     
-    // Ensure we have valid values
-    depth = depth || 1;
-    const textStr = String(text || '');
+    // Generate ID for TOC
+    const rawText = text.replace(/<[^>]+>/g, '').trim();
+    const anchor = slugger.slug(rawText);
     
-    const anchorText = textStr.replace(/<[^>]*>/g, '').trim();
-    const anchor = slugger.slug(anchorText);
-    
-    return `<h${depth} id="${anchor}">${textStr}</h${depth}>`;
+    return `<h${depth} id="${anchor}">${text}</h${depth}>`;
   };
   
   // Custom paragraph renderer
   renderer.paragraph = function(token) {
-    // Handle both old and new marked API signatures
+    let text = '';
+    
     if (typeof token === 'object' && token !== null) {
-      // New API: token object with tokens array
-      if (token.tokens && Array.isArray(token.tokens)) {
-        const text = this.parser.parseInline(token.tokens);
-        return `<p>${text}</p>\n`;
+      // New API: token with tokens array
+      if (token.tokens) {
+        text = renderInline(token.tokens);
+      } else if (token.text) {
+        text = token.text;
       }
-      // Fallback for other object formats
-      return `<p>${token.text || ''}</p>\n`;
+    } else {
+      // Fallback for string input
+      text = String(token || '');
     }
-    // Old API: string parameter
-    return `<p>${token}</p>\n`;
+    
+    return `<p>${text}</p>\n`;
   };
   
   // Custom table renderer
   renderer.table = function(token) {
-    // Handle both old and new marked API signatures
-    let header, body;
+    let headerHTML = '';
+    let bodyHTML = '';
     
-    if (typeof token === 'object' && token !== null && token.header && token.rows) {
-      // New API: token object
-      // Build header HTML
+    if (typeof token === 'object' && token !== null && token.header) {
+      // New API: token object with header and rows
+      // Build header row
       const headerCells = token.header.map((cell, i) => {
-        const align = token.align && token.align[i] ? ` align="${token.align[i]}"` : '';
-        const cellText = cell.tokens ? this.parser.parseInline(cell.tokens) : cell.text || '';
-        return `<th${align}>${cellText}</th>`;
+        const alignAttr = token.align && token.align[i] ? ` align="${token.align[i]}"` : '';
+        const cellText = cell.tokens ? renderInline(cell.tokens) : cell.text || '';
+        return `<th${alignAttr}>${cellText}</th>`;
       }).join('');
-      header = `<thead>\n<tr>\n${headerCells}\n</tr>\n</thead>`;
+      headerHTML = `<tr>\n${headerCells}\n</tr>`;
       
-      // Build body HTML
+      // Build body rows
       const bodyRows = token.rows.map(row => {
         const cells = row.map((cell, i) => {
-          const align = token.align && token.align[i] ? ` align="${token.align[i]}"` : '';
-          const cellText = cell.tokens ? this.parser.parseInline(cell.tokens) : cell.text || '';
-          return `<td${align}>${cellText}</td>`;
+          const alignAttr = token.align && token.align[i] ? ` align="${token.align[i]}"` : '';
+          const cellText = cell.tokens ? renderInline(cell.tokens) : cell.text || '';
+          return `<td${alignAttr}>${cellText}</td>`;
         }).join('');
         return `<tr>\n${cells}\n</tr>`;
       }).join('\n');
-      body = `<tbody>\n${bodyRows}\n</tbody>`;
+      bodyHTML = bodyRows;
     } else {
-      // Old API: (header, body) string parameters
-      header = arguments[0] || token || '';
-      body = arguments[1] || '';
+      // Fallback for string input
+      headerHTML = String(token || '');
+      bodyHTML = '';
     }
     
     // Extract header text for classification
-    const headerText = header.toLowerCase();
+    const headerText = headerHTML.toLowerCase();
     const isLogicModel = isLogicModelTable(headerText);
     const tableClass = isLogicModel ? 'logic-model-table' : detectTableType(headerText);
     
@@ -123,8 +186,8 @@ function initializeMarked(slugger, programName) {
           <h3 class="logic-model-title">Logic Model for ${programName}</h3>
           <div class="table-responsive">
             <table class="${tableClass}">
-              ${header}
-              ${body}
+              <thead>${headerHTML}</thead>
+              <tbody>${bodyHTML}</tbody>
             </table>
           </div>
         </div>\n`;
@@ -133,65 +196,46 @@ function initializeMarked(slugger, programName) {
     return `
       <div class="table-responsive">
         <table class="${tableClass}">
-          ${header}
-          ${body}
+          <thead>${headerHTML}</thead>
+          <tbody>${bodyHTML}</tbody>
         </table>
       </div>\n`;
   };
   
   // Custom list renderer
   renderer.list = function(token) {
-    // Handle both old and new marked API signatures
-    if (typeof token === 'object' && token !== null) {
-      // New API: token object
-      const ordered = token.ordered;
-      const start = token.start;
-      const items = token.items || [];
-      
-      const type = ordered ? 'ol' : 'ul';
-      const startAttr = ordered && start !== 1 ? ` start="${start}"` : '';
-      
-      const itemsHtml = items.map(item => {
-        // Parse the item tokens
-        let itemContent = '';
-        if (item.tokens && Array.isArray(item.tokens)) {
-          itemContent = this.parser.parse(item.tokens);
-        } else {
-          itemContent = item.text || '';
-        }
-        return `<li>${itemContent}</li>`;
-      }).join('\n');
-      
-      return `<${type}${startAttr}>\n${itemsHtml}\n</${type}>\n`;
-    }
+    let bodyHTML = '';
+    let ordered = false;
+    let start = 1;
     
-    // Old API: (body, ordered, start) parameters
-    const body = arguments[0] || token || '';
-    const ordered = arguments[1] || false;
-    const start = arguments[2] || 1;
+    if (typeof token === 'object' && token !== null && token.items) {
+      // New API: token with items array
+      ordered = token.ordered || false;
+      start = token.start || 1;
+      
+      // Render each list item
+      bodyHTML = token.items.map(item => {
+        if (item.task !== undefined) {
+          // Task list item
+          const checkbox = item.checked 
+            ? '<input type="checkbox" checked disabled> '
+            : '<input type="checkbox" disabled> ';
+          const text = item.tokens ? marked.parse(item.tokens) : item.text || '';
+          return `<li class="task-list-item">${checkbox}${text}</li>`;
+        } else {
+          // Regular list item
+          const text = item.tokens ? marked.parse(item.tokens) : item.text || '';
+          return `<li>${text}</li>`;
+        }
+      }).join('\n');
+    } else {
+      // Fallback for string input
+      bodyHTML = String(token || '');
+    }
     
     const type = ordered ? 'ol' : 'ul';
-    const startAttr = ordered && start !== 1 ? ` start="${start}"` : '';
-    
-    return `<${type}${startAttr}>\n${body}</${type}>\n`;
-  };
-  
-  // Custom list item renderer
-  renderer.listitem = function(token) {
-    // Handle both old and new marked API signatures
-    if (typeof token === 'object' && token !== null) {
-      // New API: token object
-      let text = '';
-      if (token.tokens && Array.isArray(token.tokens)) {
-        text = this.parser.parse(token.tokens);
-      } else {
-        text = token.text || '';
-      }
-      return `<li>${text}</li>\n`;
-    }
-    
-    // Old API: string parameter
-    return `<li>${token}</li>\n`;
+    const startAttr = (ordered && start !== 1) ? ` start="${start}"` : '';
+    return `<${type}${startAttr}>\n${bodyHTML}\n</${type}>\n`;
   };
   
   // Custom code renderer
