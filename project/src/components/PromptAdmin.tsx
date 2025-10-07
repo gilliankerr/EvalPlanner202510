@@ -681,55 +681,43 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                           How to change AI models
                         </h3>
                         <p className={styles.mb3}>
-                          Each prompt uses an AI model (like GPT-5 or Claude) to generate text. Different models have different strengths - some are better at analysis, others at creative writing. You might want to change models to improve quality or reduce costs.
+                          Each prompt uses an AI model (like GPT-5 or Gemini 2.5 Pro) to generate text. Different models have different strengths - some are better at analysis, others at creative writing. You might want to change models to improve quality or reduce costs.
                         </p>
                         
-                        <p className={`${styles.mb2} ${styles.fontMedium}`}>Easiest method: Ask Replit Agent</p>
-                        <div className={styles.codeBlock}>
-                          <div>"Use GPT-5 for all prompts"</div>
-                          <div>"Switch {prompts.find(p => p.step_name === 'prompt1')?.display_name} to Claude 3.5 Sonnet"</div>
-                          <div>"Change {prompts.find(p => p.step_name === 'report_template')?.display_name} to use GPT-4"</div>
-                        </div>
-                        
+                        <p className={`${styles.mb2} ${styles.fontMedium}`}>How to choose a model:</p>
+                        <ol className={styles.instructionsList}>
+                          <li>Go to <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className={styles.link}>OpenRouter Models</a> and browse available models</li>
+                          <li>Click on a model card to see its details</li>
+                          <li>Copy the <strong>exact model name</strong> from the model card (e.g., <code className={styles.code}>openai/gpt-5</code> or <code className={styles.code}>google/gemini-2.5-pro</code>)</li>
+                          <li>Click the <strong>⚙️ System Settings</strong> button in the admin page sidebar</li>
+                          <li>Paste the model name into the appropriate field (Prompt 1, Prompt 2, or Report Template)</li>
+                          <li>Click <strong>Save</strong> for that model</li>
+                        </ol>
+
                         <p className={`${styles.noteBox} ${styles.blueNoteBox}`}>
-                          <strong>What is "temperature"?</strong> This controls how creative vs. predictable the AI is. Lower values (like 0.3) make it more focused and consistent. Higher values (like 0.9) make it more creative and varied. Most prompts work well with the default setting.
+                          💡 <strong>Tip:</strong> Each model card on OpenRouter shows the model's cost, speed, and capabilities to help you choose the right one for your needs.
                         </p>
+                      </div>
 
-                        <details className={styles.textSm}>
-                          <summary className={`${styles.fontMedium} ${styles.cursorPointer} ${styles.textGray700} ${styles.mb2}`}>Advanced: Technical details for each prompt</summary>
-                          <div className={`${styles.spaceY3} ${styles.mt3} ${styles.ml4} ${styles.textGray600}`}>
-                            <div>
-                              <h4 className={`${styles.fontMedium} ${styles.textGray900}`}>{prompts.find(p => p.step_name === 'prompt1')?.display_name}</h4>
-                              <p className={`${styles.textXs} ${styles.mt1}`}>Configuration settings:</p>
-                              <ul className={`${styles.listDisc} ${styles.ml5} ${styles.spaceY1} ${styles.textXs} ${styles.mt1}`}>
-                                <li><code className={styles.code}>VITE_PROMPT1_MODEL</code> - Which AI model to use (examples: openai/gpt-5, anthropic/claude-3.5-sonnet)</li>
-                                <li><code className={styles.code}>VITE_PROMPT1_TEMPERATURE</code> - Creativity level, 0.0 to 1.0 (optional)</li>
-                              </ul>
-                            </div>
-
-                            <div>
-                              <h4 className={`${styles.fontMedium} ${styles.textGray900}`}>{prompts.find(p => p.step_name === 'prompt2')?.display_name}</h4>
-                              <p className={`${styles.textXs} ${styles.mt1}`}>Configuration settings:</p>
-                              <ul className={`${styles.listDisc} ${styles.ml5} ${styles.spaceY1} ${styles.textXs} ${styles.mt1}`}>
-                                <li><code className={styles.code}>VITE_PROMPT2_MODEL</code> - Which AI model to use</li>
-                                <li><code className={styles.code}>VITE_PROMPT2_TEMPERATURE</code> - Creativity level (optional)</li>
-                              </ul>
-                            </div>
-
-                            <div>
-                              <h4 className={`${styles.fontMedium} ${styles.textGray900}`}>{prompts.find(p => p.step_name === 'report_template')?.display_name}</h4>
-                              <p className={`${styles.textXs} ${styles.mt1}`}>Configuration settings:</p>
-                              <ul className={`${styles.listDisc} ${styles.ml5} ${styles.spaceY1} ${styles.textXs} ${styles.mt1}`}>
-                                <li><code className={styles.code}>VITE_REPORT_TEMPLATE_MODEL</code> - Which AI model to use</li>
-                                <li><code className={styles.code}>VITE_REPORT_TEMPLATE_TEMPERATURE</code> - Creativity level (optional)</li>
-                              </ul>
-                            </div>
-                          </div>
-                        </details>
-
-                        <p className={`${styles.mt4} ${styles.textGray600} ${styles.textSm}`}>
-                          <strong>Note:</strong> All AI models are accessed through a service called OpenRouter. See the <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className={styles.link}>full list of available models</a> if you want to explore options.
+                      <div className={`${styles.borderT} ${styles.pt6}`}>
+                        <h3 className={styles.subsectionTitle}>
+                          How to adjust temperature settings
+                        </h3>
+                        <p className={styles.mb3}>
+                          Temperature controls how creative vs. predictable the AI is:
                         </p>
+                        <ul className={`${styles.listDisc} ${styles.ml5} ${styles.spaceY1} ${styles.mb3}`}>
+                          <li><strong>Lower values (0.0-0.3):</strong> More focused, consistent, and deterministic</li>
+                          <li><strong>Medium values (0.4-0.7):</strong> Balanced creativity and consistency</li>
+                          <li><strong>Higher values (0.8-1.0):</strong> More creative, varied, and unpredictable</li>
+                        </ul>
+
+                        <p className={`${styles.mb2} ${styles.fontMedium}`}>To change temperature: Ask Replit Agent to help</p>
+                        <div className={styles.codeBlock}>
+                          <div>"Set Prompt 1 temperature to 0.3"</div>
+                          <div>"Change temperature for all prompts to 0.5"</div>
+                          <div>"Set Report Template temperature to 0.7"</div>
+                        </div>
                       </div>
 
                       <div className={`${styles.borderT} ${styles.pt6}`}>
@@ -740,36 +728,14 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                           Web search allows the AI to look up information about similar programs and best practices from across the internet. This can make evaluation plans more informed and comprehensive, but it also makes processing slower and slightly more expensive.
                         </p>
 
-                        <div className={`${styles.noteBox} ${styles.blueNoteBox}`}>
-                          <h4 className={`${styles.fontMedium} ${styles.textSm} ${styles.mb2}`}>Your current settings:</h4>
-                          <ul className={`${styles.spaceY1} ${styles.textSm}`}>
-                            <li>• <strong>{prompts.find(p => p.step_name === 'prompt1')?.display_name}:</strong> Web search is <strong className={config?.prompt1.webSearch ? styles.textGreen700 : styles.textGray600}>{config?.prompt1.webSearch ? 'ON' : 'OFF'}</strong></li>
-                            <li>• <strong>{prompts.find(p => p.step_name === 'prompt2')?.display_name}:</strong> Web search is <strong className={config?.prompt2.webSearch ? styles.textGreen700 : styles.textGray600}>{config?.prompt2.webSearch ? 'ON' : 'OFF'}</strong></li>
-                            <li>• <strong>{prompts.find(p => p.step_name === 'report_template')?.display_name}:</strong> Web search is <strong className={config?.reportTemplate.webSearch ? styles.textGreen700 : styles.textGray600}>{config?.reportTemplate.webSearch ? 'ON' : 'OFF'}</strong></li>
-                          </ul>
-                        </div>
-
-                        <p className={`${styles.mb2} ${styles.fontMedium}`}>Easiest method: Ask Replit Agent</p>
+                        <p className={`${styles.mb2} ${styles.fontMedium}`}>To change web search settings: Ask Replit Agent to help</p>
                         <div className={styles.codeBlock}>
-                          <div>"Turn off web search for {prompts.find(p => p.step_name === 'prompt1')?.display_name}"</div>
-                          <div>"Enable web search for {prompts.find(p => p.step_name === 'prompt2')?.display_name}"</div>
-                          <div>"Turn on web search for all prompts"</div>
+                          <div>"Turn off web search for Prompt 1"</div>
+                          <div>"Enable web search for all prompts"</div>
+                          <div>"Disable web search for the Report Template"</div>
                         </div>
 
-                        <details className={`${styles.textSm} ${styles.mb3}`}>
-                          <summary className={`${styles.fontMedium} ${styles.cursorPointer} ${styles.textGray700} ${styles.mb2}`}>Advanced: Change settings manually</summary>
-                          <p className={`${styles.textXs} ${styles.textGray600} ${styles.mt2} ${styles.ml4}`}>
-                            If you prefer to change settings yourself, ask Replit Agent to update these configuration variables:
-                          </p>
-                          <ul className={`${styles.listDisc} ${styles.ml8} ${styles.spaceY1} ${styles.textXs} ${styles.textGray600} ${styles.mt2}`}>
-                            <li><code className={styles.code}>VITE_PROMPT1_WEB_SEARCH</code> for {prompts.find(p => p.step_name === 'prompt1')?.display_name}</li>
-                            <li><code className={styles.code}>VITE_PROMPT2_WEB_SEARCH</code> for {prompts.find(p => p.step_name === 'prompt2')?.display_name}</li>
-                            <li><code className={styles.code}>VITE_REPORT_TEMPLATE_WEB_SEARCH</code> for {prompts.find(p => p.step_name === 'report_template')?.display_name}</li>
-                          </ul>
-                          <p className={`${styles.textXs} ${styles.textGray600} ${styles.mt2} ${styles.ml4}`}>Set each to either <code className={styles.code}>true</code> (on) or <code className={styles.code}>false</code> (off).</p>
-                        </details>
-
-                        <p className={`${styles.textGray600} ${styles.italic} ${styles.textSm}`}>
+                        <p className={`${styles.noteBox} ${styles.blueNoteBox}`}>
                           💡 <strong>Default settings:</strong> Web search is turned on for the first two prompts (to gather context) and off for the report template (which uses already-gathered information).
                         </p>
                       </div>
