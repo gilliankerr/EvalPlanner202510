@@ -682,13 +682,12 @@ app.listen(port, '0.0.0.0', () => {
     }
   });
   
-  // Initialize job queue processor
-  require('./jobProcessor');
-  console.log('Starting background job processor...');
-  console.log('✓ Background job processor started (runs every 5 seconds)');
-  
   console.log(`✓ Email server running on port ${port}`);
   console.log('=========================');
 });
 
-module.exports = { generateHTMLReport };
+// Export both names for compatibility
+module.exports = { 
+  generateHTMLReport,
+  generateFullHtmlDocument: generateHTMLReport  // Alias for backward compatibility
+};

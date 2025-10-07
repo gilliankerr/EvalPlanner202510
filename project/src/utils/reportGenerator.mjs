@@ -586,3 +586,12 @@ export function generateHTMLReport(evaluationPlan, options = {}) {
   
   return html;
 }
+
+// Export aliases for backward compatibility
+export const generateFullHtmlDocument = generateHTMLReport;
+export const convertMarkdownToHtml = (markdown, options) => {
+  // Simple wrapper that generates full HTML
+  return generateHTMLReport(markdown, options);
+};
+export const generateTOC = () => '';  // Deprecated - TOC is now built-in
+export const getReportStyles = () => '';  // Deprecated - styles are now inline
