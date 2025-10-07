@@ -180,23 +180,23 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
   margin-top: 2rem;
   
-  /* Accessible gradient: White (#FFFFFF) on blue provides 4.5:1+ contrast ratio */
-  background: linear-gradient(135deg, #0085ca 0%, #006ba6 100%);
+  /* Accessible gradient: White (#FFFFFF) on darker blue provides 5.2:1+ contrast ratio (WCAG AA compliant) */
+  background: linear-gradient(135deg, #005a8c 0%, #004070 100%);
   color: #FFFFFF;
 }
 
 .downloadButton:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 24px rgba(0, 133, 202, 0.35), 0 8px 8px rgba(0, 133, 202, 0.25);
+  box-shadow: 0 12px 24px rgba(0, 90, 140, 0.4), 0 8px 8px rgba(0, 90, 140, 0.3);
 }
 
 .downloadButton:active {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 133, 202, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 90, 140, 0.35);
 }
 
 .downloadButton:focus {
-  outline: 3px solid rgba(0, 133, 202, 0.5);
+  outline: 3px solid rgba(0, 90, 140, 0.6);
   outline-offset: 2px;
 }
 
