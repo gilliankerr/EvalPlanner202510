@@ -294,7 +294,6 @@ function generateHTMLReport(evaluationPlan, options = {}) {
   });
   
   // Process the markdown content with our custom renderer
-  initializeMarked(slugger, programName);
   const contentHTML = marked.parse(evaluationPlan);
   
   // Reuse CSS from the frontend

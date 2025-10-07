@@ -192,11 +192,11 @@ function initializeMarked(slugger, programName) {
           const checkbox = item.checked 
             ? '<input type="checkbox" checked disabled> '
             : '<input type="checkbox" disabled> ';
-          const text = item.tokens ? marked.parse(item.tokens) : item.text || '';
+          const text = item.tokens ? renderInline(item.tokens) : item.text || '';
           return `<li class="task-list-item">${checkbox}${text}</li>`;
         } else {
           // Regular list item
-          const text = item.tokens ? marked.parse(item.tokens) : item.text || '';
+          const text = item.tokens ? renderInline(item.tokens) : item.text || '';
           return `<li>${text}</li>`;
         }
       }).join('\n');
