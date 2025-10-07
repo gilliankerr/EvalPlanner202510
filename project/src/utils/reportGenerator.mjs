@@ -143,10 +143,13 @@ function initializeMarked(slugger, programName) {
   
   // Custom paragraph renderer for better spacing
   renderer.paragraph = function(text) {
-    if (text.startsWith('<strong>') && (text.includes('Phase') || text.includes('Component'))) {
-      return `<div class="phase-header">${text}</div>`;
+    // Ensure text is a string (handle both string and token formats)
+    const textString = typeof text === 'string' ? text : String(text);
+    
+    if (textString.startsWith('<strong>') && (textString.includes('Phase') || textString.includes('Component'))) {
+      return `<div class="phase-header">${textString}</div>`;
     }
-    return `<p>${text}</p>`;
+    return `<p>${textString}</p>`;
   };
   
   // Code block with syntax highlighting

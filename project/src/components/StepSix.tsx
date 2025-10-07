@@ -29,6 +29,14 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     try {
+      // Validate evaluation plan exists
+      if (!programData.evaluationPlan || programData.evaluationPlan.trim().length === 0) {
+        throw new Error('No evaluation plan content available. Please regenerate the plan.');
+      }
+
+      console.log('Generating HTML from evaluation plan...');
+      console.log('Evaluation plan length:', programData.evaluationPlan.length);
+      
       // Use the unified HTML generation function
       const htmlReport = generateFullHtmlDocument(programData.evaluationPlan, {
         programName: programData.programName,
@@ -36,15 +44,25 @@ const StepSix: React.FC<StepSixProps> = ({ programData, onComplete, setIsProcess
         includePrintButton: true  // Include print button for downloads
       });
       
+      if (!htmlReport || htmlReport.trim().length === 0) {
+        throw new Error('HTML generation returned empty content');
+      }
+      
+      console.log('HTML report generated successfully, length:', htmlReport.length);
       setHtmlContent(htmlReport);
       setRenderStatus('complete');
       setIsProcessing(false);
       onComplete();
     } catch (error) {
       console.error('Error rendering HTML report:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        error: error
+      });
       setRenderStatus('idle');
       setIsProcessing(false);
-      alert('Failed to render HTML report. Please try again.');
+      alert(`Failed to render HTML report: ${error instanceof Error ? error.message : 'Unknown error'}. Please try regenerating the plan.`);
     }
   };
 
