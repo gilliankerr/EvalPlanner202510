@@ -96,7 +96,7 @@ function buildInlineRenderer() {
 }
 
 // Initialize marked with custom renderer
-function initializeMarked(slugger, programName) {
+function initializeMarked(slugger, programName, tocItems) {
   const renderer = new marked.Renderer();
   const { renderInline, renderText } = buildInlineRenderer();
   
@@ -120,34 +120,22 @@ function initializeMarked(slugger, programName) {
     
     // Generate ID for TOC
     const rawText = text.replace(/<[^>]+>/g, '').trim();
-    const anchor = slugger.slug(rawText);
+    const id = slugger.slug(rawText);
+    const levelClass = `heading-level-${depth}`;
     
-    return `<h${depth} id="${anchor}" class="heading-level-${depth}">${text}</h${depth}>`;
-  };
-  
-  // Custom paragraph renderer for better spacing
-  renderer.paragraph = function(token) {
-    let text = '';
-    
-    if (typeof token === 'object' && token !== null) {
-      // New API: token with tokens array
-      if (token.tokens) {
-        text = renderInline(token.tokens);
-      } else if (token.text) {
-        text = token.text;
-      }
-    } else {
-      // Fallback for string input
-      text = String(token || '');
+    // Collect h2 and h3 headings for TOC
+    if (depth === 2 || depth === 3) {
+      tocItems.push({
+        level: depth,
+        text: rawText,
+        id: id
+      });
     }
     
-    if (text.startsWith('<strong>') && (text.includes('Phase') || text.includes('Component'))) {
-      return `<div class="phase-header">${text}</div>`;
-    }
-    return `<p>${text}</p>`;
+    return `<h${depth} id="${id}" class="${levelClass}">${text}</h${depth}>`;
   };
   
-  // Custom table renderer
+  // Custom table renderer with enhanced styling
   renderer.table = function(token) {
     let headerHTML = '';
     let bodyHTML = '';
@@ -228,12 +216,45 @@ function initializeMarked(slugger, programName) {
     return `<${type}${startAttr} class="content-list">${bodyHTML}</${type}>`;
   };
   
+  // Custom paragraph renderer for better spacing
+  renderer.paragraph = function(token) {
+    let text = '';
+    
+    if (typeof token === 'object' && token !== null) {
+      // New API: token with tokens array
+      if (token.tokens) {
+        text = renderInline(token.tokens);
+      } else if (token.text) {
+        text = token.text;
+      }
+    } else {
+      // Fallback for string input
+      text = String(token || '');
+    }
+    
+    if (text.startsWith('<strong>') && (text.includes('Phase') || text.includes('Component'))) {
+      return `<div class="phase-header">${text}</div>`;
+    }
+    return `<p>${text}</p>`;
+  };
+  
   // Code block with syntax highlighting
   renderer.code = function(code, language) {
     const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
     const highlighted = hljs.highlight(code, { language: validLanguage }).value;
     return `<pre><code class="hljs ${validLanguage}">${highlighted}</code></pre>`;
   };
+  
+  // Set up marked with the custom renderer
+  marked.setOptions({
+    renderer: renderer,
+    highlight: function(code, lang) {
+      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+      return hljs.highlight(code, { language }).value;
+    },
+    breaks: true,
+    gfm: true
+  });
   
   return renderer;
 }
@@ -276,229 +297,507 @@ function generateHTMLReport(evaluationPlan, options = {}) {
     }
   };
   
-  // Initialize marked with custom renderer
-  const renderer = initializeMarked(slugger, programName);
-  
-  // Configure marked options
-  marked.setOptions({
-    renderer: renderer,
-    highlight: function(code, lang) {
-      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-      return hljs.highlight(code, { language }).value;
-    },
-    breaks: true,
-    gfm: true,
-    headerIds: true,
-    mangle: false,
-    sanitize: false
-  });
+  // Array to collect TOC items
+  const tocItems = [];
   
   // Process the markdown content with our custom renderer
+  initializeMarked(slugger, programName, tocItems);
   const contentHTML = marked.parse(evaluationPlan);
   
-  // Reuse CSS from the frontend
+  // Build TOC HTML
+  const tocHTML = tocItems.map(item => {
+    const levelClass = `toc-level-${item.level - 1}`;
+    return `<div class="toc-item ${levelClass}"><a href="#${item.id}">${item.text}</a></div>`;
+  }).join('');
+  
+  // Rich blue theme CSS styles (matching frontend exactly)
   const styles = `
-    @media print {
-      .no-print { display: none; }
-      .page-break { page-break-before: always; }
-    }
-    
+    /* Typography System */
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       line-height: 1.6;
-      color: #2d3748;
+      color: #1e293b;
       background-color: white;
       margin: 0;
       padding: 0;
     }
     
-    .container {
+    /* Layout containers */
+    .report-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .flex {
+      display: flex;
+    }
+    
+    .flex-1 {
+      flex: 1 1 0%;
       max-width: 900px;
       margin: 0 auto;
-      padding: 2rem;
     }
     
-    .header {
-      text-align: center;
-      margin-bottom: 3rem;
-      padding-bottom: 1rem;
-      border-bottom: 2px solid #e2e8f0;
+    /* TOC Sidebar */
+    .w-80 {
+      width: 20rem;
+      min-width: 200px;
     }
     
-    .header h1 {
-      color: #1a365d;
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
+    .bg-slate-50 {
+      background-color: #f8fafc;
     }
     
-    .header .subtitle {
-      color: #4a5568;
+    .min-h-screen {
+      min-height: 100vh;
+    }
+    
+    .p-6 {
+      padding: 1.5rem;
+    }
+    
+    aside h3 {
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 1rem;
       font-size: 1.1rem;
-      margin-top: 0.5rem;
     }
     
-    .header .date {
-      color: #718096;
-      font-size: 0.9rem;
-      margin-top: 1rem;
+    aside nav {
+      font-size: 0.875rem;
     }
     
+    aside nav a {
+      display: block;
+      padding: 0.25rem 0;
+      color: #64748b;
+      text-decoration: none !important;
+      transition: color 0.2s;
+    }
+    
+    aside nav a:hover {
+      color: #1e293b;
+    }
+    
+    /* TOC Items */
+    .toc-item {
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    
+    .toc-level-1 {
+      margin-left: 0;
+    }
+    
+    .toc-level-2 {
+      margin-left: 1.5rem;
+    }
+    
+    .toc-item:hover {
+      background-color: #f1f5f9;
+      transform: translateX(4px);
+    }
+    
+    .toc-item a {
+      color: #475569;
+      text-decoration: none !important;
+      font-weight: 500;
+    }
+    
+    .toc-item a:hover {
+      color: #2563eb;
+    }
+    
+    /* Print Button */
+    .print-btn {
+      background-color: #dbeafe;
+      color: #1f2937;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #93c5fd;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 1.5rem;
+      display: block;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .print-btn:hover {
+      background-color: #bfdbfe;
+      border-color: #60a5fa;
+    }
+    
+    .text-xs {
+      font-size: 0.75rem;
+    }
+    
+    .text-slate-600 {
+      color: #475569;
+    }
+    
+    .mb-4 {
+      margin-bottom: 1rem;
+    }
+    
+    .px-2 {
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+    
+    .py-1 {
+      padding-top: 0.25rem;
+      padding-bottom: 0.25rem;
+    }
+    
+    .bg-blue-50 {
+      background-color: #eff6ff;
+    }
+    
+    .border {
+      border-width: 1px;
+    }
+    
+    .border-blue-200 {
+      border-color: #bfdbfe;
+    }
+    
+    .rounded {
+      border-radius: 0.25rem;
+    }
+    
+    .text-center {
+      text-align: center;
+    }
+    
+    /* Content area */
     .content {
-      background-color: white;
       padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
     
-    h1 { 
-      color: #1a365d; 
-      font-size: 2rem; 
-      margin-top: 2rem; 
-      margin-bottom: 1rem;
+    /* Main Title */
+    h1:first-of-type {
+      font-size: 2.5rem;
       font-weight: 700;
+      color: #0f172a;
+      margin: 2rem 0 1rem 0;
+      padding-bottom: 1rem;
+      border-bottom: 3px solid #2563eb;
+      text-align: center;
     }
     
-    h2 { 
-      color: #2c5282; 
-      font-size: 1.5rem; 
-      margin-top: 2rem; 
-      margin-bottom: 1rem;
+    /* Subtitle */
+    .subtitle {
+      text-align: center;
+      color: #64748b;
+      font-size: 1.1rem;
+      margin-bottom: 3rem;
+      font-weight: 400;
+    }
+    
+    /* Section Headings */
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 2rem 0 1rem 0;
+    }
+    
+    h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 3rem 0 1.5rem 0;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid #e2e8f0;
+      position: relative;
+    }
+    
+    h2::before {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 60px;
+      height: 2px;
+      background: #2563eb;
+    }
+    
+    /* Subsection Headings */
+    h3 {
+      font-size: 1.375rem;
       font-weight: 600;
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 0.5rem;
+      color: #374151;
+      margin: 2.5rem 0 1rem 0;
+      padding-left: 1rem;
+      border-left: 4px solid #3b82f6;
     }
     
-    h3 { 
-      color: #2d3748; 
-      font-size: 1.25rem; 
-      margin-top: 1.5rem; 
-      margin-bottom: 0.75rem;
-      font-weight: 600;
+    h4 {
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: #4b5563;
+      margin: 2rem 0 0.75rem 0;
     }
     
-    h4 { 
-      color: #4a5568; 
-      font-size: 1.1rem; 
-      margin-top: 1.25rem; 
-      margin-bottom: 0.5rem;
-      font-weight: 600;
+    /* Paragraphs */
+    p {
+      margin-bottom: 1.25rem;
+      line-height: 1.7;
+      color: #374151;
     }
     
-    p { 
-      margin-bottom: 1rem; 
-      text-align: justify;
-      color: #2d3748;
-    }
-    
-    ul, ol { 
-      margin-bottom: 1rem; 
+    /* Lists */
+    ul, ol {
+      margin: 1rem 0 1.5rem 0;
       padding-left: 2rem;
-      color: #2d3748;
     }
     
-    li { 
-      margin-bottom: 0.5rem; 
+    li {
+      margin-bottom: 0.5rem;
+      line-height: 1.6;
+      color: #374151;
     }
     
-    /* Enhanced table styles */
-    .table-wrapper {
-      overflow-x: auto;
-      margin: 2rem 0;
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    /* Strong text */
+    strong {
+      font-weight: 600;
+      color: #1e293b;
     }
     
+    /* Links */
+    a {
+      color: #2563eb;
+      text-decoration: underline;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+    
+    a:hover {
+      color: #1d4ed8;
+      text-decoration: underline;
+    }
+    
+    a:visited {
+      color: #7c3aed;
+    }
+    
+    /* Tables */
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.95rem;
-    }
-    
-    th {
-      background-color: #f7fafc;
-      color: #1a365d;
-      font-weight: 600;
-      text-align: left;
-      padding: 1rem;
-      border-bottom: 2px solid #cbd5e0;
-    }
-    
-    td {
-      padding: 1rem;
-      border-bottom: 1px solid #e2e8f0;
-      vertical-align: top;
-    }
-    
-    tr:hover {
-      background-color: #f7fafc;
-    }
-    
-    /* Logic Model specific styling */
-    .logic-model-table {
       margin: 2rem 0;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e5e7eb;
     }
     
-    .logic-model-table table {
-      background-color: white;
+    /* Logic Model Table Styling */
+    .logic-model-container {
+      margin: 2.5rem 0;
+      padding: 1rem;
+      background: #f8fafc;
+      border-radius: 16px;
+      border: 2px solid #3b82f6;
+      overflow-x: auto;
+    }
+    
+    .logic-model-table {
+      margin: 0;
+      box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+      border: 2px solid #3b82f6;
+      table-layout: fixed;
+      width: 100%;
     }
     
     .logic-model-table th {
-      background-color: #2c5282;
+      padding: 0.6rem 0.8rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background-color: #2563eb;
       color: white;
       text-align: center;
-      font-size: 0.9rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      padding: 1rem 0.5rem;
-      white-space: normal;
     }
     
     .logic-model-table td {
-      background-color: #f8fafc;
+      padding: 0.75rem 0.8rem;
+      vertical-align: top;
+      line-height: 1.4;
+      background: white;
+      border-right: 1px solid #e2e8f0;
+      font-size: 0.75rem;
+      word-wrap: break-word;
       text-align: center;
-      padding: 1rem;
-      vertical-align: middle;
     }
     
-    .logic-model-table tr:nth-child(even) td {
-      background-color: white;
+    .logic-model-table td:last-child {
+      border-right: none;
     }
     
-    /* Stakeholder table styling */
-    .stakeholder-table th {
-      background-color: #4a5568;
+    .logic-model-table tbody tr:hover {
+      background: #f1f5f9;
+    }
+    
+    th {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      padding: 1rem 1.5rem;
+      font-weight: 600;
+      text-align: left;
+      color: #1e293b;
+      border-bottom: 2px solid #e2e8f0;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    td {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #f1f5f9;
+      color: #374151;
+      vertical-align: top;
+      line-height: 1.5;
+      font-size: 0.875rem;
+    }
+    
+    tbody tr:hover {
+      background-color: #f8fafc;
+      transition: background-color 0.15s ease;
+    }
+    
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+    
+    /* Alternating row colors */
+    tbody tr:nth-child(even) {
+      background-color: #fafbfc;
+    }
+    
+    tbody tr:nth-child(even):hover {
+      background-color: #f1f5f9;
+    }
+    
+    /* Enhanced Table Styles - Using Theme Colors */
+    .timeline-table,
+    .stakeholder-table,
+    .evaluation-table,
+    .metrics-table {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border-left: 4px solid #2563eb;
+    }
+    
+    .timeline-table th,
+    .stakeholder-table th,
+    .evaluation-table th,
+    .metrics-table th {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      color: #1e293b;
+    }
+    
+    .standard-table {
+      background: white;
+      border-left: 4px solid #6b7280;
+    }
+    
+    .standard-table th {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      color: #1e293b;
+    }
+    
+    /* Callout Boxes */
+    .highlight-box {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border-left: 4px solid #2563eb;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      border-radius: 0 12px 12px 0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+    
+    .highlight-box::before {
+      content: "💡";
+      position: absolute;
+      top: 1rem;
+      left: -0.75rem;
+      background: #2563eb;
       color: white;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
     }
     
-    /* Risks table styling */
-    .risks-table th {
-      background-color: #c53030;
-      color: white;
+    .warning-box {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border-left: 4px solid #d97706;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      border-radius: 0 12px 12px 0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      position: relative;
     }
     
-    /* Timeline table styling */
-    .timeline-table th {
-      background-color: #2b6cb0;
+    .warning-box::before {
+      content: "⚠️";
+      position: absolute;
+      top: 1rem;
+      left: -0.75rem;
+      background: #d97706;
       color: white;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
     }
     
-    /* Budget table styling */
-    .budget-table th {
-      background-color: #2f855a;
-      color: white;
+    .intro-section {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      padding: 2rem;
+      border-radius: 12px;
+      margin: 2rem 0;
+      border-left: 4px solid #0ea5e9;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      position: relative;
     }
     
-    /* Indicators table styling */
-    .indicators-table th {
-      background-color: #6b46c1;
+    .intro-section::before {
+      content: "📋";
+      position: absolute;
+      top: 1.5rem;
+      left: -0.75rem;
+      background: #0ea5e9;
       color: white;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
     }
     
-    /* Methods table styling */
-    .methods-table th {
-      background-color: #d69e2e;
-      color: white;
+    /* Content sections */
+    .content-section {
+      margin: 3rem 0;
+      padding: 0 1rem;
     }
     
     /* Phase headers */
@@ -512,35 +811,19 @@ function generateHTMLReport(evaluationPlan, options = {}) {
       font-size: 1.1rem;
     }
     
-    /* Print button styling */
-    .print-button {
-      background-color: #2c5282;
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-bottom: 2rem;
-      transition: background-color 0.2s;
-    }
-    
-    .print-button:hover {
-      background-color: #2a4e7c;
-    }
-    
     /* Code blocks */
     pre {
-      background-color: #f7fafc;
+      background-color: #f8fafc;
       border: 1px solid #e2e8f0;
-      border-radius: 4px;
-      padding: 1rem;
+      border-radius: 8px;
+      padding: 1.5rem;
       overflow-x: auto;
-      margin: 1rem 0;
+      margin: 1.5rem 0;
+      line-height: 1.5;
     }
     
     code {
-      background-color: #f7fafc;
+      background-color: #f8fafc;
       padding: 0.2rem 0.4rem;
       border-radius: 3px;
       font-family: 'Courier New', monospace;
@@ -551,6 +834,25 @@ function generateHTMLReport(evaluationPlan, options = {}) {
       background-color: transparent;
       padding: 0;
     }
+    
+    /* Syntax Highlighting */
+    .hljs {
+      background: #f8fafc;
+      color: #1e293b;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      margin: 1.5rem 0;
+      overflow-x: auto;
+      line-height: 1.5;
+    }
+    
+    .hljs-comment { color: #64748b; font-style: italic; }
+    .hljs-keyword { color: #7c3aed; font-weight: 600; }
+    .hljs-string { color: #059669; }
+    .hljs-number { color: #dc2626; }
+    .hljs-function { color: #2563eb; }
+    .hljs-variable { color: #b45309; }
     
     /* Blockquotes */
     blockquote {
@@ -570,18 +872,107 @@ function generateHTMLReport(evaluationPlan, options = {}) {
     .task-list-item input[type="checkbox"] {
       margin-right: 0.5rem;
     }
+    
+    /* Print Styles */
+    @page {
+      size: landscape;
+      margin: 0.5in;
+    }
+    
+    @media print {
+      .no-print { 
+        display: none !important; 
+      }
+      
+      .page-break { 
+        page-break-before: always; 
+      }
+      
+      /* Expand content to use full width when printing */
+      .report-container {
+        max-width: 100%;
+        padding: 0;
+      }
+      
+      .flex-1 {
+        max-width: 100%;
+        margin: 0;
+      }
+      
+      @page {
+        size: landscape;
+        margin: 0.5in;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      
+      * {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+      }
+      
+      html, body {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+        font-size: 12pt;
+        line-height: 1.4;
+      }
+      
+      table, th, td {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .flex {
+        display: block;
+      }
+      
+      .w-80 {
+        width: 100%;
+        min-height: auto;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border-radius: 0.5rem;
+      }
+      
+      h1:first-of-type {
+        font-size: 2rem;
+      }
+      
+      h2 {
+        font-size: 1.5rem;
+      }
+      
+      h3 {
+        font-size: 1.25rem;
+      }
+      
+      table {
+        font-size: 0.875rem;
+      }
+      
+      th, td {
+        padding: 0.75rem 1rem;
+      }
+      
+      .content-section {
+        padding: 0 0.5rem;
+      }
+    }
   `;
   
   const printScript = includePrintButton ? `
     <script>
-      function printReport() {
+      function printLandscape() {
+        // Use the existing comprehensive landscape CSS in the main styles
         window.print();
       }
     </script>
-  ` : '';
-  
-  const printButton = includePrintButton ? `
-    <button class="print-button no-print" onclick="printReport()">Print Report</button>
   ` : '';
   
   const html = `<!DOCTYPE html>
@@ -595,16 +986,34 @@ function generateHTMLReport(evaluationPlan, options = {}) {
     </style>
     ${printScript}
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>${organizationName} — ${programName}</h1>
-            <div class="subtitle">Evaluation Plan</div>
-            <div class="date">Generated on ${date}</div>
-        </div>
-        ${printButton}
-        <div class="content">
-            ${contentHTML}
+<body class="bg-white">
+    <!-- Table of Contents Layout -->
+    <div class="report-container">
+        <div class="flex">
+            <!-- TOC Sidebar: Always visible on left -->
+            <aside class="w-80 bg-slate-50 min-h-screen p-6 no-print">
+                ${includePrintButton ? `
+                <button onclick="printLandscape()" class="print-btn">
+                    Print / Save PDF
+                </button>
+                <p class="text-xs text-slate-600 mb-4 px-2 py-1 bg-blue-50 border border-blue-200 rounded text-center">
+                    💡 For best results, select <strong>Landscape</strong> orientation in your print dialog
+                </p>
+                ` : ''}
+                <h3 class="font-semibold text-slate-900 mb-4">Table of Contents</h3>
+                <nav class="space-y-1 text-sm">
+                    ${tocHTML}
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-6">
+                <div class="max-w-none">
+                    <h1 id="${slugger.slug(organizationName + ' ' + programName + ' Evaluation Plan')}">${organizationName} — ${programName} Evaluation Plan</h1>
+                    <p class="subtitle">Generated on ${date}</p>
+                    ${contentHTML}
+                </div>
+            </main>
         </div>
     </div>
 </body>
