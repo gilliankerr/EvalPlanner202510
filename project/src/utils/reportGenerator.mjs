@@ -114,16 +114,12 @@ function initializeMarked(slugger, programName) {
   
   // Custom table renderer with enhanced styling
   renderer.table = function(header, body) {
-    const tokens = marked.lexer(header);
-    let tableType = 'standard-table';
-    let isLogicModel = false;
+    // Extract text from HTML header for table type detection
+    // The header parameter is already processed HTML, not markdown
+    const headerText = header.replace(/<[^>]+>/g, ' ').toLowerCase();
     
-    if (tokens.length > 0) {
-      const headerText = tokens[0].text || '';
-      tableType = detectTableType(headerText);
-      isLogicModel = isLogicModelTable(headerText);
-    }
-    
+    const tableType = detectTableType(headerText);
+    const isLogicModel = isLogicModelTable(headerText);
     const tableClass = isLogicModel ? 'logic-model-table' : tableType;
     
     return `<div class="table-wrapper ${tableClass}">
