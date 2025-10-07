@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Sparkles, Loader2, CheckCircle } from 'lucide-react';
 import type { ProgramData } from '../App';
 import { fetchPrompt, buildPromptWithContext } from '../utils/promptApi';
@@ -15,9 +15,14 @@ const Prompt2: React.FC<Prompt2Props> = ({ programData, updateProgramData, onCom
   const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'complete' | 'error'>('idle');
   const [analysisResult, setAnalysisResult] = useState<string>('');
   const [jobId, setJobId] = useState<number | null>(null);
+  const isJobSubmitted = useRef(false);
 
   useEffect(() => {
-    analyzeProgram();
+    // Prevent duplicate job submission in React StrictMode
+    if (!isJobSubmitted.current) {
+      isJobSubmitted.current = true;
+      analyzeProgram();
+    }
   }, []);
 
   const analyzeProgram = async () => {

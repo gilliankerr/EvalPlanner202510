@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { FileOutput, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import type { ProgramData } from '../App';
 import { fetchPrompt, buildPromptWithContext } from '../utils/promptApi';
@@ -143,9 +143,14 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
   const [planStatus, setPlanStatus] = useState<'idle' | 'generating' | 'complete' | 'error'>('idle');
   const [planResult, setPlanResult] = useState<string>('');
   const [jobId, setJobId] = useState<number | null>(null);
+  const isJobSubmitted = useRef(false);
 
   useEffect(() => {
-    generateEvaluationPlan();
+    // Prevent duplicate job submission in React StrictMode
+    if (!isJobSubmitted.current) {
+      isJobSubmitted.current = true;
+      generateEvaluationPlan();
+    }
   }, []);
 
   const generateEvaluationPlan = async () => {
