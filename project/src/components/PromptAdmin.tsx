@@ -302,6 +302,8 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter admin password"
                 className={styles.authInput}
+                autoComplete="current-password"
+                name="admin-password"
                 autoFocus
               />
             </div>
@@ -483,7 +485,13 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
 
                 {settings && (
                   <div style={{ maxWidth: '600px' }}>
-                    <div className={styles.formGroup}>
+                    <form
+                      className={styles.formGroup}
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        updateSetting('openrouter_api_key', settings.openrouter_api_key);
+                      }}
+                    >
                       <label className={styles.formLabel}>OpenRouter API Key</label>
                       <input
                         type="password"
@@ -491,15 +499,17 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                         onChange={(e) => setSettings({ ...settings, openrouter_api_key: e.target.value })}
                         placeholder="Enter your OpenRouter API key..."
                         className={styles.formInput}
+                        autoComplete="new-password"
+                        name="openrouter-api-key"
                       />
                       <button
-                        onClick={() => updateSetting('openrouter_api_key', settings.openrouter_api_key)}
+                        type="submit"
                         className={styles.headerButton}
                         style={{ marginTop: '0.5rem' }}
                       >
                         Save API Key
                       </button>
-                    </div>
+                    </form>
 
                     <h3 className={styles.subsectionTitle} style={{ marginTop: '2rem', marginBottom: '1rem' }}>
                       Model Configuration

@@ -1,5 +1,21 @@
-const marked = require('marked');
+let marked;
 const hljs = require('highlight.js');
+
+const markedReady = import('marked').then((module) => {
+  const candidate = module.marked ?? module.default ?? module;
+  if (!candidate || typeof candidate.parse !== 'function') {
+    throw new Error('Failed to load the marked markdown parser.');
+  }
+  marked = candidate;
+  return candidate;
+});
+
+async function ensureMarked() {
+  if (marked) {
+    return marked;
+  }
+  return markedReady;
+}
 
 // Helper function to detect table type based on headers
 function detectTableType(headerText) {
@@ -260,7 +276,8 @@ function initializeMarked(slugger, programName, tocItems) {
 }
 
 // Generate the complete HTML document
-function generateHTMLReport(evaluationPlan, options = {}) {
+async function generateHTMLReport(evaluationPlan, options = {}) {
+  await ensureMarked();
   const { 
     programName = 'Program',
     organizationName = 'Organization',

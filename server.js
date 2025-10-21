@@ -8,9 +8,23 @@ require('dotenv').config();
 const { Pool } = require('pg');
 const { Resend } = require('resend');
 const crypto = require('crypto');
-const { marked } = require('marked');
 // Import the unified report generator
 const { generateFullHtmlDocument } = require('./reportGeneratorServer.cjs');
+
+let markedInstancePromise;
+
+function getMarked() {
+  if (!markedInstancePromise) {
+    markedInstancePromise = import('marked').then((module) => {
+      const candidate = module.marked ?? module.default ?? module;
+      if (!candidate || typeof candidate.parse !== 'function') {
+        throw new Error('Failed to load the marked markdown parser.');
+      }
+      return candidate;
+    });
+  }
+  return markedInstancePromise;
+}
 
 const app = express();
 // In development, backend runs on 3001 (Vite dev server uses 5000)
@@ -188,18 +202,19 @@ async function sendEmail(message) {
 }
 
 // Helper function to convert markdown to HTML for email bodies
-function convertMarkdownToEmailHtml(markdown) {
+async function convertMarkdownToEmailHtml(markdown) {
   if (!markdown) return '';
-  
+
+  const marked = await getMarked();
   // Configure marked for email-friendly HTML
   marked.setOptions({
     breaks: true, // Convert line breaks to <br>
     gfm: true // GitHub Flavored Markdown
   });
-  
+
   // Convert markdown to HTML
   const html = marked.parse(markdown);
-  
+
   // Return with basic styling for better email rendering
   return html;
 }
@@ -769,28 +784,47 @@ app.get('/api/settings/:key', authenticateAdmin, async (req, res) => {
 app.put('/api/settings/:key', authenticateAdmin, async (req, res) => {
   try {
     const { key } = req.params;
-    const { value } = req.body;
-    
-    // Check if setting exists
+    const { value, description } = req.body;
+
+    if (value === undefined) {
+      return res.status(400).json({ error: 'Setting value is required' });
+    }
+
     const checkResult = await pool.query(
-      'SELECT key FROM settings WHERE key = $1',
+      'SELECT key, description FROM settings WHERE key = $1',
       [key]
     );
-    
+
+    // Determine whether to insert or update
     if (checkResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Setting not found' });
+      const descriptionToUse = description !== undefined && description !== null
+        ? description
+        : 'Created via admin interface';
+
+      const insertResult = await pool.query(
+        'INSERT INTO settings (key, value, description) VALUES ($1, $2, $3) RETURNING *',
+        [key, value, descriptionToUse]
+      );
+
+      return res.status(201).json({
+        success: true,
+        setting: insertResult.rows[0],
+        message: `Setting '${key}' created successfully`
+      });
     }
-    
-    // Update the setting
+
+    const currentDescription = checkResult.rows[0].description;
+    const descriptionToUse = description !== undefined ? description : currentDescription;
+
     const result = await pool.query(
-      'UPDATE settings SET value = $1, updated_at = CURRENT_TIMESTAMP WHERE key = $2 RETURNING *',
-      [value, key]
+      'UPDATE settings SET value = $1, description = $2, updated_at = CURRENT_TIMESTAMP WHERE key = $3 RETURNING *',
+      [value, descriptionToUse, key]
     );
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       setting: result.rows[0],
-      message: `Setting '${key}' updated successfully` 
+      message: `Setting '${key}' updated successfully`
     });
   } catch (error) {
     console.error('Error updating setting:', error);
@@ -924,7 +958,7 @@ app.get('/api/jobs/:id', async (req, res) => {
 });
 
 // Convert markdown to formatted HTML using the unified generator
-function convertMarkdownToHtml(markdown, programName, organizationName) {
+async function convertMarkdownToHtml(markdown, programName, organizationName) {
   // Use the unified HTML generation function
   return generateFullHtmlDocument(markdown, {
     programName,
@@ -1090,7 +1124,7 @@ async function processNextJob() {
               .replace(/\{\{currentDateTime\}\}/g, currentDateTime);
             
             // Convert markdown to HTML for proper email formatting
-            emailBody = convertMarkdownToEmailHtml(emailBodyMarkdown);
+            emailBody = await convertMarkdownToEmailHtml(emailBodyMarkdown);
           }
           
           // Create clean filename from metadata
@@ -1099,7 +1133,7 @@ async function processNextJob() {
           const filename = `${orgNameClean}_${progNameClean}_Evaluation_Plan.html`;
           
           // Convert markdown to formatted HTML with CSS
-          const formattedHtml = convertMarkdownToHtml(result, programName, organizationName);
+          const formattedHtml = await convertMarkdownToHtml(result, programName, organizationName);
           
           // Convert formatted HTML to base64 for attachment
           const base64Content = Buffer.from(formattedHtml, 'utf-8').toString('base64');

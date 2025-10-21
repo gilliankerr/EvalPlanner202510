@@ -8,7 +8,10 @@
     "dev": "cd project && npm run dev",
     "worker": "node worker.js",
     "db:migrate": "./scripts/db-migrate.sh",
-    "db:seed": "node seed-prompts.js"
+    "db:seed": "node seed-prompts.js",
+    "deploy:railway:api": "railway up --service a46fb6de-bd40-4356-acbd-461745ea78ad",
+    "deploy:railway:worker": "railway up --service 3051b9bb-317b-469b-a70e-c4aaa64b0bf1",
+    "deploy:railway": "npm run deploy:railway:api && npm run deploy:railway:worker"
   },
   "dependencies": {
     "@types/dompurify": "^3.0.5",
