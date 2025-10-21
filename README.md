@@ -51,6 +51,15 @@ This split keeps heavy OpenRouter calls off the request path while ensuring the 
    - Apply schema: `npm run db:migrate`
    - Seed baseline prompts: `npm run db:seed`
 
+### Optional automatic migrations at startup
+
+Set environment variable `RUN_DB_MIGRATIONS=true` to automatically run `npm run db:migrate` during container startup. This is useful for simple deployments or CI-run containers. The migration script uses a Postgres advisory lock to avoid concurrent migrations across replicas. Use this option with caution—manual migrations during deployment give more control in production.
+
+Notes on configuration and production safety:
+- The advisory lock key is configurable via `DB_MIGRATE_ADVISORY_LOCK` (defaults to `1234567890`). Change this value if multiple apps share the same database to avoid lock collisions.
+- Automatic migrations run synchronously and can delay or block container startup if migrations take a long time. For production-grade workflows prefer running migrations as a separate CI/CD job or a one-off migration service.
+- The migration script waits for DB readiness by retrying up to `DB_MIGRATE_MAX_RETRIES` times with `DB_MIGRATE_SLEEP_SECONDS` between attempts. Defaults are 12 retries and 5 seconds (≈60s total). Adjust these via env vars as needed.
+
 ### Build & Deploy Flow
 1. Install dependencies: `npm install` (installs root and frontend packages via the `postinstall` hook).
 2. Build the frontend: `npm run build` (Vite output is copied into the production image automatically).

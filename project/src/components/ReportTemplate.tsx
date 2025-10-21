@@ -224,7 +224,7 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({ programData, updateProg
 
     const poll = async () => {
       try {
-        const response = await fetch(`/api/jobs/${jobId}`);
+        const response = await fetch(`/api/jobs/${jobId}?email=${encodeURIComponent(programData.userEmail)}`);
         
         if (!response.ok) {
           throw new Error(`Job status check failed: ${response.status}`);
