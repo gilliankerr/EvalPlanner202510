@@ -6,44 +6,76 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 Starting production server...');
-console.log('================================\n');
+const serviceName = (process.env.RAILWAY_SERVICE_NAME || '').toLowerCase();
+const isWorkerOnly = process.env.WORKER_ONLY === 'true' || serviceName.includes('worker');
+
+if (isWorkerOnly) {
+  console.log('⚙️  Starting background worker...');
+} else {
+  console.log('🚀 Starting production server...');
+  console.log('================================\n');
+}
 
 // Check if frontend is built
 const distPath = path.join(__dirname, 'project', 'dist');
-if (!fs.existsSync(distPath)) {
-  console.error('❌ ERROR: Frontend not built!');
-  console.error('   The dist/ folder does not exist.');
-  console.error('   This usually means the build step failed or was not run.');
-  console.error('   Check the build logs for errors.\n');
-  process.exit(1);
+if (!isWorkerOnly) {
+  if (!fs.existsSync(distPath)) {
+    console.error('❌ ERROR: Frontend not built!');
+    console.error('   The dist/ folder does not exist.');
+    console.error('   This usually means the build step failed or was not run.');
+    console.error('   Check the build logs for errors.\n');
+    process.exit(1);
+  }
+
+  console.log('✓ Frontend build detected\n');
+} else if (!fs.existsSync(distPath)) {
+  console.warn('⚠️  Frontend build not detected. Worker will continue without serving static assets.');
 }
 
-console.log('✓ Frontend build detected\n');
+const entryScript = isWorkerOnly ? 'worker.js' : 'server.js';
 
-// Start the unified server (serves both frontend and API)
-console.log('🔧 Starting unified server on port 5000...');
-console.log('   - Serving built frontend from /project/dist');
-console.log('   - Serving API endpoints from /api/*\n');
+if (isWorkerOnly) {
+  console.log('🔧 Launching worker entrypoint (worker.js)...');
+  console.log('   - HTTP server skipped (WORKER_ONLY=true)');
+  console.log('   - Background job processor enabled\n');
+} else {
+  // Start the unified server (serves both frontend and API)
+  const port = process.env.PORT || '5000';
+  console.log(`🔧 Starting unified server on port ${port}...`);
+  console.log('   - Serving built frontend from /project/dist');
+  console.log('   - Serving API endpoints from /api/*\n');
+}
 
-const server = spawn('node', ['server.js'], {
-  stdio: 'inherit',
-  env: { 
-    ...process.env,
-    NODE_ENV: 'production',  // Ensures backend runs on port 5000
-    PORT: '5000'
+const childEnv = {
+  ...process.env,
+  NODE_ENV: process.env.NODE_ENV || 'production'
+};
+
+if (isWorkerOnly) {
+  childEnv.WORKER_ONLY = 'true';
+  if (!('ENABLE_JOB_PROCESSOR' in childEnv)) {
+    childEnv.ENABLE_JOB_PROCESSOR = 'true';
   }
+} else if (!childEnv.PORT) {
+  childEnv.PORT = '5000';
+}
+
+const server = spawn('node', [entryScript], {
+  stdio: 'inherit',
+  env: childEnv
 });
 
 // Handle process cleanup
+const shutdownLabel = isWorkerOnly ? 'worker' : 'server';
+
 process.on('SIGINT', () => {
-  console.log('\n🛑 Shutting down server...');
+  console.log(`\n🛑 Shutting down ${shutdownLabel}...`);
   server.kill('SIGINT');
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  console.log('\n🛑 Shutting down server...');
+  console.log(`\n🛑 Shutting down ${shutdownLabel}...`);
   server.kill('SIGTERM');
   process.exit(0);
 });
@@ -51,9 +83,9 @@ process.on('SIGTERM', () => {
 // Handle server crashes
 server.on('exit', (code) => {
   if (code !== 0) {
-    console.error(`❌ Server crashed with code ${code}`);
+    console.error(`❌ ${isWorkerOnly ? 'Worker' : 'Server'} crashed with code ${code}`);
     process.exit(1);
   }
 });
 
-console.log('✅ Server started successfully!');
+console.log(`✅ ${isWorkerOnly ? 'Worker' : 'Server'} started successfully!`);

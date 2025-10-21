@@ -4,6 +4,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+require('dotenv').config();
 const { Pool } = require('pg');
 const { Resend } = require('resend');
 const crypto = require('crypto');
@@ -20,13 +21,10 @@ const PORT = process.env.NODE_ENV === 'production' ? (process.env.PORT || 5000) 
 // EMAIL CONFIGURATION
 // ============================================================================
 // 
-// The "from" email address is configured through the Resend integration.
-// To change it:
-// 1. Go to Replit Integrations
-// 2. Update the Resend connection's "From Email" field
-// 3. Restart the email server
-//
-// Make sure the domain is verified in your Resend account (https://resend.com/domains)
+// The "from" email address is configured via environment variables when
+// deploying to Railway. Set RESEND_API_KEY and RESEND_FROM_EMAIL on the
+// service (or as shared variables) before deploying. Make sure the domain is
+// verified in your Resend account (https://resend.com/domains).
 // ============================================================================
 
 // ============================================================================
@@ -114,9 +112,6 @@ async function cleanupExpiredSessions() {
   }
 }
 
-// Run cleanup every hour
-setInterval(cleanupExpiredSessions, 60 * 60 * 1000);
-
 // Database setup
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -143,53 +138,31 @@ process.on('unhandledRejection', (reason, promise) => {
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Resend client initialization
-let connectionSettings;
+// Resend configuration helpers (Railway environment variables)
+function resolveResendConfiguration() {
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.RESEND_FROM_EMAIL;
 
-async function getCredentials() {
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  const xReplitToken = process.env.REPL_IDENTITY
-    ? 'repl ' + process.env.REPL_IDENTITY
-    : process.env.WEB_REPL_RENEWAL
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL
-    : null;
-
-  if (!xReplitToken) {
-    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY environment variable is not set');
   }
 
-  connectionSettings = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=resend',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
-      }
-    }
-  ).then(res => res.json()).then(data => data.items?.[0]);
-
-  if (!connectionSettings || !connectionSettings.settings.api_key) {
-    throw new Error('Resend not connected');
+  if (!fromEmail) {
+    throw new Error('RESEND_FROM_EMAIL environment variable is not set');
   }
-  
-  return {
-    apiKey: connectionSettings.settings.api_key,
-    fromEmail: connectionSettings.settings.from_email
-  };
+
+  return { apiKey, fromEmail };
 }
 
-// Get fresh Resend client (tokens expire, so never cache)
-async function getResendClient() {
-  const credentials = await getCredentials();
-  return {
-    client: new Resend(credentials.apiKey),
-    fromEmail: credentials.fromEmail
-  };
+function createResendClient() {
+  const { apiKey } = resolveResendConfiguration();
+  return new Resend(apiKey);
 }
 
 // Email sending function using Resend
 async function sendEmail(message) {
-  const { client, fromEmail } = await getResendClient();
+  const { fromEmail } = resolveResendConfiguration();
+  const client = createResendClient();
 
   const emailData = {
     from: fromEmail,
@@ -831,8 +804,8 @@ app.get('/api/config', async (req, res) => {
     // Get from email from Resend integration
     let emailFromAddress = 'Not configured';
     try {
-      const credentials = await getCredentials();
-      emailFromAddress = credentials.fromEmail;
+      const { fromEmail } = resolveResendConfiguration();
+      emailFromAddress = fromEmail;
     } catch (error) {
       console.error('Could not fetch from email:', error.message);
     }
@@ -1224,14 +1197,6 @@ async function cleanupOldJobs() {
   }
 }
 
-// Run cleanup every hour
-setInterval(cleanupOldJobs, 60 * 60 * 1000);
-
-// Run job processor every 5 seconds to check for pending jobs
-setInterval(() => {
-  processNextJob().catch(err => console.error('Job processor error:', err));
-}, 5000);
-
 // ============================================================================
 // STATIC FILE SERVING (PRODUCTION)
 // ============================================================================
@@ -1252,51 +1217,161 @@ app.use((req, res, next) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
-async function startServer() {
-  try {
-    console.log('=== Email Server Startup ===');
-    console.log('Environment checks:');
-    console.log(`- DATABASE_URL: ${process.env.DATABASE_URL ? '✓ Set' : '✗ Missing'}`);
-    console.log(`- REPLIT_CONNECTORS_HOSTNAME: ${process.env.REPLIT_CONNECTORS_HOSTNAME ? '✓ Set' : '✗ Missing'}`);
-    console.log(`- REPL_IDENTITY or WEB_REPL_RENEWAL: ${(process.env.REPL_IDENTITY || process.env.WEB_REPL_RENEWAL) ? '✓ Set' : '✗ Missing'}`);
-    console.log(`- ADMIN_PASSWORD: ${process.env.ADMIN_PASSWORD ? '✓ Set' : '✗ Missing'}`);
+async function startServer(options = {}) {
+  const startHttp = options.startHttp ?? (process.env.WORKER_ONLY !== 'true');
+  const enableJobProcessor = options.enableJobProcessor ?? (process.env.ENABLE_JOB_PROCESSOR !== 'false');
+  const enableSessionCleanup = options.enableSessionCleanup ?? enableJobProcessor;
+  const port = options.port ?? PORT;
 
+  console.log('=== Backend Startup ===');
+  console.log(`Mode: ${startHttp ? 'API server' : 'Worker only'}`);
+  console.log(`Job processor: ${enableJobProcessor ? 'enabled' : 'disabled'}`);
+  console.log('Environment checks:');
+  console.log(`- DATABASE_URL: ${process.env.DATABASE_URL ? '✓ Set' : '✗ Missing'}`);
+  console.log(`- RESEND_API_KEY: ${process.env.RESEND_API_KEY ? '✓ Set' : '✗ Missing'}`);
+  console.log(`- RESEND_FROM_EMAIL: ${process.env.RESEND_FROM_EMAIL ? '✓ Set' : '✗ Missing'}`);
+  console.log(`- ADMIN_PASSWORD: ${process.env.ADMIN_PASSWORD ? '✓ Set' : '✗ Missing'}`);
+  console.log(`- OPENROUTER_API_KEY: ${process.env.OPENROUTER_API_KEY ? '✓ Set' : '✗ Missing'}`);
+
+  try {
     console.log('\nTesting database connection...');
-    const dbTest = await pool.query('SELECT NOW()');
+    await pool.query('SELECT NOW()');
     console.log('✓ Database connection successful');
 
-    console.log('\nTesting Resend connection...');
+    console.log('\nValidating Resend configuration...');
     try {
-      const credentials = await getCredentials();
-      console.log('✓ Resend connection successful');
-      console.log(`  Emails will be sent from: ${credentials.fromEmail}`);
+      const { fromEmail } = resolveResendConfiguration();
+      console.log('✓ Resend configuration detected');
+      console.log(`  Emails will be sent from: ${fromEmail}`);
     } catch (error) {
-      console.error('✗ Resend connection failed:', error.message);
-      console.error('  This may work in development but will cause issues when sending emails');
+      console.error('✗ Resend configuration missing:', error.message);
+      console.error('  Emails will fail to send until configuration is provided.');
     }
 
     console.log('\nChecking prompts table...');
     const promptsCheck = await pool.query('SELECT COUNT(*) FROM prompts');
     console.log(`✓ Prompts table accessible (${promptsCheck.rows[0].count} prompts found)`);
 
-    console.log('\nCleaning up expired sessions...');
-    await cleanupExpiredSessions();
+    if (enableSessionCleanup) {
+      console.log('\nCleaning up expired sessions...');
+      await cleanupExpiredSessions();
+    }
 
-    console.log('\nStarting background job processor...');
-    processNextJob().catch(err => console.error('Initial job processor error:', err));
-    console.log('✓ Background job processor started (runs every 5 seconds)');
+    let jobProcessingInterval = null;
+    let jobCleanupInterval = null;
+    let sessionCleanupInterval = null;
 
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`\n✓ Email server running on port ${PORT}`);
-      console.log('=========================\n');
-    });
+    const stopBackgroundJobs = () => {
+      if (jobProcessingInterval) {
+        clearInterval(jobProcessingInterval);
+        jobProcessingInterval = null;
+      }
+      if (jobCleanupInterval) {
+        clearInterval(jobCleanupInterval);
+        jobCleanupInterval = null;
+      }
+      if (sessionCleanupInterval) {
+        clearInterval(sessionCleanupInterval);
+        sessionCleanupInterval = null;
+      }
+    };
+
+    const startBackgroundJobs = () => {
+      if (enableJobProcessor && !jobProcessingInterval) {
+        console.log('\nStarting background job processor...');
+        processNextJob().catch(err => console.error('Initial job processor error:', err));
+        jobProcessingInterval = setInterval(() => {
+          processNextJob().catch(err => console.error('Job processor error:', err));
+        }, 5000);
+        console.log('✓ Background job processor started (runs every 5 seconds)');
+      } else if (!enableJobProcessor) {
+        console.log('\nBackground job processor disabled via configuration.');
+      }
+
+      if (enableJobProcessor && !jobCleanupInterval) {
+        jobCleanupInterval = setInterval(cleanupOldJobs, 60 * 60 * 1000);
+        console.log('✓ Job cleanup scheduled (runs hourly)');
+      }
+
+      if (enableSessionCleanup && !sessionCleanupInterval) {
+        sessionCleanupInterval = setInterval(cleanupExpiredSessions, 60 * 60 * 1000);
+        console.log('✓ Session cleanup scheduled (runs hourly)');
+      }
+    };
+
+    startBackgroundJobs();
+
+    let httpServer = null;
+
+    if (startHttp) {
+      await new Promise((resolve, reject) => {
+        httpServer = app.listen(port, '0.0.0.0', (error) => {
+          if (error) {
+            return reject(error);
+          }
+
+          console.log(`\n✓ API server running on port ${port}`);
+          console.log('=========================\n');
+          resolve();
+        });
+      });
+    } else {
+      console.log('\nHTTP server disabled; running in worker-only mode.');
+    }
+
+    const shutdown = async () => {
+      stopBackgroundJobs();
+
+      if (httpServer) {
+        await new Promise((resolve, reject) => {
+          httpServer.close((error) => {
+            if (error) {
+              return reject(error);
+            }
+            resolve();
+          });
+        });
+      }
+    };
+
+    return {
+      app,
+      pool,
+      httpServer,
+      startBackgroundJobs,
+      stopBackgroundJobs,
+      shutdown
+    };
   } catch (error) {
     console.error('\n✗ FATAL ERROR during server startup:');
     console.error('Error:', error.message);
     console.error('Stack:', error.stack);
     console.error('\nServer cannot start. Please check the errors above.');
-    process.exit(1);
+
+    const aggregateErrors = Array.isArray(error.errors) ? error.errors : [];
+    const primaryError = aggregateErrors[0] || error;
+    const errorCode = primaryError && primaryError.code ? primaryError.code : error.code;
+
+    if (errorCode === 'ECONNREFUSED') {
+      if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('.railway.internal')) {
+        console.error('\nHint: The DATABASE_URL points to the internal Railway host (postgres.railway.internal).');
+        console.error('      That hostname is only reachable from within Railway.');
+        console.error('      For local development, use `railway connect`/`railway shell` to proxy the database');
+        console.error('      or replace DATABASE_URL with the public connection string from the Railway dashboard.');
+      } else {
+        console.error('\nHint: The application could not reach the Postgres instance.');
+        console.error('      Double-check the database credentials, host, network access, and that the service is running.');
+      }
+    }
+
+    throw error;
   }
 }
 
-startServer();
+if (require.main === module) {
+  startServer().catch(() => {
+    process.exit(1);
+  });
+}
+
+module.exports = { startServer };

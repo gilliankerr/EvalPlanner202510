@@ -1,11 +1,14 @@
 {
-  "name": "workspace-proxy",
+  "name": "logicaloutcomes-evalplanner-202510",
   "private": true,
   "scripts": {
     "postinstall": "cd project && npm ci",
     "build": "cd project && npm run build",
     "start": "node start-production.js",
-    "dev": "cd project && npm run dev"
+    "dev": "cd project && npm run dev",
+    "worker": "node worker.js",
+    "db:migrate": "./scripts/db-migrate.sh",
+    "db:seed": "node seed-prompts.js"
   },
   "dependencies": {
     "@types/dompurify": "^3.0.5",
@@ -13,6 +16,7 @@
     "@uiw/react-md-editor": "^4.0.8",
     "cors": "^2.8.5",
     "dompurify": "^3.2.6",
+    "dotenv": "^16.6.1",
     "express": "^5.1.0",
     "highlight.js": "^11.11.1",
     "jsdom": "^27.0.0",
