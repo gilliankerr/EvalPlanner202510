@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import { Loader2, Settings } from 'lucide-react';
 import logoIcon from './assets/logo.jpg';
 import StepOne from './components/StepOne';
@@ -7,7 +7,7 @@ import Prompt1 from './components/Prompt1';
 import Prompt2 from './components/Prompt2';
 import ReportTemplate from './components/ReportTemplate';
 import StepSix from './components/StepSix';
-import PromptAdmin from './components/PromptAdmin';
+const PromptAdmin = lazy(() => import('./components/PromptAdmin'));
 import PrivacyPolicy from './components/PrivacyPolicy';
 import AboutApp from './components/AboutApp';
 import StepProgress from './components/StepProgress';
@@ -164,7 +164,20 @@ function App() {
   };
 
   if (showAdmin) {
-    return <PromptAdmin onBack={() => setShowAdmin(false)} />;
+    return (
+      <Suspense
+        fallback={(
+          <div className={styles.appContainer}>
+            <div className={styles.adminLoading}>
+              <Loader2 className={styles.processingIcon} />
+              <span>Loading admin tools...</span>
+            </div>
+          </div>
+        )}
+      >
+        <PromptAdmin onBack={() => setShowAdmin(false)} />
+      </Suspense>
+    );
   }
 
   return (

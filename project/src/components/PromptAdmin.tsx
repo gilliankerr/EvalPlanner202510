@@ -40,6 +40,10 @@ interface Config {
     temperature: number | null;
     webSearch: boolean;
   };
+  openRouter: {
+    configured: boolean;
+    source: 'environment' | 'database' | 'none' | 'error' | 'unknown';
+  };
 }
 
 interface PromptAdminProps {
@@ -65,6 +69,77 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
   const [settings, setSettings] = useState<any>(null);
   const [settingsSaveSuccess, setSettingsSaveSuccess] = useState(false);
   const API_URL = '/api';
+
+  const openRouterStatus = config?.openRouter;
+  const openRouterConfigured = openRouterStatus?.configured ?? false;
+
+  const openRouterStatusTitle = (() => {
+    if (!openRouterStatus) {
+      return 'Status unavailable';
+    }
+    if (!openRouterStatus.configured) {
+      return 'Not configured';
+    }
+    switch (openRouterStatus.source) {
+      case 'environment':
+        return 'Configured via environment secret';
+      case 'database':
+        return 'Configured via database (legacy)';
+      default:
+        return 'Configured';
+    }
+  })();
+
+  const openRouterStatusDescription = (() => {
+    if (!openRouterStatus) {
+      return 'We could not determine the OpenRouter configuration. Check your deployment secrets.';
+    }
+    if (!openRouterStatus.configured) {
+      return 'Add your OpenRouter API key to the OPENROUTER_API_KEY environment secret in your hosting platform (e.g., Railway, Vercel, or Docker Compose). The admin UI no longer stores API keys.';
+    }
+    if (openRouterStatus.source === 'environment') {
+      return 'The application is reading the OpenRouter API key from the OPENROUTER_API_KEY environment secret.';
+    }
+    if (openRouterStatus.source === 'database') {
+      return 'The key is being read from the database. Move it into the OPENROUTER_API_KEY environment secret and remove the database entry to complete the migration.';
+    }
+    if (openRouterStatus.source === 'error') {
+      return 'An error occurred while checking the OpenRouter API key. Verify your database connectivity.';
+    }
+    return 'The OpenRouter API key is available for use.';
+  })();
+
+  const openRouterStatusSummary = (() => {
+    if (!openRouterStatus) {
+      return 'Unable to determine current status.';
+    }
+    if (!openRouterStatus.configured) {
+      return 'Set the OPENROUTER_API_KEY environment secret to enable OpenRouter requests.';
+    }
+    if (openRouterStatus.source === 'environment') {
+      return 'Using the OPENROUTER_API_KEY environment secret.';
+    }
+    if (openRouterStatus.source === 'database') {
+      return 'Using a legacy database value — move this into the OPENROUTER_API_KEY secret.';
+    }
+    if (openRouterStatus.source === 'error') {
+      return 'Error resolving the API key — check server logs.';
+    }
+    return 'OpenRouter API key is available.';
+  })();
+
+  const openRouterStatusHint = (() => {
+    if (!openRouterStatus) {
+      return null;
+    }
+    if (!openRouterStatus.configured) {
+      return 'Requests to OpenRouter will fail until the API key is configured.';
+    }
+    if (openRouterStatus.source === 'database') {
+      return 'For security, rotate and store this key in the OPENROUTER_API_KEY environment secret.';
+    }
+    return null;
+  })();
 
   useEffect(() => {
     sessionStorage.removeItem('adminAuthenticated');
@@ -302,6 +377,8 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter admin password"
                 className={styles.authInput}
+                autoComplete="current-password"
+                name="admin-password"
                 autoFocus
               />
             </div>
@@ -401,7 +478,7 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                 >
                   <div className={styles.optionTitle}>⚙️ Settings</div>
                   <div className={styles.optionSubtitle}>
-                    Configure API keys & models
+                    Configure AI models & system settings
                   </div>
                 </button>
                 
@@ -426,6 +503,20 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
               </h2>
               {config ? (
                 <div className={styles.configList}>
+                  <div className={styles.configItem}>
+                    <div className={styles.configLabel}>OpenRouter status:</div>
+                    <div className={styles.configValue}>
+                      {openRouterStatusTitle}
+                    </div>
+                    <div className={`${styles.configValue} ${styles.textSm}`}>
+                      {openRouterStatusSummary}
+                    </div>
+                    {openRouterStatusHint && (
+                      <div className={`${styles.configValue} ${styles.textSm}`}>
+                        {openRouterStatusHint}
+                      </div>
+                    )}
+                  </div>
                   <div>
                     <div className={styles.configLabel}>Sent-from email address:</div>
                     <div className={styles.configValue}>{config.emailFromAddress}</div>
@@ -484,21 +575,17 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                 {settings && (
                   <div style={{ maxWidth: '600px' }}>
                     <div className={styles.formGroup}>
-                      <label className={styles.formLabel}>OpenRouter API Key</label>
-                      <input
-                        type="password"
-                        value={settings.openrouter_api_key || ''}
-                        onChange={(e) => setSettings({ ...settings, openrouter_api_key: e.target.value })}
-                        placeholder="Enter your OpenRouter API key..."
-                        className={styles.formInput}
-                      />
-                      <button
-                        onClick={() => updateSetting('openrouter_api_key', settings.openrouter_api_key)}
-                        className={styles.headerButton}
-                        style={{ marginTop: '0.5rem' }}
-                      >
-                        Save API Key
-                      </button>
+                      <label className={styles.formLabel}>OpenRouter Connection</label>
+                      <div className={`${styles.statusBox} ${openRouterConfigured ? styles.statusConfigured : styles.statusUnconfigured}`}>
+                        <div className={styles.statusTitle}>{openRouterStatusTitle}</div>
+                        <p className={styles.statusDescription}>{openRouterStatusDescription}</p>
+                        {openRouterStatusHint && (
+                          <p className={styles.statusHint}>{openRouterStatusHint}</p>
+                        )}
+                        <p className={styles.statusDescription}>
+                          Manage this key via the <code className={styles.code}>OPENROUTER_API_KEY</code> environment secret in your deployment platform.
+                        </p>
+                      </div>
                     </div>
 
                     <h3 className={styles.subsectionTitle} style={{ marginTop: '2rem', marginBottom: '1rem' }}>
@@ -650,6 +737,23 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
                     
                     <div className={styles.spaceY6}>
                       <div>
+                        <h3 className={styles.subsectionTitle}>
+                          How to manage the OpenRouter API key
+                        </h3>
+                        <p className={styles.mb3}>
+                          For security, the OpenRouter key lives in your hosting provider's secret manager, not in this dashboard.
+                        </p>
+                        <ol className={styles.instructionsList}>
+                          <li>Open your deployment platform (Railway, Vercel, Docker, etc.) and locate the environment variables or secrets settings</li>
+                          <li>Add or update a secret named <code className={styles.code}>OPENROUTER_API_KEY</code> with your current API key</li>
+                          <li>Restart or redeploy the application so the new secret is loaded</li>
+                        </ol>
+                        <p className={`${styles.noteBox} ${styles.blueNoteBox}`}>
+                          🔐 <strong>We never store API keys in the database.</strong> Use this page to confirm whether the secret is configured and which source is active.
+                        </p>
+                      </div>
+
+                      <div className={`${styles.borderT} ${styles.pt6}`}>
                         <h3 className={styles.subsectionTitle}>
                           How to change the email sender address
                         </h3>

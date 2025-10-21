@@ -4,12 +4,27 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+require('dotenv').config();
 const { Pool } = require('pg');
 const { Resend } = require('resend');
 const crypto = require('crypto');
-const { marked } = require('marked');
 // Import the unified report generator
 const { generateFullHtmlDocument } = require('./reportGeneratorServer.cjs');
+
+let markedInstancePromise;
+
+function getMarked() {
+  if (!markedInstancePromise) {
+    markedInstancePromise = import('marked').then((module) => {
+      const candidate = module.marked ?? module.default ?? module;
+      if (!candidate || typeof candidate.parse !== 'function') {
+        throw new Error('Failed to load the marked markdown parser.');
+      }
+      return candidate;
+    });
+  }
+  return markedInstancePromise;
+}
 
 const app = express();
 // In development, backend runs on 3001 (Vite dev server uses 5000)
@@ -20,13 +35,10 @@ const PORT = process.env.NODE_ENV === 'production' ? (process.env.PORT || 5000) 
 // EMAIL CONFIGURATION
 // ============================================================================
 // 
-// The "from" email address is configured through the Resend integration.
-// To change it:
-// 1. Go to Replit Integrations
-// 2. Update the Resend connection's "From Email" field
-// 3. Restart the email server
-//
-// Make sure the domain is verified in your Resend account (https://resend.com/domains)
+// The "from" email address is configured via environment variables when
+// deploying to Railway. Set RESEND_API_KEY and RESEND_FROM_EMAIL on the
+// service (or as shared variables) before deploying. Make sure the domain is
+// verified in your Resend account (https://resend.com/domains).
 // ============================================================================
 
 // ============================================================================
@@ -114,9 +126,6 @@ async function cleanupExpiredSessions() {
   }
 }
 
-// Run cleanup every hour
-setInterval(cleanupExpiredSessions, 60 * 60 * 1000);
-
 // Database setup
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -143,53 +152,31 @@ process.on('unhandledRejection', (reason, promise) => {
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Resend client initialization
-let connectionSettings;
+// Resend configuration helpers (Railway environment variables)
+function resolveResendConfiguration() {
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.RESEND_FROM_EMAIL;
 
-async function getCredentials() {
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  const xReplitToken = process.env.REPL_IDENTITY
-    ? 'repl ' + process.env.REPL_IDENTITY
-    : process.env.WEB_REPL_RENEWAL
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL
-    : null;
-
-  if (!xReplitToken) {
-    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY environment variable is not set');
   }
 
-  connectionSettings = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=resend',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
-      }
-    }
-  ).then(res => res.json()).then(data => data.items?.[0]);
-
-  if (!connectionSettings || !connectionSettings.settings.api_key) {
-    throw new Error('Resend not connected');
+  if (!fromEmail) {
+    throw new Error('RESEND_FROM_EMAIL environment variable is not set');
   }
-  
-  return {
-    apiKey: connectionSettings.settings.api_key,
-    fromEmail: connectionSettings.settings.from_email
-  };
+
+  return { apiKey, fromEmail };
 }
 
-// Get fresh Resend client (tokens expire, so never cache)
-async function getResendClient() {
-  const credentials = await getCredentials();
-  return {
-    client: new Resend(credentials.apiKey),
-    fromEmail: credentials.fromEmail
-  };
+function createResendClient() {
+  const { apiKey } = resolveResendConfiguration();
+  return new Resend(apiKey);
 }
 
 // Email sending function using Resend
 async function sendEmail(message) {
-  const { client, fromEmail } = await getResendClient();
+  const { fromEmail } = resolveResendConfiguration();
+  const client = createResendClient();
 
   const emailData = {
     from: fromEmail,
@@ -215,18 +202,19 @@ async function sendEmail(message) {
 }
 
 // Helper function to convert markdown to HTML for email bodies
-function convertMarkdownToEmailHtml(markdown) {
+async function convertMarkdownToEmailHtml(markdown) {
   if (!markdown) return '';
-  
+
+  const marked = await getMarked();
   // Configure marked for email-friendly HTML
   marked.setOptions({
     breaks: true, // Convert line breaks to <br>
     gfm: true // GitHub Flavored Markdown
   });
-  
+
   // Convert markdown to HTML
   const html = marked.parse(markdown);
-  
+
   // Return with basic styling for better email rendering
   return html;
 }
@@ -263,6 +251,29 @@ async function getSetting(key, envVarName = null) {
   }
 }
 
+async function resolveOpenRouterApiKey() {
+  const envKey = process.env.OPENROUTER_API_KEY;
+  if (envKey && envKey.trim()) {
+    return { value: envKey.trim(), source: 'environment' };
+  }
+
+  try {
+    const result = await pool.query(
+      'SELECT value FROM settings WHERE key = $1',
+      ['openrouter_api_key']
+    );
+
+    if (result.rows.length > 0 && result.rows[0].value !== null && result.rows[0].value.trim()) {
+      return { value: result.rows[0].value.trim(), source: 'database' };
+    }
+
+    return { value: null, source: 'none' };
+  } catch (error) {
+    console.error('Error resolving OpenRouter API key from database:', error);
+    return { value: null, source: 'error' };
+  }
+}
+
 // ============================================================================
 // OPENROUTER PROXY
 // ============================================================================
@@ -272,11 +283,11 @@ app.post('/openrouter-proxy', async (req, res) => {
     const { model, messages, max_tokens, temperature } = req.body;
     
     // Get API key from database, fallback to environment variable
-    const apiKey = await getSetting('openrouter_api_key', 'OPENROUTER_API_KEY');
+    const { value: apiKey } = await resolveOpenRouterApiKey();
     
     if (!apiKey) {
       return res.status(500).json({ 
-        error: 'OpenRouter API key not configured. Please set it in the admin settings or as an environment variable.' 
+        error: 'OpenRouter API key not configured. Please set it via your environment secrets (OPENROUTER_API_KEY).' 
       });
     }
     
@@ -334,11 +345,11 @@ app.post('/api/openrouter/chat/completions', async (req, res) => {
     }
     
     // Get API key from database, fallback to environment variable
-    const apiKey = await getSetting('openrouter_api_key', 'OPENROUTER_API_KEY');
+    const { value: apiKey } = await resolveOpenRouterApiKey();
     
     if (!apiKey) {
       return res.status(500).json({ 
-        error: 'OpenRouter API key not configured. Please set it in the admin settings or as an environment variable.' 
+        error: 'OpenRouter API key not configured. Please set it via your environment secrets (OPENROUTER_API_KEY).' 
       });
     }
     
@@ -765,7 +776,8 @@ app.get('/api/settings', authenticateAdmin, async (req, res) => {
     const result = await pool.query(
       'SELECT key, value, description FROM settings ORDER BY key'
     );
-    res.json(result.rows);
+    const filteredRows = result.rows.filter(row => row.key !== 'openrouter_api_key');
+    res.json(filteredRows);
   } catch (error) {
     console.error('Error fetching settings:', error);
     res.status(500).json({ error: error.message });
@@ -796,28 +808,59 @@ app.get('/api/settings/:key', authenticateAdmin, async (req, res) => {
 app.put('/api/settings/:key', authenticateAdmin, async (req, res) => {
   try {
     const { key } = req.params;
-    const { value } = req.body;
-    
-    // Check if setting exists
+
+    if (key === 'openrouter_api_key') {
+      return res.status(403).json({
+        error: 'OpenRouter API key is managed via environment secrets and cannot be retrieved via this API.'
+      });
+    }
+    const { value, description } = req.body;
+
+    if (key === 'openrouter_api_key') {
+      return res.status(403).json({
+        error: 'OpenRouter API key is managed via environment secrets and cannot be updated via this API.'
+      });
+    }
+
+    if (value === undefined) {
+      return res.status(400).json({ error: 'Setting value is required' });
+    }
+
     const checkResult = await pool.query(
-      'SELECT key FROM settings WHERE key = $1',
+      'SELECT key, description FROM settings WHERE key = $1',
       [key]
     );
-    
+
+    // Determine whether to insert or update
     if (checkResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Setting not found' });
+      const descriptionToUse = description !== undefined && description !== null
+        ? description
+        : 'Created via admin interface';
+
+      const insertResult = await pool.query(
+        'INSERT INTO settings (key, value, description) VALUES ($1, $2, $3) RETURNING *',
+        [key, value, descriptionToUse]
+      );
+
+      return res.status(201).json({
+        success: true,
+        setting: insertResult.rows[0],
+        message: `Setting '${key}' created successfully`
+      });
     }
-    
-    // Update the setting
+
+    const currentDescription = checkResult.rows[0].description;
+    const descriptionToUse = description !== undefined ? description : currentDescription;
+
     const result = await pool.query(
-      'UPDATE settings SET value = $1, updated_at = CURRENT_TIMESTAMP WHERE key = $2 RETURNING *',
-      [value, key]
+      'UPDATE settings SET value = $1, description = $2, updated_at = CURRENT_TIMESTAMP WHERE key = $3 RETURNING *',
+      [value, descriptionToUse, key]
     );
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       setting: result.rows[0],
-      message: `Setting '${key}' updated successfully` 
+      message: `Setting '${key}' updated successfully`
     });
   } catch (error) {
     console.error('Error updating setting:', error);
@@ -831,13 +874,14 @@ app.get('/api/config', async (req, res) => {
     // Get from email from Resend integration
     let emailFromAddress = 'Not configured';
     try {
-      const credentials = await getCredentials();
-      emailFromAddress = credentials.fromEmail;
+      const { fromEmail } = resolveResendConfiguration();
+      emailFromAddress = fromEmail;
     } catch (error) {
       console.error('Could not fetch from email:', error.message);
     }
 
     // Get settings from database (with env var fallbacks)
+    const openRouterKeyInfo = await resolveOpenRouterApiKey();
     const prompt1Model = await getSetting('prompt1_model', 'VITE_PROMPT1_MODEL') || 'openai/gpt-4o';
     const prompt1Temp = await getSetting('prompt1_temperature', 'VITE_PROMPT1_TEMPERATURE');
     const prompt1WebSearch = await getSetting('prompt1_web_search', 'VITE_PROMPT1_WEB_SEARCH');
@@ -866,6 +910,10 @@ app.get('/api/config', async (req, res) => {
         model: reportModel,
         temperature: reportTemp ? parseFloat(reportTemp) : 0.7,
         webSearch: reportWebSearch === 'true' ? true : false
+      },
+      openRouter: {
+        configured: !!openRouterKeyInfo.value,
+        source: openRouterKeyInfo.source
       }
     };
     
@@ -951,7 +999,7 @@ app.get('/api/jobs/:id', async (req, res) => {
 });
 
 // Convert markdown to formatted HTML using the unified generator
-function convertMarkdownToHtml(markdown, programName, organizationName) {
+async function convertMarkdownToHtml(markdown, programName, organizationName) {
   // Use the unified HTML generation function
   return generateFullHtmlDocument(markdown, {
     programName,
@@ -999,10 +1047,10 @@ async function processNextJob() {
     // Process the job (outside transaction)
     try {
       const inputData = job.input_data;
-      const apiKey = await getSetting('openrouter_api_key', 'OPENROUTER_API_KEY');
+      const { value: apiKey } = await resolveOpenRouterApiKey();
       
       if (!apiKey) {
-        throw new Error('OpenRouter API key not configured');
+        throw new Error('OpenRouter API key not configured. Please set it via your environment secrets (OPENROUTER_API_KEY).');
       }
       
       // Get model and temperature for this step
@@ -1117,7 +1165,7 @@ async function processNextJob() {
               .replace(/\{\{currentDateTime\}\}/g, currentDateTime);
             
             // Convert markdown to HTML for proper email formatting
-            emailBody = convertMarkdownToEmailHtml(emailBodyMarkdown);
+            emailBody = await convertMarkdownToEmailHtml(emailBodyMarkdown);
           }
           
           // Create clean filename from metadata
@@ -1126,7 +1174,7 @@ async function processNextJob() {
           const filename = `${orgNameClean}_${progNameClean}_Evaluation_Plan.html`;
           
           // Convert markdown to formatted HTML with CSS
-          const formattedHtml = convertMarkdownToHtml(result, programName, organizationName);
+          const formattedHtml = await convertMarkdownToHtml(result, programName, organizationName);
           
           // Convert formatted HTML to base64 for attachment
           const base64Content = Buffer.from(formattedHtml, 'utf-8').toString('base64');
@@ -1224,14 +1272,6 @@ async function cleanupOldJobs() {
   }
 }
 
-// Run cleanup every hour
-setInterval(cleanupOldJobs, 60 * 60 * 1000);
-
-// Run job processor every 5 seconds to check for pending jobs
-setInterval(() => {
-  processNextJob().catch(err => console.error('Job processor error:', err));
-}, 5000);
-
 // ============================================================================
 // STATIC FILE SERVING (PRODUCTION)
 // ============================================================================
@@ -1252,51 +1292,161 @@ app.use((req, res, next) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
-async function startServer() {
-  try {
-    console.log('=== Email Server Startup ===');
-    console.log('Environment checks:');
-    console.log(`- DATABASE_URL: ${process.env.DATABASE_URL ? '✓ Set' : '✗ Missing'}`);
-    console.log(`- REPLIT_CONNECTORS_HOSTNAME: ${process.env.REPLIT_CONNECTORS_HOSTNAME ? '✓ Set' : '✗ Missing'}`);
-    console.log(`- REPL_IDENTITY or WEB_REPL_RENEWAL: ${(process.env.REPL_IDENTITY || process.env.WEB_REPL_RENEWAL) ? '✓ Set' : '✗ Missing'}`);
-    console.log(`- ADMIN_PASSWORD: ${process.env.ADMIN_PASSWORD ? '✓ Set' : '✗ Missing'}`);
+async function startServer(options = {}) {
+  const startHttp = options.startHttp ?? (process.env.WORKER_ONLY !== 'true');
+  const enableJobProcessor = options.enableJobProcessor ?? (process.env.ENABLE_JOB_PROCESSOR !== 'false');
+  const enableSessionCleanup = options.enableSessionCleanup ?? enableJobProcessor;
+  const port = options.port ?? PORT;
 
+  console.log('=== Backend Startup ===');
+  console.log(`Mode: ${startHttp ? 'API server' : 'Worker only'}`);
+  console.log(`Job processor: ${enableJobProcessor ? 'enabled' : 'disabled'}`);
+  console.log('Environment checks:');
+  console.log(`- DATABASE_URL: ${process.env.DATABASE_URL ? '✓ Set' : '✗ Missing'}`);
+  console.log(`- RESEND_API_KEY: ${process.env.RESEND_API_KEY ? '✓ Set' : '✗ Missing'}`);
+  console.log(`- RESEND_FROM_EMAIL: ${process.env.RESEND_FROM_EMAIL ? '✓ Set' : '✗ Missing'}`);
+  console.log(`- ADMIN_PASSWORD: ${process.env.ADMIN_PASSWORD ? '✓ Set' : '✗ Missing'}`);
+  console.log(`- OPENROUTER_API_KEY: ${process.env.OPENROUTER_API_KEY ? '✓ Set' : '✗ Missing'}`);
+
+  try {
     console.log('\nTesting database connection...');
-    const dbTest = await pool.query('SELECT NOW()');
+    await pool.query('SELECT NOW()');
     console.log('✓ Database connection successful');
 
-    console.log('\nTesting Resend connection...');
+    console.log('\nValidating Resend configuration...');
     try {
-      const credentials = await getCredentials();
-      console.log('✓ Resend connection successful');
-      console.log(`  Emails will be sent from: ${credentials.fromEmail}`);
+      const { fromEmail } = resolveResendConfiguration();
+      console.log('✓ Resend configuration detected');
+      console.log(`  Emails will be sent from: ${fromEmail}`);
     } catch (error) {
-      console.error('✗ Resend connection failed:', error.message);
-      console.error('  This may work in development but will cause issues when sending emails');
+      console.error('✗ Resend configuration missing:', error.message);
+      console.error('  Emails will fail to send until configuration is provided.');
     }
 
     console.log('\nChecking prompts table...');
     const promptsCheck = await pool.query('SELECT COUNT(*) FROM prompts');
     console.log(`✓ Prompts table accessible (${promptsCheck.rows[0].count} prompts found)`);
 
-    console.log('\nCleaning up expired sessions...');
-    await cleanupExpiredSessions();
+    if (enableSessionCleanup) {
+      console.log('\nCleaning up expired sessions...');
+      await cleanupExpiredSessions();
+    }
 
-    console.log('\nStarting background job processor...');
-    processNextJob().catch(err => console.error('Initial job processor error:', err));
-    console.log('✓ Background job processor started (runs every 5 seconds)');
+    let jobProcessingInterval = null;
+    let jobCleanupInterval = null;
+    let sessionCleanupInterval = null;
 
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`\n✓ Email server running on port ${PORT}`);
-      console.log('=========================\n');
-    });
+    const stopBackgroundJobs = () => {
+      if (jobProcessingInterval) {
+        clearInterval(jobProcessingInterval);
+        jobProcessingInterval = null;
+      }
+      if (jobCleanupInterval) {
+        clearInterval(jobCleanupInterval);
+        jobCleanupInterval = null;
+      }
+      if (sessionCleanupInterval) {
+        clearInterval(sessionCleanupInterval);
+        sessionCleanupInterval = null;
+      }
+    };
+
+    const startBackgroundJobs = () => {
+      if (enableJobProcessor && !jobProcessingInterval) {
+        console.log('\nStarting background job processor...');
+        processNextJob().catch(err => console.error('Initial job processor error:', err));
+        jobProcessingInterval = setInterval(() => {
+          processNextJob().catch(err => console.error('Job processor error:', err));
+        }, 5000);
+        console.log('✓ Background job processor started (runs every 5 seconds)');
+      } else if (!enableJobProcessor) {
+        console.log('\nBackground job processor disabled via configuration.');
+      }
+
+      if (enableJobProcessor && !jobCleanupInterval) {
+        jobCleanupInterval = setInterval(cleanupOldJobs, 60 * 60 * 1000);
+        console.log('✓ Job cleanup scheduled (runs hourly)');
+      }
+
+      if (enableSessionCleanup && !sessionCleanupInterval) {
+        sessionCleanupInterval = setInterval(cleanupExpiredSessions, 60 * 60 * 1000);
+        console.log('✓ Session cleanup scheduled (runs hourly)');
+      }
+    };
+
+    startBackgroundJobs();
+
+    let httpServer = null;
+
+    if (startHttp) {
+      await new Promise((resolve, reject) => {
+        httpServer = app.listen(port, '0.0.0.0', (error) => {
+          if (error) {
+            return reject(error);
+          }
+
+          console.log(`\n✓ API server running on port ${port}`);
+          console.log('=========================\n');
+          resolve();
+        });
+      });
+    } else {
+      console.log('\nHTTP server disabled; running in worker-only mode.');
+    }
+
+    const shutdown = async () => {
+      stopBackgroundJobs();
+
+      if (httpServer) {
+        await new Promise((resolve, reject) => {
+          httpServer.close((error) => {
+            if (error) {
+              return reject(error);
+            }
+            resolve();
+          });
+        });
+      }
+    };
+
+    return {
+      app,
+      pool,
+      httpServer,
+      startBackgroundJobs,
+      stopBackgroundJobs,
+      shutdown
+    };
   } catch (error) {
     console.error('\n✗ FATAL ERROR during server startup:');
     console.error('Error:', error.message);
     console.error('Stack:', error.stack);
     console.error('\nServer cannot start. Please check the errors above.');
-    process.exit(1);
+
+    const aggregateErrors = Array.isArray(error.errors) ? error.errors : [];
+    const primaryError = aggregateErrors[0] || error;
+    const errorCode = primaryError && primaryError.code ? primaryError.code : error.code;
+
+    if (errorCode === 'ECONNREFUSED') {
+      if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('.railway.internal')) {
+        console.error('\nHint: The DATABASE_URL points to the internal Railway host (postgres.railway.internal).');
+        console.error('      That hostname is only reachable from within Railway.');
+        console.error('      For local development, use `railway connect`/`railway shell` to proxy the database');
+        console.error('      or replace DATABASE_URL with the public connection string from the Railway dashboard.');
+      } else {
+        console.error('\nHint: The application could not reach the Postgres instance.');
+        console.error('      Double-check the database credentials, host, network access, and that the service is running.');
+      }
+    }
+
+    throw error;
   }
 }
 
-startServer();
+if (require.main === module) {
+  startServer().catch(() => {
+    process.exit(1);
+  });
+}
+
+module.exports = { startServer };
