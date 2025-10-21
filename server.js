@@ -251,6 +251,29 @@ async function getSetting(key, envVarName = null) {
   }
 }
 
+async function resolveOpenRouterApiKey() {
+  const envKey = process.env.OPENROUTER_API_KEY;
+  if (envKey && envKey.trim()) {
+    return { value: envKey.trim(), source: 'environment' };
+  }
+
+  try {
+    const result = await pool.query(
+      'SELECT value FROM settings WHERE key = $1',
+      ['openrouter_api_key']
+    );
+
+    if (result.rows.length > 0 && result.rows[0].value !== null && result.rows[0].value.trim()) {
+      return { value: result.rows[0].value.trim(), source: 'database' };
+    }
+
+    return { value: null, source: 'none' };
+  } catch (error) {
+    console.error('Error resolving OpenRouter API key from database:', error);
+    return { value: null, source: 'error' };
+  }
+}
+
 // ============================================================================
 // OPENROUTER PROXY
 // ============================================================================
@@ -260,11 +283,11 @@ app.post('/openrouter-proxy', async (req, res) => {
     const { model, messages, max_tokens, temperature } = req.body;
     
     // Get API key from database, fallback to environment variable
-    const apiKey = await getSetting('openrouter_api_key', 'OPENROUTER_API_KEY');
+    const { value: apiKey } = await resolveOpenRouterApiKey();
     
     if (!apiKey) {
       return res.status(500).json({ 
-        error: 'OpenRouter API key not configured. Please set it in the admin settings or as an environment variable.' 
+        error: 'OpenRouter API key not configured. Please set it via your environment secrets (OPENROUTER_API_KEY).' 
       });
     }
     
@@ -322,11 +345,11 @@ app.post('/api/openrouter/chat/completions', async (req, res) => {
     }
     
     // Get API key from database, fallback to environment variable
-    const apiKey = await getSetting('openrouter_api_key', 'OPENROUTER_API_KEY');
+    const { value: apiKey } = await resolveOpenRouterApiKey();
     
     if (!apiKey) {
       return res.status(500).json({ 
-        error: 'OpenRouter API key not configured. Please set it in the admin settings or as an environment variable.' 
+        error: 'OpenRouter API key not configured. Please set it via your environment secrets (OPENROUTER_API_KEY).' 
       });
     }
     
@@ -753,7 +776,8 @@ app.get('/api/settings', authenticateAdmin, async (req, res) => {
     const result = await pool.query(
       'SELECT key, value, description FROM settings ORDER BY key'
     );
-    res.json(result.rows);
+    const filteredRows = result.rows.filter(row => row.key !== 'openrouter_api_key');
+    res.json(filteredRows);
   } catch (error) {
     console.error('Error fetching settings:', error);
     res.status(500).json({ error: error.message });
@@ -784,7 +808,19 @@ app.get('/api/settings/:key', authenticateAdmin, async (req, res) => {
 app.put('/api/settings/:key', authenticateAdmin, async (req, res) => {
   try {
     const { key } = req.params;
+
+    if (key === 'openrouter_api_key') {
+      return res.status(403).json({
+        error: 'OpenRouter API key is managed via environment secrets and cannot be retrieved via this API.'
+      });
+    }
     const { value, description } = req.body;
+
+    if (key === 'openrouter_api_key') {
+      return res.status(403).json({
+        error: 'OpenRouter API key is managed via environment secrets and cannot be updated via this API.'
+      });
+    }
 
     if (value === undefined) {
       return res.status(400).json({ error: 'Setting value is required' });
@@ -845,6 +881,7 @@ app.get('/api/config', async (req, res) => {
     }
 
     // Get settings from database (with env var fallbacks)
+    const openRouterKeyInfo = await resolveOpenRouterApiKey();
     const prompt1Model = await getSetting('prompt1_model', 'VITE_PROMPT1_MODEL') || 'openai/gpt-4o';
     const prompt1Temp = await getSetting('prompt1_temperature', 'VITE_PROMPT1_TEMPERATURE');
     const prompt1WebSearch = await getSetting('prompt1_web_search', 'VITE_PROMPT1_WEB_SEARCH');
@@ -873,6 +910,10 @@ app.get('/api/config', async (req, res) => {
         model: reportModel,
         temperature: reportTemp ? parseFloat(reportTemp) : 0.7,
         webSearch: reportWebSearch === 'true' ? true : false
+      },
+      openRouter: {
+        configured: !!openRouterKeyInfo.value,
+        source: openRouterKeyInfo.source
       }
     };
     
@@ -1006,10 +1047,10 @@ async function processNextJob() {
     // Process the job (outside transaction)
     try {
       const inputData = job.input_data;
-      const apiKey = await getSetting('openrouter_api_key', 'OPENROUTER_API_KEY');
+      const { value: apiKey } = await resolveOpenRouterApiKey();
       
       if (!apiKey) {
-        throw new Error('OpenRouter API key not configured');
+        throw new Error('OpenRouter API key not configured. Please set it via your environment secrets (OPENROUTER_API_KEY).');
       }
       
       // Get model and temperature for this step
