@@ -36,9 +36,11 @@ const AboutApp: React.FC<AboutAppProps> = ({ onClose }) => {
             <ol className={styles.list}>
               <li>Enter your organization name, program name, description, and relevant website URLs</li>
               <li>The system extracts content from the websites you provide</li>
-              <li>AI analyzes your program model and identifies key components, activities, and outcomes</li>
-              <li>An evaluation framework is generated with indicators, data collection methods, and measurement strategies</li>
-              <li>The completed evaluation plan is emailed to you as an HTML report</li>
+              <li>AI analyzes your program model and identifies key components, activities, and outcomes.</li>
+              <li>An evaluation framework is generated with the logical model, indicators, data collection methods and strategies.</li>
+              <li>The completed evaluation plan is emailed to you as an HTML report.</li>
+              <li>Work with your team and other decision makers (e.g., advisory members) to review the draft plan with a critical eye. Do the evaluation questions reflect your values and priorities? Are the methods appropriate? Draw on your knowledge of the program to edit and improve the evaluation plan.</li>
+              <li>Once the plan meets your requirements and truly feels your own, put it into action.</li>
             </ol>
           </section>
 
@@ -55,8 +57,7 @@ const AboutApp: React.FC<AboutAppProps> = ({ onClose }) => {
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>About this tool:</h3>
             <p className={styles.paragraph}>
-              This tool is funded to serve Canadian nonprofit organizations. We collect organization 
-              names for internal monitoring but do not report them publicly.
+              This tool has been created by LogicalOutcomes. It is funded to serve Canadian nonprofit organizations. We collect organization names for internal monitoring but do not report them publicly.
             </p>
           </section>
         </div>
