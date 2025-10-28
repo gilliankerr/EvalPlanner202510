@@ -26,6 +26,17 @@ Both services point to the same Railway Postgres database via the shared `DATABA
    - Seed core prompts: `npm run db:seed`
    These commands rely on `DATABASE_URL`; when running locally they read `.env`, and on Railway they run with the service variables automatically.
 
+### Optional automated migrations on startup
+
+For CI/CD convenience you can enable automatic migrations at service startup by setting the environment variable `RUN_DB_MIGRATIONS=true` for the service that should perform migrations (typically the API service). The container will run `npm run db:migrate` before starting. The migration script uses a Postgres advisory lock to avoid concurrent runs in multi-replica deployments.
+
+Important notes:
+- The advisory lock key defaults to `1234567890`. If you run multiple, unrelated applications against the same Postgres instance, set `DB_MIGRATE_ADVISORY_LOCK` to a unique 64-bit integer to avoid lock collisions.
+- The migration process is synchronous and will block container startup until it finishes. Long-running migrations can increase cold-start time significantly; consider running migrations as a dedicated CI job or a one-off "migration" service in production.
+- The script waits for DB readiness with a default of 12 retries at 5s intervals (~60 seconds). You can tune `DB_MIGRATE_MAX_RETRIES` and `DB_MIGRATE_SLEEP_SECONDS` to suit your environment.
+
+Recommendation: For robust production deployments, run migrations as part of a controlled CI/CD step or a single, dedicated migration job to avoid race conditions and long startup pauses.
+
 ## Environment Variables
 
 Use the Variables guide to keep configuration in one place:

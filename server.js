@@ -55,37 +55,37 @@ function generateSessionToken() {
   return crypto.randomBytes(32).toString('hex');
 }
 
-// Create a new session
-async function createSession() {
+// Create a new session with user identity tracking
+async function createSession(userIdentifier, role = 'admin') {
   try {
     const token = generateSessionToken();
     const expiresAt = new Date(Date.now() + SESSION_DURATION);
     
     await pool.query(
-      `INSERT INTO sessions (token, expires_at) 
-       VALUES ($1, $2)`,
-      [token, expiresAt]
+      `INSERT INTO sessions (token, expires_at, user_identifier, user_role) 
+       VALUES ($1, $2, $3, $4)`,
+      [token, expiresAt, userIdentifier, role]
     );
     
-    console.log(`Session created: ${token.substring(0, 8)}... (expires: ${expiresAt.toISOString()})`);
-    return { token, expiresAt: expiresAt.getTime() };
+    console.log(`Session created for ${userIdentifier}: ${token.substring(0, 8)}... (expires: ${expiresAt.toISOString()})`);
+    return { token, expiresAt: expiresAt.getTime(), userIdentifier };
   } catch (error) {
     console.error('Error creating session:', error);
     throw error;
   }
 }
 
-// Validate a session token
+// Validate a session token and return user information
 async function validateSession(token) {
   try {
     const result = await pool.query(
-      `SELECT expires_at FROM sessions 
+      `SELECT user_identifier, user_role, expires_at FROM sessions 
        WHERE token = $1 AND expires_at > NOW()`,
       [token]
     );
     
     if (result.rows.length === 0) {
-      return false;
+      return null;
     }
     
     // Update last_accessed_at for activity tracking
@@ -94,7 +94,10 @@ async function validateSession(token) {
       [token]
     );
     
-    return true;
+    return {
+      userIdentifier: result.rows[0].user_identifier,
+      userRole: result.rows[0].user_role
+    };
   } catch (error) {
     console.error('Error validating session:', error);
     throw error;
@@ -123,6 +126,20 @@ async function cleanupExpiredSessions() {
     }
   } catch (error) {
     console.error('Error cleaning up expired sessions:', error);
+  }
+}
+
+// Audit logging function
+async function logAuditEvent(action, userIdentifier, resourceType = null, resourceId = null, details = null, ipAddress = null) {
+  try {
+    await pool.query(
+      `INSERT INTO audit_log (action, user_identifier, resource_type, resource_id, details, ip_address) 
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [action, userIdentifier, resourceType, resourceId, details ? JSON.stringify(details) : null, ipAddress]
+    );
+  } catch (error) {
+    console.error('Error logging audit event:', error);
+    // Don't throw - audit logging failures shouldn't break the app
   }
 }
 
@@ -349,7 +366,7 @@ app.post('/api/openrouter/chat/completions', async (req, res) => {
     
     if (!apiKey) {
       return res.status(500).json({ 
-        error: 'OpenRouter API key not configured. Please set it via your environment secrets (OPENROUTER_API_KEY).' 
+        error: 'OpenRouter API key not configured. Please contact the administrator.' 
       });
     }
     
@@ -376,7 +393,6 @@ app.post('/api/openrouter/chat/completions', async (req, res) => {
     }
     
     console.log(`Making OpenRouter API call for step: ${step}, model: ${model}, max_tokens: ${requestBody.max_tokens}`);
-    console.log('Request body:', JSON.stringify({...requestBody, messages: [{...requestBody.messages[0], content: requestBody.messages[0].content.substring(0, 200) + '...(truncated)'}]}, null, 2));
     
     // Retry logic for handling truncated responses
     let retries = 0;
@@ -416,7 +432,7 @@ app.post('/api/openrouter/chat/completions', async (req, res) => {
           const errorText = await response.text();
           console.error('OpenRouter API Error:', errorText);
           return res.status(response.status).json({ 
-            error: `OpenRouter API error: ${response.status} - ${errorText}` 
+            error: `OpenRouter API error. Please try again or contact support if the issue persists.` 
           });
         }
         
@@ -435,8 +451,7 @@ app.post('/api/openrouter/chat/completions', async (req, res) => {
           console.log(`Successfully parsed JSON response with ${data.choices?.[0]?.message?.content?.length || 0} characters`);
         } catch (parseError) {
           console.error('JSON parse error:', parseError.message);
-          console.error('Response text preview:', responseText.substring(0, 500));
-          throw new Error(`Failed to parse OpenRouter response: ${parseError.message}`);
+          throw new Error(`Failed to parse OpenRouter response`);
         }
         
         // Success! Return the response
@@ -474,7 +489,7 @@ app.post('/api/openrouter/chat/completions', async (req, res) => {
   } catch (error) {
     console.error('OpenRouter proxy error:', error);
     res.status(500).json({ 
-      error: error.message || 'Failed to proxy request to OpenRouter' 
+      error: 'Failed to process request. Please try again or contact support if the issue persists.' 
     });
   }
 });
@@ -510,10 +525,76 @@ app.post('/api/send-email', async (req, res) => {
   }
 });
 
+// ============================================================================
+// RATE LIMITING FOR AUTHENTICATION
+// ============================================================================
+// Simple in-memory rate limiting for admin password attempts
+const loginAttempts = new Map(); // IP -> { count, resetTime }
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const attempts = loginAttempts.get(ip);
+  
+  if (!attempts) {
+    loginAttempts.set(ip, { count: 1, resetTime: now + LOCKOUT_DURATION });
+    return { allowed: true, remaining: MAX_LOGIN_ATTEMPTS - 1 };
+  }
+  
+  // Reset if lockout period has passed
+  if (now > attempts.resetTime) {
+    loginAttempts.set(ip, { count: 1, resetTime: now + LOCKOUT_DURATION });
+    return { allowed: true, remaining: MAX_LOGIN_ATTEMPTS - 1 };
+  }
+  
+  // Check if locked out
+  if (attempts.count >= MAX_LOGIN_ATTEMPTS) {
+    const minutesLeft = Math.ceil((attempts.resetTime - now) / 60000);
+    return { 
+      allowed: false, 
+      remaining: 0, 
+      lockoutMinutes: minutesLeft 
+    };
+  }
+  
+  // Increment attempts
+  attempts.count++;
+  return { 
+    allowed: true, 
+    remaining: MAX_LOGIN_ATTEMPTS - attempts.count 
+  };
+}
+
+function resetRateLimit(ip) {
+  loginAttempts.delete(ip);
+}
+
+// Clean up old entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, attempts] of loginAttempts.entries()) {
+    if (now > attempts.resetTime) {
+      loginAttempts.delete(ip);
+    }
+  }
+}, 60000); // Clean every minute
+
 // Password verification endpoint
 app.post('/api/verify-admin-password', async (req, res) => {
   try {
     const { password } = req.body;
+    const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
+    
+    // Check rate limit
+    const rateLimit = checkRateLimit(clientIp);
+    if (!rateLimit.allowed) {
+      console.warn(`Rate limit exceeded for IP: ${clientIp}`);
+      return res.status(429).json({ 
+        success: false, 
+        error: `Too many failed login attempts. Please try again in ${rateLimit.lockoutMinutes} minutes.` 
+      });
+    }
     
     if (!password) {
       return res.status(400).json({ 
@@ -524,9 +605,28 @@ app.post('/api/verify-admin-password', async (req, res) => {
     
     const adminPassword = process.env.ADMIN_PASSWORD;
     
+    if (!adminPassword) {
+      console.error('ADMIN_PASSWORD environment variable not set');
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Server configuration error' 
+      });
+    }
+    
     if (password === adminPassword) {
-      // Create a new session
-      const { token, expiresAt } = await createSession();
+      // Reset rate limit on successful login
+      resetRateLimit(clientIp);
+      
+      // Create a new session with admin identifier
+      // For single-admin setup, use 'admin' as identifier
+      // For multi-user setup, this would be the user's email/username
+      const adminIdentifier = 'admin';
+      const { token, expiresAt } = await createSession(adminIdentifier, 'admin');
+      
+      // Log the login event
+      await logAuditEvent('admin_login', adminIdentifier, null, null, { success: true }, clientIp);
+      
+      console.log(`Admin login successful from IP: ${clientIp}`);
       
       res.json({ 
         success: true,
@@ -534,9 +634,11 @@ app.post('/api/verify-admin-password', async (req, res) => {
         expiresAt: expiresAt
       });
     } else {
+      console.warn(`Failed admin login attempt from IP: ${clientIp} (${rateLimit.remaining} attempts remaining)`);
       res.status(401).json({ 
         success: false, 
-        error: 'Invalid password' 
+        error: 'Invalid password',
+        attemptsRemaining: rateLimit.remaining
       });
     }
   } catch (error) {
@@ -587,10 +689,18 @@ const authenticateAdmin = async (req, res, next) => {
   const token = authHeader.substring(7);
   
   try {
-    const isValid = await validateSession(token);
-    if (!isValid) {
+    const session = await validateSession(token);
+    if (!session) {
       return res.status(401).json({ error: 'Unauthorized - Session expired or invalid' });
     }
+    
+    // Attach user info to request for use in route handlers
+    req.user = {
+      identifier: session.userIdentifier,
+      role: session.userRole
+    };
+    req.userIp = req.ip || req.connection.remoteAddress || 'unknown';
+    
     next();
   } catch (error) {
     console.error('Session validation error:', error);
@@ -600,8 +710,30 @@ const authenticateAdmin = async (req, res, next) => {
 
 // Prompt Management API Routes
 
-// GET /api/prompts - List all prompts (read-only, no auth required)
-app.get('/api/prompts', async (req, res) => {
+// GET /api/prompts/content/:step - Get prompt content for workflow execution (PUBLIC)
+// This endpoint is used by the main app workflow to fetch prompts for AI processing
+app.get('/api/prompts/content/:step', async (req, res) => {
+  try {
+    const { step } = req.params;
+    const result = await pool.query(
+      'SELECT content FROM prompts WHERE step_name = $1 AND is_active = true',
+      [step]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Prompt not found' });
+    }
+    
+    // Only return the content field, not sensitive metadata
+    res.json({ content: result.rows[0].content });
+  } catch (error) {
+    console.error('Error fetching prompt content:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/prompts - List all prompts (ADMIN ONLY - contains sensitive business logic)
+app.get('/api/prompts', authenticateAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, step_name, display_name, current_version, is_active, updated_at FROM prompts ORDER BY step_name'
@@ -613,8 +745,8 @@ app.get('/api/prompts', async (req, res) => {
   }
 });
 
-// GET /api/prompts/:step - Get active prompt for a specific step (read-only, no auth required)
-app.get('/api/prompts/:step', async (req, res) => {
+// GET /api/prompts/:step - Get full prompt details (ADMIN ONLY)
+app.get('/api/prompts/:step', authenticateAdmin, async (req, res) => {
   try {
     const { step } = req.params;
     const result = await pool.query(
@@ -678,6 +810,16 @@ app.post('/api/prompts/:step', authenticateAdmin, async (req, res) => {
     
     await client.query('COMMIT');
     
+    // Log the action
+    await logAuditEvent(
+      'prompt_updated',
+      req.user.identifier,
+      'prompt',
+      prompt.id.toString(),
+      { step_name: step, version: newVersion, change_notes },
+      req.userIp
+    );
+    
     res.json({ 
       success: true, 
       version: newVersion,
@@ -692,8 +834,8 @@ app.post('/api/prompts/:step', authenticateAdmin, async (req, res) => {
   }
 });
 
-// GET /api/prompts/:step/versions - Get version history
-app.get('/api/prompts/:step/versions', async (req, res) => {
+// GET /api/prompts/:step/versions - Get version history (ADMIN ONLY)
+app.get('/api/prompts/:step/versions', authenticateAdmin, async (req, res) => {
   try {
     const { step } = req.params;
     
@@ -770,17 +912,30 @@ app.post('/api/prompts/:step/rollback/:version', authenticateAdmin, async (req, 
 
 // Settings Management API Routes
 
+// Allowlist of settings keys that can be read/modified via API
+const ALLOWED_SETTINGS_KEYS = [
+  'prompt1_model',
+  'prompt1_temperature',
+  'prompt1_web_search',
+  'prompt2_model',
+  'prompt2_temperature',
+  'prompt2_web_search',
+  'report_template_model',
+  'report_template_temperature',
+  'report_template_web_search'
+];
+
 // GET /api/settings - Get all settings (ADMIN ONLY)
 app.get('/api/settings', authenticateAdmin, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT key, value, description FROM settings ORDER BY key'
+      'SELECT key, value, description FROM settings WHERE key = ANY($1) ORDER BY key',
+      [ALLOWED_SETTINGS_KEYS]
     );
-    const filteredRows = result.rows.filter(row => row.key !== 'openrouter_api_key');
-    res.json(filteredRows);
+    res.json(result.rows);
   } catch (error) {
     console.error('Error fetching settings:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -788,6 +943,14 @@ app.get('/api/settings', authenticateAdmin, async (req, res) => {
 app.get('/api/settings/:key', authenticateAdmin, async (req, res) => {
   try {
     const { key } = req.params;
+    
+    // Validate key is in allowlist
+    if (!ALLOWED_SETTINGS_KEYS.includes(key)) {
+      return res.status(403).json({ 
+        error: 'Access to this setting is not permitted' 
+      });
+    }
+    
     const result = await pool.query(
       'SELECT key, value, description FROM settings WHERE key = $1',
       [key]
@@ -800,7 +963,7 @@ app.get('/api/settings/:key', authenticateAdmin, async (req, res) => {
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Error fetching setting:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -808,19 +971,15 @@ app.get('/api/settings/:key', authenticateAdmin, async (req, res) => {
 app.put('/api/settings/:key', authenticateAdmin, async (req, res) => {
   try {
     const { key } = req.params;
-
-    if (key === 'openrouter_api_key') {
+    
+    // Validate key is in allowlist
+    if (!ALLOWED_SETTINGS_KEYS.includes(key)) {
       return res.status(403).json({
-        error: 'OpenRouter API key is managed via environment secrets and cannot be retrieved via this API.'
+        error: 'This setting cannot be modified via the API. Sensitive settings must be managed via environment variables.'
       });
     }
+
     const { value, description } = req.body;
-
-    if (key === 'openrouter_api_key') {
-      return res.status(403).json({
-        error: 'OpenRouter API key is managed via environment secrets and cannot be updated via this API.'
-      });
-    }
 
     if (value === undefined) {
       return res.status(400).json({ error: 'Setting value is required' });
@@ -857,6 +1016,16 @@ app.put('/api/settings/:key', authenticateAdmin, async (req, res) => {
       [value, descriptionToUse, key]
     );
 
+    // Log the action
+    await logAuditEvent(
+      'setting_updated',
+      req.user.identifier,
+      'setting',
+      key,
+      { old_value: checkResult.rows[0]?.value, new_value: value },
+      req.userIp
+    );
+    
     res.json({
       success: true,
       setting: result.rows[0],
@@ -864,7 +1033,7 @@ app.put('/api/settings/:key', authenticateAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating setting:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -928,20 +1097,42 @@ app.get('/api/config', async (req, res) => {
 // ASYNC JOB QUEUE API
 // ============================================================================
 
+// Validate email format
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
 // POST /api/jobs - Create a new async job
 app.post('/api/jobs', async (req, res) => {
   try {
     const { job_type, input_data, email } = req.body;
     
+    // Input validation
     if (!job_type || !input_data || !email) {
       return res.status(400).json({ 
         error: 'Missing required fields: job_type, input_data, email' 
       });
     }
     
+    // Validate job type
     if (!['prompt1', 'prompt2', 'report_template'].includes(job_type)) {
       return res.status(400).json({ 
         error: 'Invalid job_type. Must be: prompt1, prompt2, or report_template' 
+      });
+    }
+    
+    // Validate email format
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ 
+        error: 'Invalid email address format' 
+      });
+    }
+    
+    // Validate input_data structure
+    if (typeof input_data !== 'object' || !input_data.messages) {
+      return res.status(400).json({ 
+        error: 'Invalid input_data structure. Must include messages array' 
       });
     }
     
@@ -963,7 +1154,7 @@ app.post('/api/jobs', async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating job:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -971,9 +1162,17 @@ app.post('/api/jobs', async (req, res) => {
 app.get('/api/jobs/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    const { email } = req.query;
+    
+    // Require email parameter for ownership verification
+    if (!email) {
+      return res.status(400).json({ 
+        error: 'Email parameter required for job access' 
+      });
+    }
     
     const result = await pool.query(
-      `SELECT id, job_type, status, result_data, error, created_at, completed_at 
+      `SELECT id, job_type, status, result_data, error, created_at, completed_at, email
        FROM jobs WHERE id = $1`,
       [id]
     );
@@ -983,18 +1182,29 @@ app.get('/api/jobs/:id', async (req, res) => {
     }
     
     const job = result.rows[0];
+    
+    // Verify ownership: only the user who created the job can access it
+    if (job.email !== email) {
+      return res.status(403).json({ 
+        error: 'Access denied: you can only access your own jobs' 
+      });
+    }
+    
+    // Remove email from response for privacy
+    const { email: _, ...jobResponse } = job;
+    
     res.json({
-      id: job.id,
-      job_type: job.job_type,
-      status: job.status,
-      result: job.result_data,
-      error: job.error,
-      created_at: job.created_at,
-      completed_at: job.completed_at
+      id: jobResponse.id,
+      job_type: jobResponse.job_type,
+      status: jobResponse.status,
+      result: jobResponse.result_data,
+      error: jobResponse.error,
+      created_at: jobResponse.created_at,
+      completed_at: jobResponse.completed_at
     });
   } catch (error) {
     console.error('Error fetching job:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

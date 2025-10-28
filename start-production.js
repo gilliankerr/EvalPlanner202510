@@ -60,6 +60,25 @@ if (isWorkerOnly) {
   childEnv.PORT = '5000';
 }
 
+// Optionally run DB migrations at startup when RUN_DB_MIGRATIONS=true
+if (process.env.RUN_DB_MIGRATIONS === 'true') {
+  console.log('🔁 RUN_DB_MIGRATIONS=true - running database migrations before starting service');
+  const { spawnSync } = require('child_process');
+  const migrate = spawnSync('npm', ['run', 'db:migrate'], { stdio: 'inherit', env: childEnv });
+  if (migrate.status !== 0) {
+    console.error('❌ Database migrations failed. Aborting startup.');
+    process.exit(migrate.status || 1);
+  }
+  console.log('✅ Database migrations completed successfully');
+}
+
+// Log optional migration tuning for visibility
+if (process.env.RUN_DB_MIGRATIONS === 'true') {
+  console.log(`   - DB_MIGRATE_ADVISORY_LOCK: ${process.env.DB_MIGRATE_ADVISORY_LOCK || '1234567890 (default)'}`);
+  console.log(`   - DB_MIGRATE_MAX_RETRIES: ${process.env.DB_MIGRATE_MAX_RETRIES || '12 (default)'}`);
+  console.log(`   - DB_MIGRATE_SLEEP_SECONDS: ${process.env.DB_MIGRATE_SLEEP_SECONDS || '5 (default)'}`);
+}
+
 const server = spawn('node', [entryScript], {
   stdio: 'inherit',
   env: childEnv
