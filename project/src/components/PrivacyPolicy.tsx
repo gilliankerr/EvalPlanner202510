@@ -52,7 +52,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onClose }) => {
             <ul className={styles.list}>
               <li><strong>AI providers (through OpenRouter):</strong> Your program name, organization name, descriptions, and scraped website content are sent to AI providers to generate your evaluation plan. These services operate under their own privacy policies.</li>
               <li><strong>Email service (Resend):</strong> We send your email address, program name, organization name, and the completed report to Resend for delivery. Resend operates under its own privacy policy.</li>
-              <li><strong>Database (PostgreSQL/Neon):</strong> Your data is temporarily stored in our database with encryption in transit and at rest.</li>
+              <li><strong>Database (PostgreSQL/Neon):</strong> Your data is temporarily stored in our database with encryption in transit.</li>
             </ul>
           </section>
 
