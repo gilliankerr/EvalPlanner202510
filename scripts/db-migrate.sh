@@ -40,7 +40,7 @@ echo "Acquiring advisory lock for migrations..."
 # Use a Postgres advisory lock to prevent concurrent migrations. The lock key can be customized
 # via DB_MIGRATE_ADVISORY_LOCK (should be a 64-bit signed integer). Default is 1234567890.
 LOCK_KEY=${DB_MIGRATE_ADVISORY_LOCK:-1234567890}
-psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<PSQL
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'PSQL'
 DO $$
 BEGIN
   -- Try to acquire a session-level advisory lock (bigint key) - block until acquired
@@ -52,7 +52,7 @@ echo "Applying schema migrations from $SCHEMA_FILE"
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$SCHEMA_FILE"
 
 echo "Releasing advisory lock"
-psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<PSQL
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'PSQL'
 DO $$
 BEGIN
   PERFORM pg_advisory_unlock($LOCK_KEY);

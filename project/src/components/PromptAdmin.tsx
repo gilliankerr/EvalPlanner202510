@@ -367,6 +367,16 @@ const PromptAdmin: React.FC<PromptAdminProps> = ({ onBack }) => {
             Admin Authentication Required
           </h2>
           <form onSubmit={verifyPassword} className={styles.authForm}>
+            <input
+              type="text"
+              name="username"
+              autoComplete="username"
+              value="admin"
+              readOnly
+              style={{ display: 'none' }}
+              aria-hidden="true"
+              tabIndex={-1}
+            />
             <div>
               <label className={styles.authLabel}>
                 Password

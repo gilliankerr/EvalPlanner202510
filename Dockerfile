@@ -25,6 +25,11 @@ ENV npm_config_fund=false
 ENV npm_config_audit=false
 ENV npm_config_ignore_scripts=true
 
+# Install PostgreSQL client for database migrations
+RUN apt-get update && \
+    apt-get install -y postgresql-client && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY package*.json ./
 COPY project/package*.json project/
 RUN npm ci --omit=dev
