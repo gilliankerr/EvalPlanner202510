@@ -18,13 +18,13 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onClose }) => {
         </div>
         
         <div className={styles.content}>
-          <p className={styles.lastUpdated}>Last updated: October 6, 2025</p>
+          <p className={styles.lastUpdated}>Last updated: October 28, 2025</p>
           
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>What information we collect</h3>
             <ul className={styles.list}>
               <li>Organization and program details you provide (name, description, URLs)</li>
-              <li>Email address (if you choose email delivery)</li>
+              <li>Email address you provide</li>
               <li>Web content extracted from URLs you provide</li>
             </ul>
           </section>
@@ -33,7 +33,6 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onClose }) => {
             <h3 className={styles.sectionTitle}>How we use your information</h3>
             <ul className={styles.list}>
               <li><strong>Email addresses:</strong> We use your email address only to send you the completed evaluation report and to track usage of the tool. We do not add you to mailing lists or share your email with anyone.</li>
-              <li><strong>Organization names:</strong> We capture organization names for internal monitoring purposes. Since we are funded to serve Canadian nonprofits, we use this information to track our reach and impact, but we will not report individual organization names publicly.</li>
               <li><strong>Program information:</strong> Your program details and web content are sent to AI service providers (such as OpenAI or Anthropic) to generate your customized evaluation plan.</li>
             </ul>
           </section>
@@ -41,8 +40,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onClose }) => {
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>Data retention and automatic deletion</h3>
             <ul className={styles.list}>
-              <li><strong>Your data is temporary:</strong> All job data (organization name, program details, AI-generated reports) is automatically deleted from our database 6 hours after completion or failure.</li>
-              <li><strong>No permanent storage:</strong> We do not keep your program information or reports beyond this 6-hour window.</li>
+              <li><strong>Your data is temporary:</strong> All data entered into the planner (organization name, program details) and the AI-generated reports is automatically deleted from our database 6 hours after completion or failure.</li>
               <li><strong>Email retention:</strong> Once we send your report via email, it exists in your inbox permanently (your choice). However, we delete it from our systems after 6 hours.</li>
               <li><strong>Access window:</strong> You can access your results via the web interface for 6 hours after completion, after which the data is permanently removed.</li>
             </ul>
@@ -52,9 +50,9 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onClose }) => {
             <h3 className={styles.sectionTitle}>Third-party services</h3>
             <p className={styles.paragraph}>To provide this service, we share your information with the following third parties:</p>
             <ul className={styles.list}>
-              <li><strong>AI providers (OpenRouter):</strong> Your program name, organization name, descriptions, and scraped website content are sent to AI providers to generate your evaluation plan. These services operate under their own privacy policies.</li>
-              <li><strong>Email service (Resend):</strong> If you choose email delivery, we send your email address, program name, organization name, and the completed report to Resend for delivery. Resend operates under its own privacy policy.</li>
-              <li><strong>Database (PostgreSQL/Neon):</strong> Your data is temporarily stored in our database with encryption in transit and at rest.</li>
+              <li><strong>AI providers (through OpenRouter):</strong> Your program name, organization name, descriptions, and scraped website content are sent to AI providers to generate your evaluation plan. These services operate under their own privacy policies.</li>
+              <li><strong>Email service (Resend):</strong> We send your email address, program name, organization name, and the completed report to Resend for delivery. Resend operates under its own privacy policy.</li>
+              <li><strong>Database (PostgreSQL/Neon):</strong> Your data is temporarily stored in our database with encryption in transit.</li>
             </ul>
           </section>
 
@@ -81,7 +79,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onClose }) => {
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>Questions or concerns</h3>
             <p className={styles.paragraph}>
-              For privacy questions, data requests, or concerns, please contact your system administrator.
+              For privacy questions, data requests, or concerns, please contact privacy@logicaloutcomes.net or see our Privacy Policy at <a href="https://www.logicaloutcomes.net/privacy-policy" target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>https://www.logicaloutcomes.net/privacy-policy</a>.
             </p>
           </section>
         </div>

@@ -316,6 +316,41 @@
   box-shadow: 0 0 0 2px #0085ca;
 }
 
+.statusBox {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  background-color: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.statusConfigured {
+  background-color: #ecfdf5;
+  border-color: #bbf7d0;
+}
+
+.statusUnconfigured {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+}
+
+.statusTitle {
+  font-weight: 600;
+  color: #111827;
+}
+
+.statusDescription {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.statusHint {
+  font-size: 0.75rem;
+  color: #b91c1c;
+}
+
 /* Instructions */
 .instructionsCard {
   background-color: white;

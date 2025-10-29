@@ -8,7 +8,7 @@ interface PromptData {
 
 export async function fetchPrompt(stepName: string): Promise<string> {
   try {
-    const response = await fetch(`${API_URL}/prompts/${stepName}`, {
+    const response = await fetch(`${API_URL}/prompts/content/${stepName}`, {
       cache: 'no-cache',
       headers: {
         'Cache-Control': 'no-cache',
